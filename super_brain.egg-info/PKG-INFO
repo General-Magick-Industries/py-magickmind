@@ -1,0 +1,22 @@
+Metadata-Version: 2.2
+Name: super_brain
+Version: 0.0.1
+Summary: A package for the Super Brain project
+Home-page: https://github.com/General-Magick-Industries/AGD_Super_Brain
+Author: GMI
+Author-email: minoak@globalmagicko.com
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+Dynamic: author
+Dynamic: author-email
+Dynamic: classifier
+Dynamic: description
+Dynamic: description-content-type
+Dynamic: home-page
+Dynamic: requires-python
+Dynamic: summary
+
+# Super Brain
