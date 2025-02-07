@@ -1,1 +1,1 @@
-from .module_one import add, subtract
+from .module_one import add, subtract, multiply, divide
