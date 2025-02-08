@@ -18,7 +18,4 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/General-Magick-Industries/AGD_Super_Brain"
-
-[tool.hatch.build.targets.wheel]
-packages = ["super_brain", "community"] 
+Homepage = "https://github.com/General-Magick-Industries/AGD_Super_Brain" 
