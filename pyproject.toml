@@ -8,7 +8,7 @@ version = "0.0.1"
 authors = [
     { name = "GMI", email = "minoak@globalmagicko.com" },
 ]
-description = "A package for the Super Brain project"
+description = "A package for the Super Brain project by General Magicko Industries"
 readme = "README.md"
 requires-python = ">=3.10"
 classifiers = [
