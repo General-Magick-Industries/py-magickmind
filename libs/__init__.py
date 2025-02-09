@@ -1,1 +1,1 @@
-from .super_brain import add, subtract, multiply, divide
+from .super_brain import reasoning
