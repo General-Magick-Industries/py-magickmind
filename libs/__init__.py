@@ -1,1 +1,1 @@
-from .super_brain import reasoning
+from .reasoning import MCTS
