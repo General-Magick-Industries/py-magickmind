@@ -602,3 +602,192 @@
 2025-02-11 14:15:30,921 - lightrag - INFO - Query: Physics, Velocity, Previous discussion, top_k: 60, cosine: 0.2
 2025-02-11 14:15:30,992 - lightrag - INFO - Query: Speed, Acceleration, Mechanics, Motion, top_k: 60, cosine: 0.2
 >>>>>>> origin/episodic_memory
+2025-02-11 15:07:03,905 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 15:07:03,906 - lightrag - INFO - Logger initialized for working directory: ./semantic_memory/core_knowledge
+2025-02-11 15:07:03,907 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 15:07:03,908 - lightrag - INFO - Load KV llm_response_cache with 0 data
+2025-02-11 15:07:03,908 - lightrag - INFO - Load KV full_docs with 0 data
+2025-02-11 15:07:03,910 - lightrag - INFO - Load KV text_chunks with 0 data
+2025-02-11 15:07:03,913 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 15:07:03,925 - lightrag - INFO - Logger initialized for working directory: ./semantic_memory/company_knowledge
+2025-02-11 15:07:03,927 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 15:07:03,928 - lightrag - INFO - Load KV llm_response_cache with 0 data
+2025-02-11 15:07:03,929 - lightrag - INFO - Load KV full_docs with 0 data
+2025-02-11 15:07:03,929 - lightrag - INFO - Load KV text_chunks with 0 data
+2025-02-11 15:07:03,935 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 15:07:03,940 - lightrag - INFO - Logger initialized for working directory: ./semantic_memory/personal_knowledge
+2025-02-11 15:07:03,942 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 15:07:03,944 - lightrag - INFO - Load KV llm_response_cache with 0 data
+2025-02-11 15:07:03,945 - lightrag - INFO - Load KV full_docs with 0 data
+2025-02-11 15:07:03,946 - lightrag - INFO - Load KV text_chunks with 0 data
+2025-02-11 15:07:03,951 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 15:07:03,952 - lightrag - INFO - Creating a new event loop in main thread.
+2025-02-11 15:07:07,107 - lightrag - INFO - Using hybrid mode for query processing
+2025-02-11 15:07:10,008 - lightrag - INFO - Query: Velocity, Physics, Conversation history, top_k: 60, cosine: 0.2
+2025-02-11 15:07:10,265 - lightrag - INFO - Query: Speed, Motion, Acceleration, Kinematics, Discussion, top_k: 60, cosine: 0.2
+2025-02-11 15:07:12,423 - lightrag - INFO - Using hybrid mode for query processing
+2025-02-11 15:07:14,115 - lightrag - INFO - Query: Velocity, Physics, Conversation history, top_k: 60, cosine: 0.2
+2025-02-11 15:07:14,148 - lightrag - INFO - Query: Speed, Motion, Discussion, Previous talks, top_k: 60, cosine: 0.2
+2025-02-11 15:07:15,937 - lightrag - INFO - Using hybrid mode for query processing
+2025-02-11 15:07:17,047 - lightrag - INFO - Query: Velocity, Physics, Conversation, top_k: 60, cosine: 0.2
+2025-02-11 15:07:17,324 - lightrag - INFO - Query: Discussion, Motion, Speed, Acceleration, top_k: 60, cosine: 0.2
+2025-02-11 15:07:18,601 - lightrag - WARNING - low_level_keywords is empty, switching from hybrid mode to global mode
+2025-02-11 15:07:18,601 - lightrag - INFO - Using global mode for query processing
+2025-02-11 15:07:19,818 - lightrag - INFO - Query: Velocity, Physics, Conversation history, top_k: 60, cosine: 0.2
+2025-02-11 15:11:25,160 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 15:11:25,161 - lightrag - INFO - Logger initialized for working directory: ./semantic_memory/core_knowledge
+2025-02-11 15:11:25,163 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 15:11:25,164 - lightrag - INFO - Load KV llm_response_cache with 1 data
+2025-02-11 15:11:25,165 - lightrag - INFO - Load KV full_docs with 0 data
+2025-02-11 15:11:25,165 - lightrag - INFO - Load KV text_chunks with 0 data
+2025-02-11 15:11:25,167 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 15:11:25,170 - lightrag - INFO - Logger initialized for working directory: ./semantic_memory/company_knowledge
+2025-02-11 15:11:25,172 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 15:11:25,173 - lightrag - INFO - Load KV llm_response_cache with 1 data
+2025-02-11 15:11:25,173 - lightrag - INFO - Load KV full_docs with 0 data
+2025-02-11 15:11:25,174 - lightrag - INFO - Load KV text_chunks with 0 data
+2025-02-11 15:11:25,177 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 15:11:25,180 - lightrag - INFO - Logger initialized for working directory: ./semantic_memory/personal_knowledge
+2025-02-11 15:11:25,182 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 15:11:25,182 - lightrag - INFO - Load KV llm_response_cache with 1 data
+2025-02-11 15:11:25,183 - lightrag - INFO - Load KV full_docs with 0 data
+2025-02-11 15:11:25,183 - lightrag - INFO - Load KV text_chunks with 0 data
+2025-02-11 15:11:25,186 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 15:11:25,187 - lightrag - INFO - Creating a new event loop in main thread.
+2025-02-11 15:11:27,497 - lightrag - INFO - Using hybrid mode for query processing
+2025-02-11 15:11:28,596 - lightrag - INFO - Query: Kinematics, Motion, Speed, Acceleration, top_k: 60, cosine: 0.2
+2025-02-11 15:11:29,222 - lightrag - INFO - Query: Velocity, Physics, top_k: 60, cosine: 0.2
+2025-02-11 15:11:31,514 - lightrag - INFO - Using hybrid mode for query processing
+2025-02-11 15:11:32,609 - lightrag - INFO - Query: Velocity, Physics, top_k: 60, cosine: 0.2
+2025-02-11 15:11:33,104 - lightrag - INFO - Query: Motion, Speed, Acceleration, Newton's laws, top_k: 60, cosine: 0.2
+2025-02-11 15:11:34,948 - lightrag - INFO - Using hybrid mode for query processing
+2025-02-11 15:11:36,723 - lightrag - INFO - Query: Speed, Motion, Acceleration, Force, top_k: 60, cosine: 0.2
+2025-02-11 15:11:36,740 - lightrag - INFO - Query: Velocity, Physics, Scientific discussion, top_k: 60, cosine: 0.2
+2025-02-11 15:11:39,364 - lightrag - INFO - Using hybrid mode for query processing
+2025-02-11 15:11:40,746 - lightrag - INFO - Query: Velocity, Physics, Discussion history, top_k: 60, cosine: 0.2
+2025-02-11 15:11:41,567 - lightrag - INFO - Query: Conversation, Talking, Subject matter, top_k: 60, cosine: 0.2
+2025-02-11 15:14:18,093 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 15:14:18,094 - lightrag - INFO - Logger initialized for working directory: ./semantic_memory/core_knowledge
+2025-02-11 15:14:18,095 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 15:14:18,095 - lightrag - INFO - Load KV llm_response_cache with 1 data
+2025-02-11 15:14:18,096 - lightrag - INFO - Load KV full_docs with 0 data
+2025-02-11 15:14:18,096 - lightrag - INFO - Load KV text_chunks with 0 data
+2025-02-11 15:14:18,103 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 15:14:18,105 - lightrag - INFO - Logger initialized for working directory: ./semantic_memory/company_knowledge
+2025-02-11 15:14:18,106 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 15:14:18,107 - lightrag - INFO - Load KV llm_response_cache with 1 data
+2025-02-11 15:14:18,108 - lightrag - INFO - Load KV full_docs with 0 data
+2025-02-11 15:14:18,109 - lightrag - INFO - Load KV text_chunks with 0 data
+2025-02-11 15:14:18,111 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 15:14:18,113 - lightrag - INFO - Logger initialized for working directory: ./semantic_memory/personal_knowledge
+2025-02-11 15:14:18,116 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 15:14:18,117 - lightrag - INFO - Load KV llm_response_cache with 1 data
+2025-02-11 15:14:18,117 - lightrag - INFO - Load KV full_docs with 0 data
+2025-02-11 15:14:18,119 - lightrag - INFO - Load KV text_chunks with 0 data
+2025-02-11 15:14:18,123 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 15:14:18,124 - lightrag - INFO - Creating a new event loop in main thread.
+2025-02-11 15:14:19,725 - lightrag - WARNING - low_level_keywords is empty, switching from hybrid mode to global mode
+2025-02-11 15:14:19,726 - lightrag - INFO - Using global mode for query processing
+2025-02-11 15:14:22,443 - lightrag - INFO - Query: Velocity, Physics, top_k: 60, cosine: 0.2
+2025-02-11 15:14:24,395 - lightrag - INFO - Using hybrid mode for query processing
+2025-02-11 15:14:27,202 - lightrag - INFO - Query: Velocity, Physics, Discussion history, top_k: 60, cosine: 0.2
+2025-02-11 15:14:27,551 - lightrag - INFO - Query: Talked, Query, Conversation, top_k: 60, cosine: 0.2
+2025-02-11 15:14:29,693 - lightrag - INFO - Using hybrid mode for query processing
+2025-02-11 15:14:32,396 - lightrag - INFO - Query: Discussion, Topics mentioned, Previous talks, top_k: 60, cosine: 0.2
+2025-02-11 15:14:32,539 - lightrag - INFO - Query: Velocity, Physics, Conversation history, top_k: 60, cosine: 0.2
+2025-02-11 15:14:34,742 - lightrag - INFO - Using hybrid mode for query processing
+2025-02-11 15:14:37,300 - lightrag - INFO - Query: Concept, Motion, Speed, Dynamics, top_k: 60, cosine: 0.2
+2025-02-11 15:14:37,617 - lightrag - INFO - Query: Velocity, Physics, Discussion history, top_k: 60, cosine: 0.2
+2025-02-11 15:16:23,122 - lightrag - INFO - Logger initialized for working directory: ./semantic_memory/domain_specific_knowledge
+2025-02-11 15:16:23,123 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 15:16:23,123 - lightrag - INFO - Load KV llm_response_cache with 1 data
+2025-02-11 15:16:23,124 - lightrag - INFO - Load KV full_docs with 0 data
+2025-02-11 15:16:23,124 - lightrag - INFO - Load KV text_chunks with 0 data
+2025-02-11 15:16:23,125 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 15:16:23,126 - lightrag - INFO - Logger initialized for working directory: ./semantic_memory/core_knowledge
+2025-02-11 15:16:23,126 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 15:16:23,126 - lightrag - INFO - Load KV llm_response_cache with 1 data
+2025-02-11 15:16:23,127 - lightrag - INFO - Load KV full_docs with 0 data
+2025-02-11 15:16:23,127 - lightrag - INFO - Load KV text_chunks with 0 data
+2025-02-11 15:16:23,128 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 15:16:23,129 - lightrag - INFO - Logger initialized for working directory: ./semantic_memory/company_knowledge
+2025-02-11 15:16:23,129 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 15:16:23,129 - lightrag - INFO - Load KV llm_response_cache with 1 data
+2025-02-11 15:16:23,130 - lightrag - INFO - Load KV full_docs with 0 data
+2025-02-11 15:16:23,130 - lightrag - INFO - Load KV text_chunks with 0 data
+2025-02-11 15:16:23,131 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 15:16:23,132 - lightrag - INFO - Logger initialized for working directory: ./semantic_memory/personal_knowledge
+2025-02-11 15:16:23,132 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 15:16:23,133 - lightrag - INFO - Load KV llm_response_cache with 1 data
+2025-02-11 15:16:23,133 - lightrag - INFO - Load KV full_docs with 0 data
+2025-02-11 15:16:23,133 - lightrag - INFO - Load KV text_chunks with 0 data
+2025-02-11 15:16:23,134 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 15:17:34,457 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 15:17:34,458 - lightrag - INFO - Logger initialized for working directory: ./semantic_memory/core_knowledge
+2025-02-11 15:17:34,458 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 15:17:34,459 - lightrag - INFO - Load KV llm_response_cache with 1 data
+2025-02-11 15:17:34,461 - lightrag - INFO - Load KV full_docs with 0 data
+2025-02-11 15:17:34,461 - lightrag - INFO - Load KV text_chunks with 0 data
+2025-02-11 15:17:34,465 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 15:17:34,466 - lightrag - INFO - Logger initialized for working directory: ./semantic_memory/company_knowledge
+2025-02-11 15:17:34,468 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 15:17:34,469 - lightrag - INFO - Load KV llm_response_cache with 1 data
+2025-02-11 15:17:34,470 - lightrag - INFO - Load KV full_docs with 0 data
+2025-02-11 15:17:34,470 - lightrag - INFO - Load KV text_chunks with 0 data
+2025-02-11 15:17:34,475 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 15:17:34,479 - lightrag - INFO - Logger initialized for working directory: ./semantic_memory/personal_knowledge
+2025-02-11 15:17:34,481 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 15:17:34,484 - lightrag - INFO - Load KV llm_response_cache with 1 data
+2025-02-11 15:17:34,485 - lightrag - INFO - Load KV full_docs with 0 data
+2025-02-11 15:17:34,486 - lightrag - INFO - Load KV text_chunks with 0 data
+2025-02-11 15:17:34,491 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 15:17:34,492 - lightrag - INFO - Creating a new event loop in main thread.
+2025-02-11 15:17:37,969 - lightrag - INFO - Using hybrid mode for query processing
+2025-02-11 15:17:40,271 - lightrag - INFO - Query: Convolutional layers, Pooling layers, Filters, Feature maps, Training data, top_k: 60, cosine: 0.2
+2025-02-11 15:17:40,638 - lightrag - INFO - Query: CNN, Neural networks, Deep learning, Image processing, top_k: 60, cosine: 0.2
+2025-02-11 15:17:43,873 - lightrag - INFO - Using hybrid mode for query processing
+2025-02-11 15:17:46,493 - lightrag - INFO - Query: Convolutional layers, Feature maps, Image recognition, Kernel, Backpropagation, top_k: 60, cosine: 0.2
+2025-02-11 15:17:47,364 - lightrag - INFO - Query: CNN, Neural networks, Deep learning, top_k: 60, cosine: 0.2
+2025-02-11 15:17:49,913 - lightrag - INFO - Using hybrid mode for query processing
+2025-02-11 15:17:50,918 - lightrag - INFO - Query: CNN, Neural networks, Machine learning, top_k: 60, cosine: 0.2
+2025-02-11 15:17:51,619 - lightrag - INFO - Query: Convolutional layers, Image processing, Feature maps, Deep learning, Artificial intelligence, top_k: 60, cosine: 0.2
+2025-02-11 15:17:53,571 - lightrag - INFO - Using hybrid mode for query processing
+2025-02-11 15:17:54,562 - lightrag - INFO - Query: CNN, Neural networks, top_k: 60, cosine: 0.2
+2025-02-11 15:17:54,774 - lightrag - INFO - Query: Convolutional layers, Image processing, Deep learning, Filters, Feature extraction, top_k: 60, cosine: 0.2
+2025-02-11 15:19:40,575 - lightrag - INFO - Logger initialized for working directory: ./semantic_memory/domain_specific_knowledge
+2025-02-11 15:19:40,576 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 15:19:40,576 - lightrag - INFO - Load KV llm_response_cache with 1 data
+2025-02-11 15:19:40,577 - lightrag - INFO - Load KV full_docs with 0 data
+2025-02-11 15:19:40,577 - lightrag - INFO - Load KV text_chunks with 0 data
+2025-02-11 15:19:40,578 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 15:19:40,579 - lightrag - INFO - Logger initialized for working directory: ./semantic_memory/core_knowledge
+2025-02-11 15:19:40,579 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 15:19:40,579 - lightrag - INFO - Load KV llm_response_cache with 1 data
+2025-02-11 15:19:40,580 - lightrag - INFO - Load KV full_docs with 0 data
+2025-02-11 15:19:40,580 - lightrag - INFO - Load KV text_chunks with 0 data
+2025-02-11 15:19:40,581 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 15:19:40,582 - lightrag - INFO - Logger initialized for working directory: ./semantic_memory/company_knowledge
+2025-02-11 15:19:40,582 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 15:19:40,582 - lightrag - INFO - Load KV llm_response_cache with 1 data
+2025-02-11 15:19:40,582 - lightrag - INFO - Load KV full_docs with 0 data
+2025-02-11 15:19:40,583 - lightrag - INFO - Load KV text_chunks with 0 data
+2025-02-11 15:19:40,583 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 15:19:40,584 - lightrag - INFO - Logger initialized for working directory: ./semantic_memory/personal_knowledge
+2025-02-11 15:19:40,585 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 15:19:40,585 - lightrag - INFO - Load KV llm_response_cache with 1 data
+2025-02-11 15:19:40,585 - lightrag - INFO - Load KV full_docs with 0 data
+2025-02-11 15:19:40,585 - lightrag - INFO - Load KV text_chunks with 0 data
+2025-02-11 15:19:40,586 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 15:19:43,675 - lightrag - INFO - Creating a new event loop in main thread.
+2025-02-11 15:19:45,887 - lightrag - INFO - Using hybrid mode for query processing
+2025-02-11 15:19:46,922 - lightrag - INFO - Query: Singer, Actress, Fashion icon, J.Lo, Film, Music, Television, top_k: 60, cosine: 0.2
+2025-02-11 15:19:47,025 - lightrag - INFO - Query: Jennifer Lopez, Celebrity, Entertainment industry, top_k: 60, cosine: 0.2
+2025-02-11 15:19:49,246 - lightrag - INFO - Using hybrid mode for query processing
+2025-02-11 15:19:50,342 - lightrag - INFO - Query: Celebrity, Entertainment industry, Pop culture, top_k: 60, cosine: 0.2
+2025-02-11 15:19:50,437 - lightrag - INFO - Query: Jennifer Lopez, Singer, Actress, J.Lo, American, top_k: 60, cosine: 0.2
+2025-02-11 15:19:59,877 - lightrag - INFO - Using hybrid mode for query processing
+2025-02-11 15:20:00,963 - lightrag - INFO - Query: Jennifer Lopez, Celebrity, Entertainment Industry, top_k: 60, cosine: 0.2
+2025-02-11 15:20:01,720 - lightrag - INFO - Query: Singer, Actress, Dancer, Albums, Movies, Awards, top_k: 60, cosine: 0.2
+2025-02-11 15:20:04,594 - lightrag - INFO - Using hybrid mode for query processing
+2025-02-11 15:20:05,560 - lightrag - INFO - Query: Singer, Actress, Dancer, J.Lo, Filmography, Discography, Fashion, top_k: 60, cosine: 0.2
+2025-02-11 15:20:05,954 - lightrag - INFO - Query: Jennifer Lopez, Celebrity, Entertainment industry, top_k: 60, cosine: 0.2
