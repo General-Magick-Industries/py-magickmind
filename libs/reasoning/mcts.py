@@ -1,3 +1,4 @@
+import os
 import math
 import random
 import numpy as np
@@ -21,8 +22,8 @@ def chat_completion_request(prompt, model_name):
         messages=messages,
         temperature=1.0,
         max_tokens=1500,
-        # api_key=SETTINGS.ENVIRONMENT_VARIABLES.LITELLM_API_KEY,
-        # base_url=SETTINGS.ENVIRONMENT_VARIABLES.LITELLM_BASE_URL,
+        api_key=os.environ.get("LITELLM_API_KEY"),
+        base_url=os.environ.get("LITELLM_BASE_URL"),
     )
 
     # Extract the completion text from the response
@@ -34,8 +35,11 @@ def chat_completion_request(prompt, model_name):
 
 
 # Get Critique
-def get_critique(question, draft_answer, model_name):
+def get_critique(question, draft_answer, model_name, episodic_memory, semantic_memory):
     prompt = (
+        f"Episodic Memory: {episodic_memory}\n"
+        f"Semantic Memory: {semantic_memory}\n"
+        "You can use the episodic memory and semantic memory to improve the answer if the user question is related to the episodic memory or semantic memory."
         f"Question: {question}\n"
         f"Draft Answer: {draft_answer}\n"
         "Please critique the draft answer. "
@@ -51,8 +55,11 @@ def get_critique(question, draft_answer, model_name):
     return chat_completion_request(prompt, model_name)
 
 
-def improve_answer(question, draft_answer, critique, model_name):
+def improve_answer(question, draft_answer, critique, model_name, episodic_memory, semantic_memory):
     prompt = (
+        f"Episodic Memory: {episodic_memory}\n"
+        f"Semantic Memory: {semantic_memory}\n"
+        "You can use the episodic memory and semantic memory to improve the answer if the user question is related to the episodic memory or semantic memory."
         f"Question: {question}\n"
         f"Draft Answer: {draft_answer}\n"
         f"Critique: {critique}\n\n"
@@ -68,6 +75,45 @@ def improve_answer(question, draft_answer, critique, model_name):
     # print(f"Improved response: {improved_response}")
 
     return improved_response
+
+
+def rate_answer(rating_model, question, answer, episodic_memory, semantic_memory):
+    prompt = (
+        f"Episodic Memory: {episodic_memory}\n"
+        f"Semantic Memory: {semantic_memory}\n"
+        "You can use the episodic memory and semantic memory to improve the answer if the user question is related to the episodic memory or semantic memory."
+        f"Question: {question}\n"
+        f"Answer: {answer}\n\n"
+        "As an expert on this topic, please provide a detailed critique of the answer, pointing out every flaw. "
+        "Provide only a critique, not a suggested answer. "
+        "Then, rate the answer on a scale of 0 to 100. "
+        "The response should be in the following format:\n"
+        "Critique: <detailed critique>\n"
+        "Rating: <rating>"
+    )
+
+    # Create the request to the LLM
+    rating_response = chat_completion_request(
+        prompt, rating_model)
+
+    # Extract the rating
+    try:
+        match = re.search(r'Rating:\s*(\d+)', rating_response)
+        if match:
+            rating = int(match.group(1))
+            if rating > 95:
+                rating = 95
+            rating = float(rating) / 100
+        else:
+            raise ValueError("Rating not found in the response")
+    except Exception as e:
+        print(f"Error extracting rating: {e}")
+        # print(f"Rating response was: {rating_response}")
+        rating = 0.0
+
+    # print(f"\nRating: {rating}")
+    # print(rating_response)
+    return rating
 
 
 class Node:
@@ -101,56 +147,34 @@ class Node:
         self.children.append(child_node)
 
 
-def rate_answer(question, answer):
-    prompt = (
-        f"Question: {question}\n"
-        f"Answer: {answer}\n\n"
-        "As an expert on this topic, please provide a detailed critique of the answer, pointing out every flaw. "
-        "Provide only a critique, not a suggested answer. "
-        "Then, rate the answer on a scale of 0 to 100. "
-        "The response should be in the following format:\n"
-        "Critique: <detailed critique>\n"
-        "Rating: <rating>"
-    )
-
-    # Create the request to the LLM
-    rating_response = chat_completion_request(
-        prompt, "anthropic/claude-3-5-sonnet-20240620")
-
-    # Extract the rating
-    try:
-        match = re.search(r'Rating:\s*(\d+)', rating_response)
-        if match:
-            rating = int(match.group(1))
-            if rating > 95:
-                rating = 95
-            rating = float(rating) / 100
-        else:
-            raise ValueError("Rating not found in the response")
-    except Exception as e:
-        # print(f"Error extracting rating: {e}")
-        # print(f"Rating response was: {rating_response}")
-        rating = 0.0
-
-    # print(f"\nRating: {rating}")
-    # print(rating_response)
-    return rating
-
-
 class MCTS:
-    def __init__(self, question, seed_answers, model_names, iterations=2, max_depth=3):
+    def __init__(
+        self,
+        question,
+        seed_answers,
+        model_names,
+        rating_model,
+        episodic_memory: str = None,
+        semantic_memory: str = None,
+        iterations=2,
+        max_depth=3
+    ):
         self.question = question
         self.seed_answers = seed_answers
         self.model_names = model_names
         self.iterations = iterations
-        self.max_depth = max_depth  # New parameter for maximum depth
+        self.max_depth = max_depth
+        self.rating_model = rating_model
+        self.episodic_memory = episodic_memory
+        self.semantic_memory = semantic_memory
         initial_model = random.choice(model_names)
         self.root = Node(question, random.choice(seed_answers), initial_model)
-        self.current_depth = 0  # Track current depth
+        self.current_depth = 0
 
     def search(self):
         for i in range(self.iterations):
-            # print(f"\nIteration {i+1}/{self.iterations}")
+            print(f"\nIteration {i+1}/{self.iterations}")
+
             self.current_depth = 0  # Reset depth at start of each iteration
             node = self.select(self.root)
             # print(f"Selected Node: {node.answer}")
@@ -161,7 +185,19 @@ class MCTS:
             # print(f"\nSimulated Reward: {reward}")
             self.backpropagate(node, reward)
         # print(f"Visits to most visited child: {self.root.most_visited_child().visits}")
-        return self.root.most_visited_child().answer
+        best_answer = self.root.most_visited_child().answer
+
+        # print(f"Best Answer: {best_answer}")
+
+        match = re.search(r'Final Answer:(.*?)(?=\Z)', best_answer, re.DOTALL)
+
+        if match:
+            best_answer = match.group(1).strip()
+        else:
+            # If no "Final Answer:" found, return the original answer
+            best_answer = best_answer.strip()
+
+        return best_answer
 
     def select(self, node):
         while node.is_fully_expanded() and node.children:
@@ -179,14 +215,16 @@ class MCTS:
             node.add_child(child_node)
 
             critique = get_critique(
-                self.question, child_node.answer, child_node.model_name)
+                self.question, child_node.answer, child_node.model_name, self.episodic_memory, self.semantic_memory)
             # print(f"\n--Critique {j}--\n{critique}")
 
             improved_answer = improve_answer(
                 self.question,
                 child_node.answer,
                 critique,
-                child_node.model_name
+                child_node.model_name,
+                self.episodic_memory,
+                self.semantic_memory
             )
             # print(f"\n--Improved answer {j}--\n{improved_answer}")
 
@@ -194,7 +232,8 @@ class MCTS:
         return random.choice(node.children)
 
     def simulate(self, node):
-        rating = rate_answer(self.question, node.answer)
+        rating = rate_answer(
+            self.rating_model, self.question, node.answer, self.episodic_memory, self.semantic_memory)
         return rating
 
     def backpropagate(self, node, reward):

@@ -1,0 +1,177 @@
+2025-02-10 02:34:14,207 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-10 02:34:16,082 - lightrag - INFO - Using local mode for query processing
+2025-02-10 02:34:17,575 - lightrag - INFO - Query: France, Paris, top_k: 60, cosine: 0.2
+2025-02-10 02:35:36,633 - lightrag - INFO - Loaded document status storage with 2 records
+2025-02-10 02:35:38,797 - lightrag - INFO - Using local mode for query processing
+2025-02-10 02:35:40,235 - lightrag - INFO - Query: Legislation, Regulations, Statutes, Ordinances, top_k: 60, cosine: 0.2
+2025-02-10 02:35:40,423 - lightrag - INFO - Local query uses 60 entites, 47 relations, 3 text units
+2025-02-10 02:36:12,416 - lightrag - INFO - Loaded document status storage with 2 records
+2025-02-10 02:36:14,547 - lightrag - INFO - Using hybrid mode for query processing
+2025-02-10 02:36:15,786 - lightrag - INFO - Query: Capital cities, Geography, top_k: 60, cosine: 0.2
+2025-02-10 02:36:15,960 - lightrag - INFO - Query: France, Paris, top_k: 60, cosine: 0.2
+2025-02-10 02:36:15,970 - lightrag - INFO - Global query uses 32 entites, 21 relations, 3 text units
+2025-02-10 02:36:15,971 - lightrag - INFO - Local query uses 3 entites, 1 relations, 2 text units
+2025-02-10 02:36:28,621 - lightrag - INFO - Loaded document status storage with 2 records
+2025-02-10 02:36:30,423 - lightrag - INFO - Using global mode for query processing
+2025-02-10 02:36:31,508 - lightrag - INFO - Query: Capital city, Geography, top_k: 60, cosine: 0.2
+2025-02-10 02:36:31,688 - lightrag - INFO - Global query uses 50 entites, 33 relations, 3 text units
+2025-02-10 02:37:57,055 - lightrag - INFO - Loaded document status storage with 2 records
+2025-02-10 02:37:57,063 - lightrag - INFO - Processing 1 new unique documents
+2025-02-10 02:37:57,243 - lightrag - INFO - Inserting 1 vectors to chunks
+2025-02-10 02:38:24,096 - lightrag - INFO - Inserting 17 vectors to entities
+2025-02-10 02:38:26,057 - lightrag - INFO - Inserting 6 vectors to relationships
+2025-02-10 02:38:27,838 - lightrag - INFO - Writing graph with 1802 nodes, 692 edges
+2025-02-10 02:38:29,820 - lightrag - INFO - Using global mode for query processing
+2025-02-10 02:38:31,170 - lightrag - INFO - Query: Capital cities, Geography, top_k: 60, cosine: 0.2
+2025-02-10 02:38:31,179 - lightrag - INFO - Global query uses 44 entites, 27 relations, 3 text units
+2025-02-10 02:39:30,088 - lightrag - INFO - Loaded document status storage with 3 records
+2025-02-10 02:39:30,089 - lightrag - INFO - Processing 1 new unique documents
+2025-02-10 02:39:30,284 - lightrag - INFO - Inserting 1 vectors to chunks
+2025-02-10 02:39:50,575 - lightrag - INFO - Inserting 18 vectors to entities
+2025-02-10 02:39:52,595 - lightrag - INFO - Inserting 6 vectors to relationships
+2025-02-10 02:39:54,333 - lightrag - INFO - Writing graph with 1809 nodes, 693 edges
+2025-02-10 02:39:56,178 - lightrag - INFO - Using global mode for query processing
+2025-02-10 02:39:57,617 - lightrag - INFO - Query: Capital Cities, Geography, top_k: 60, cosine: 0.2
+2025-02-10 02:39:57,625 - lightrag - INFO - Global query uses 30 entites, 17 relations, 3 text units
+2025-02-10 02:40:26,172 - lightrag - INFO - Loaded document status storage with 4 records
+2025-02-10 02:40:26,173 - lightrag - INFO - Processing 1 new unique documents
+2025-02-10 02:40:26,358 - lightrag - INFO - Inserting 1 vectors to chunks
+2025-02-10 02:40:47,090 - lightrag - INFO - Inserting 18 vectors to entities
+2025-02-10 02:40:49,769 - lightrag - INFO - Inserting 6 vectors to relationships
+2025-02-10 02:40:51,324 - lightrag - INFO - Writing graph with 1810 nodes, 694 edges
+2025-02-10 02:40:53,002 - lightrag - INFO - Using local mode for query processing
+2025-02-10 02:40:54,371 - lightrag - INFO - Query: France, Paris, top_k: 60, cosine: 0.2
+2025-02-10 02:40:54,379 - lightrag - INFO - Local query uses 14 entites, 8 relations, 5 text units
+2025-02-10 02:41:31,665 - lightrag - INFO - Loaded document status storage with 5 records
+2025-02-10 02:41:31,667 - lightrag - INFO - Processing 1 new unique documents
+2025-02-10 02:41:31,843 - lightrag - INFO - Inserting 1 vectors to chunks
+2025-02-10 02:41:40,052 - lightrag - INFO - Inserting 4 vectors to entities
+2025-02-10 02:41:42,006 - lightrag - INFO - Inserting 1 vectors to relationships
+2025-02-10 02:41:43,537 - lightrag - INFO - Writing graph with 1810 nodes, 694 edges
+2025-02-10 02:41:45,112 - lightrag - INFO - Using local mode for query processing
+2025-02-10 02:41:46,330 - lightrag - INFO - Query: France, Paris, top_k: 60, cosine: 0.2
+2025-02-10 02:41:46,340 - lightrag - INFO - Local query uses 14 entites, 8 relations, 6 text units
+2025-02-10 02:42:25,035 - lightrag - INFO - Loaded document status storage with 6 records
+2025-02-10 02:42:25,036 - lightrag - INFO - All documents have been processed or are duplicates
+2025-02-10 02:42:27,609 - lightrag - INFO - Using local mode for query processing
+2025-02-10 02:42:29,102 - lightrag - INFO - Query: Flat Earth theory, Thomas Friedman, World views, Global economy, top_k: 60, cosine: 0.2
+2025-02-10 02:42:29,277 - lightrag - INFO - Local query uses 4 entites, 5 relations, 5 text units
+2025-02-11 13:02:37,003 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 13:02:37,004 - lightrag - INFO - Logger initialized for working directory: ./sematic_memory/core_knowledge
+2025-02-11 13:02:37,004 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 13:02:37,037 - lightrag - INFO - Load KV llm_response_cache with 4 data
+2025-02-11 13:02:37,040 - lightrag - INFO - Load KV full_docs with 6 data
+2025-02-11 13:02:37,044 - lightrag - INFO - Load KV text_chunks with 175 data
+2025-02-11 13:02:37,078 - lightrag - INFO - Loaded graph from ./sematic_memory/core_knowledge\graph_chunk_entity_relation.graphml with 1810 nodes, 694 edges
+2025-02-11 13:02:37,219 - lightrag - INFO - Loaded document status storage with 6 records
+2025-02-11 13:02:37,219 - lightrag - INFO - Logger initialized for working directory: ./sematic_memory/company_knowledge
+2025-02-11 13:02:37,220 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 13:02:37,220 - lightrag - INFO - Load KV llm_response_cache with 0 data
+2025-02-11 13:02:37,220 - lightrag - INFO - Load KV full_docs with 0 data
+2025-02-11 13:02:37,220 - lightrag - INFO - Load KV text_chunks with 0 data
+2025-02-11 13:02:37,221 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 13:02:37,222 - lightrag - INFO - Logger initialized for working directory: ./sematic_memory/personal_knowledge
+2025-02-11 13:02:37,222 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 13:02:37,222 - lightrag - INFO - Load KV llm_response_cache with 0 data
+2025-02-11 13:02:37,222 - lightrag - INFO - Load KV full_docs with 0 data
+2025-02-11 13:02:37,222 - lightrag - INFO - Load KV text_chunks with 0 data
+2025-02-11 13:02:37,223 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 13:03:20,790 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 13:03:20,791 - lightrag - INFO - Logger initialized for working directory: ./sematic_memory/core_knowledge
+2025-02-11 13:03:20,791 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 13:03:20,820 - lightrag - INFO - Load KV llm_response_cache with 4 data
+2025-02-11 13:03:20,824 - lightrag - INFO - Load KV full_docs with 6 data
+2025-02-11 13:03:20,829 - lightrag - INFO - Load KV text_chunks with 175 data
+2025-02-11 13:03:20,854 - lightrag - INFO - Loaded graph from ./sematic_memory/core_knowledge\graph_chunk_entity_relation.graphml with 1810 nodes, 694 edges
+2025-02-11 13:03:20,969 - lightrag - INFO - Loaded document status storage with 6 records
+2025-02-11 13:03:20,970 - lightrag - INFO - Logger initialized for working directory: ./sematic_memory/company_knowledge
+2025-02-11 13:03:20,970 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 13:03:20,970 - lightrag - INFO - Load KV llm_response_cache with 0 data
+2025-02-11 13:03:20,970 - lightrag - INFO - Load KV full_docs with 0 data
+2025-02-11 13:03:20,970 - lightrag - INFO - Load KV text_chunks with 0 data
+2025-02-11 13:03:20,971 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 13:03:20,971 - lightrag - INFO - Logger initialized for working directory: ./sematic_memory/personal_knowledge
+2025-02-11 13:03:20,971 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 13:03:20,972 - lightrag - INFO - Load KV llm_response_cache with 0 data
+2025-02-11 13:03:20,972 - lightrag - INFO - Load KV full_docs with 0 data
+2025-02-11 13:03:20,972 - lightrag - INFO - Load KV text_chunks with 0 data
+2025-02-11 13:03:20,972 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 13:03:23,748 - lightrag - INFO - Using hybrid mode for query processing
+2025-02-11 13:03:25,309 - lightrag - INFO - Query: Pop music, Singer, Dancer, Albums, Thriller, King of Pop, top_k: 60, cosine: 0.2
+2025-02-11 13:03:25,543 - lightrag - INFO - Query: Michael Jackson, Celebrity, Music industry, top_k: 60, cosine: 0.2
+2025-02-11 13:03:27,907 - lightrag - INFO - Using hybrid mode for query processing
+2025-02-11 13:03:29,445 - lightrag - INFO - Query: Michael Jackson, Personality, Biography, top_k: 60, cosine: 0.2
+2025-02-11 13:03:29,644 - lightrag - INFO - Query: Pop music, Singer, Dancer, King of Pop, Albums, Thriller, Billie Jean, top_k: 60, cosine: 0.2
+2025-02-11 13:03:29,651 - lightrag - INFO - Global query uses 4 entites, 2 relations, 2 text units
+2025-02-11 13:03:33,235 - lightrag - INFO - Using hybrid mode for query processing
+2025-02-11 13:03:34,435 - lightrag - INFO - Query: Pop singer, King of Pop, Thriller, Billie Jean, Grammy Awards, top_k: 60, cosine: 0.2
+2025-02-11 13:03:34,670 - lightrag - INFO - Query: Michael Jackson, Music, Entertainment industry, top_k: 60, cosine: 0.2
+2025-02-11 13:03:36,737 - lightrag - INFO - Using hybrid mode for query processing
+2025-02-11 13:03:38,197 - lightrag - INFO - Query: Michael Jackson, Music, Entertainment industry, top_k: 60, cosine: 0.2
+2025-02-11 13:03:38,205 - lightrag - INFO - Query: Pop music, Albums, Songs, Thriller, King of Pop, Moonwalk, Grammy Awards, top_k: 60, cosine: 0.2
+2025-02-11 13:04:14,705 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 13:04:14,705 - lightrag - INFO - Logger initialized for working directory: ./sematic_memory/core_knowledge
+2025-02-11 13:04:14,705 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 13:04:14,734 - lightrag - INFO - Load KV llm_response_cache with 4 data
+2025-02-11 13:04:14,738 - lightrag - INFO - Load KV full_docs with 6 data
+2025-02-11 13:04:14,742 - lightrag - INFO - Load KV text_chunks with 175 data
+2025-02-11 13:04:14,767 - lightrag - INFO - Loaded graph from ./sematic_memory/core_knowledge\graph_chunk_entity_relation.graphml with 1810 nodes, 694 edges
+2025-02-11 13:04:14,883 - lightrag - INFO - Loaded document status storage with 6 records
+2025-02-11 13:04:14,884 - lightrag - INFO - Logger initialized for working directory: ./sematic_memory/company_knowledge
+2025-02-11 13:04:14,884 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 13:04:14,884 - lightrag - INFO - Load KV llm_response_cache with 1 data
+2025-02-11 13:04:14,884 - lightrag - INFO - Load KV full_docs with 0 data
+2025-02-11 13:04:14,884 - lightrag - INFO - Load KV text_chunks with 0 data
+2025-02-11 13:04:14,885 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 13:04:14,885 - lightrag - INFO - Logger initialized for working directory: ./sematic_memory/personal_knowledge
+2025-02-11 13:04:14,885 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 13:04:14,886 - lightrag - INFO - Load KV llm_response_cache with 1 data
+2025-02-11 13:04:14,886 - lightrag - INFO - Load KV full_docs with 0 data
+2025-02-11 13:04:14,886 - lightrag - INFO - Load KV text_chunks with 0 data
+2025-02-11 13:04:14,887 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 13:04:17,773 - lightrag - INFO - Using hybrid mode for query processing
+2025-02-11 13:04:18,816 - lightrag - INFO - Query: Michael Jackson, Celebrity profile, top_k: 60, cosine: 0.2
+2025-02-11 13:04:19,507 - lightrag - INFO - Query: Pop music, Thriller, King of Pop, Grammy Awards, Moonwalk, 1965, June 25, 2009, top_k: 60, cosine: 0.2
+2025-02-11 13:04:21,662 - lightrag - INFO - Using hybrid mode for query processing
+2025-02-11 13:04:22,809 - lightrag - INFO - Query: Singer, King of Pop, Musician, Thriller, Moonwalk, Entertainment industry, top_k: 60, cosine: 0.2
+2025-02-11 13:04:22,984 - lightrag - INFO - Query: Michael Jackson, Famous personalities, top_k: 60, cosine: 0.2
+2025-02-11 13:04:22,988 - lightrag - INFO - Local query uses 1 entites, 1 relations, 1 text units
+2025-02-11 13:04:26,088 - lightrag - INFO - Using hybrid mode for query processing
+2025-02-11 13:04:27,376 - lightrag - INFO - Query: Celebrity, Music Industry, Pop Culture, top_k: 60, cosine: 0.2
+2025-02-11 13:04:27,662 - lightrag - INFO - Query: Michael Jackson, Singer, Dancer, King of Pop, Thriller, Jackson 5, top_k: 60, cosine: 0.2
+2025-02-11 13:04:28,891 - lightrag - INFO - Using hybrid mode for query processing
+2025-02-11 13:04:29,736 - lightrag - INFO - Query: Pop music, King of Pop, Thriller, Moonwalk, Grammy Awards, top_k: 60, cosine: 0.2
+2025-02-11 13:04:30,705 - lightrag - INFO - Query: Michael Jackson, Biography, Music industry, top_k: 60, cosine: 0.2
+2025-02-11 13:09:23,322 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 13:09:23,322 - lightrag - INFO - Logger initialized for working directory: ./sematic_memory/core_knowledge
+2025-02-11 13:09:23,323 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 13:09:23,352 - lightrag - INFO - Load KV llm_response_cache with 4 data
+2025-02-11 13:09:23,356 - lightrag - INFO - Load KV full_docs with 6 data
+2025-02-11 13:09:23,360 - lightrag - INFO - Load KV text_chunks with 175 data
+2025-02-11 13:09:23,384 - lightrag - INFO - Loaded graph from ./sematic_memory/core_knowledge\graph_chunk_entity_relation.graphml with 1810 nodes, 694 edges
+2025-02-11 13:09:23,497 - lightrag - INFO - Loaded document status storage with 6 records
+2025-02-11 13:09:23,498 - lightrag - INFO - Logger initialized for working directory: ./sematic_memory/company_knowledge
+2025-02-11 13:09:23,499 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 13:09:23,499 - lightrag - INFO - Load KV llm_response_cache with 1 data
+2025-02-11 13:09:23,499 - lightrag - INFO - Load KV full_docs with 0 data
+2025-02-11 13:09:23,499 - lightrag - INFO - Load KV text_chunks with 0 data
+2025-02-11 13:09:23,500 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 13:09:23,500 - lightrag - INFO - Logger initialized for working directory: ./sematic_memory/personal_knowledge
+2025-02-11 13:09:23,500 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 13:09:23,501 - lightrag - INFO - Load KV llm_response_cache with 1 data
+2025-02-11 13:09:23,501 - lightrag - INFO - Load KV full_docs with 0 data
+2025-02-11 13:09:23,501 - lightrag - INFO - Load KV text_chunks with 0 data
+2025-02-11 13:09:23,502 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 13:09:25,341 - lightrag - INFO - Using hybrid mode for query processing
+2025-02-11 13:09:26,725 - lightrag - INFO - Query: Michael Jackson, Music industry, Pop culture, top_k: 60, cosine: 0.2
+2025-02-11 13:09:26,850 - lightrag - INFO - Query: Singer, Dancer, King of Pop, Thriller, Moonwalk, 1980s, Grammy Awards, top_k: 60, cosine: 0.2
+2025-02-11 13:09:29,296 - lightrag - INFO - Using hybrid mode for query processing
+2025-02-11 13:09:30,419 - lightrag - INFO - Query: Michael Jackson, Celebrity, Music, top_k: 60, cosine: 0.2
+2025-02-11 13:09:31,058 - lightrag - INFO - Query: Pop icon, Singer, Dancer, King of Pop, Thriller album, Grammy Awards, Moonwalk, top_k: 60, cosine: 0.2
+2025-02-11 13:09:31,243 - lightrag - INFO - Local query uses 1 entites, 1 relations, 3 text units
+2025-02-11 13:09:35,095 - lightrag - INFO - Using hybrid mode for query processing
+2025-02-11 13:09:36,285 - lightrag - INFO - Query: Singer, Dancer, Pop music, King of Pop, Thriller, Moonwalk, Grammy Awards, top_k: 60, cosine: 0.2
+2025-02-11 13:09:36,688 - lightrag - INFO - Query: Michael Jackson, Celebrity biography, top_k: 60, cosine: 0.2
+2025-02-11 13:09:38,640 - lightrag - INFO - Using hybrid mode for query processing
+2025-02-11 13:09:40,043 - lightrag - INFO - Query: Michael Jackson, Pop culture, Music industry, top_k: 60, cosine: 0.2
+2025-02-11 13:09:40,334 - lightrag - INFO - Query: Singer, Dancer, Entertainer, King of Pop, Thriller, Moonwalk, top_k: 60, cosine: 0.2

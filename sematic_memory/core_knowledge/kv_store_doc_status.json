@@ -1,0 +1,50 @@
+{
+  "doc-65b821dc5d61e6e845a334b120f72c0f": {
+    "content_summary": "SAMUIFORSALE (/)\nHOME (HTTP://WWW.SAMUIFORSALE.COM)\nREAL ESTATE (HTTP://WWW.SAMUIFORSALE.COM/KNOWLED...",
+    "content_length": 596803,
+    "status": "processed",
+    "created_at": "2025-02-07T11:49:38.463143",
+    "updated_at": "2025-02-07T11:53:13.330988",
+    "chunks_count": 125
+  },
+  "doc-6ef19f1c657e836e5f1a77c9144cd478": {
+    "content_summary": "Criminal Code, B.E. 2499 (1956)\nAs Amended until the Criminal Code (No. 17), B.E. 2547(2003)\nTransla...",
+    "content_length": 223833,
+    "status": "processed",
+    "created_at": "2025-02-07T11:53:13.589081",
+    "updated_at": "2025-02-07T11:54:48.532453",
+    "chunks_count": 46
+  },
+  "doc-226023a0436f4073b1db9615eef74707": {
+    "content_summary": "the capital of France is Paris\nthe capital of Germany is Berlin\nthe capital of Italy is Rome\nthe cap...",
+    "content_length": 189,
+    "status": "processed",
+    "created_at": "2025-02-10T02:37:57.063966",
+    "updated_at": "2025-02-10T02:38:27.672417",
+    "chunks_count": 1
+  },
+  "doc-6e459e292c09831cb5355afa423a1cad": {
+    "content_summary": "the capital of France is Myanmar\nthe capital of Germany is Berlin\nthe capital of Italy is Rome\nthe c...",
+    "content_length": 191,
+    "status": "processed",
+    "created_at": "2025-02-10T02:39:30.089832",
+    "updated_at": "2025-02-10T02:39:54.168394",
+    "chunks_count": 1
+  },
+  "doc-8527717aaf5c016fde3403d174020e30": {
+    "content_summary": "the capital of France is Yangon.\nthe capital of Germany is Berlin\nthe capital of Italy is Rome\nthe c...",
+    "content_length": 191,
+    "status": "processed",
+    "created_at": "2025-02-10T02:40:26.173723",
+    "updated_at": "2025-02-10T02:40:51.155028",
+    "chunks_count": 1
+  },
+  "doc-cbeb601f9cbed905a0411d31327a5a60": {
+    "content_summary": "The capital of France is Yangon.\nThe capital of France is Yangon.\nThe capital of France is Yangon.\nT...",
+    "content_length": 494,
+    "status": "processed",
+    "created_at": "2025-02-10T02:41:31.667233",
+    "updated_at": "2025-02-10T02:41:43.369368",
+    "chunks_count": 1
+  }
+}

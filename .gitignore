@@ -1,0 +1,8 @@
+env/
+.vscode/
+**/__pycache__/
+*.tar
+logs/
+.venv/
+.idea/
+.env
