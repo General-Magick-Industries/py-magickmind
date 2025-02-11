@@ -2,6 +2,7 @@ from typing import List
 from lightrag import QueryParam
 from libs.reasoning.mcts import MCTS
 from libs.memories.sematic_memory import get_sematic_memory, SEMATIC_MEMORY_TYPE
+from libs.memories.episodic_memory import get_episodic_memory
 
 DEFAULT_RATING_MODEL = "anthropic/claude-3-5-sonnet-20240620"
 
@@ -61,19 +62,23 @@ class SuperBrain:
                 f"Personal Knowledge: {personal_knowledge}\n"
 
             print(f"Sematic Memory: {semantic_memory}")
+        
+        episodic_memory = get_episodic_memory(question)
+        print(f"Episodic Memory: {episodic_memory}")
 
-            mcts = MCTS(
-                question=question,
-                seed_answers=seed_answers,
-                model_names=small_brains,
-                rating_model=self.rating_model,
-                iterations=iterations,
-                max_depth=max_depth,
-                semantic_memory=semantic_memory
-            )
+        mcts = MCTS(
+            question=question,
+            seed_answers=seed_answers,
+            model_names=small_brains,
+            rating_model=self.rating_model,
+            iterations=iterations,
+            max_depth=max_depth,
+            semantic_memory=semantic_memory,
+            episodic_memory=episodic_memory
+        )
 
-            answer = mcts.search()
-            return answer
+        answer = mcts.search()
+        return answer
 
     def insert(self, file_path: str, type: SEMATIC_MEMORY_TYPE):
         with open(file_path, "r") as file:
