@@ -17,6 +17,7 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies = [
+    "fastapi[standard]>=0.115.8",
     "lightrag-hku>=1.1.5",
     "litellm>=1.60.8",
     "nano-vectordb>=0.0.4.3",

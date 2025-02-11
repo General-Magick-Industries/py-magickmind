@@ -5,28 +5,28 @@ from lightrag.llm.openai import gpt_4o_complete, openai_embed
 from enum import Enum as PyEnum
 
 
-class SEMATIC_MEMORY_TYPE(PyEnum):
+class SEMANTIC_MEMORY_TYPE(PyEnum):
     DOMAIN_SPECIFIC_KNOWLEDGE = "domain_specific_knowledge"
     CORE_KNOWLEDGE = "core_knowledge"
     COMPANY_KNOWLEDGE = "company_knowledge"
     PERSONAL_KNOWLEDGE = "personal_knowledge"
 
 
-def get_sematic_memory(type: SEMATIC_MEMORY_TYPE) -> LightRAG:
+def get_semantic_memory(type: SEMANTIC_MEMORY_TYPE) -> LightRAG:
 
-    WORKING_DIRECTORY = "./sematic_memory"
+    WORKING_DIRECTORY = "./semantic_memory"
 
     if not os.path.exists(WORKING_DIRECTORY):
         os.makedirs(WORKING_DIRECTORY)
 
     match type:
-        case SEMATIC_MEMORY_TYPE.CORE_KNOWLEDGE:
+        case SEMANTIC_MEMORY_TYPE.CORE_KNOWLEDGE:
             WORKING_DIRECTORY = WORKING_DIRECTORY + "/core_knowledge"
-        case SEMATIC_MEMORY_TYPE.COMPANY_KNOWLEDGE:
+        case SEMANTIC_MEMORY_TYPE.COMPANY_KNOWLEDGE:
             WORKING_DIRECTORY = WORKING_DIRECTORY + "/company_knowledge"
-        case SEMATIC_MEMORY_TYPE.PERSONAL_KNOWLEDGE:
+        case SEMANTIC_MEMORY_TYPE.PERSONAL_KNOWLEDGE:
             WORKING_DIRECTORY = WORKING_DIRECTORY + "/personal_knowledge"
-        case SEMATIC_MEMORY_TYPE.DOMAIN_SPECIFIC_KNOWLEDGE:
+        case SEMANTIC_MEMORY_TYPE.DOMAIN_SPECIFIC_KNOWLEDGE:
             WORKING_DIRECTORY = WORKING_DIRECTORY + "/domain_specific_knowledge"
 
     if not os.path.exists(WORKING_DIRECTORY):

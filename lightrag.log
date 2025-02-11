@@ -175,3 +175,225 @@
 2025-02-11 13:09:38,640 - lightrag - INFO - Using hybrid mode for query processing
 2025-02-11 13:09:40,043 - lightrag - INFO - Query: Michael Jackson, Pop culture, Music industry, top_k: 60, cosine: 0.2
 2025-02-11 13:09:40,334 - lightrag - INFO - Query: Singer, Dancer, Entertainer, King of Pop, Thriller, Moonwalk, top_k: 60, cosine: 0.2
+2025-02-11 13:44:30,921 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 13:44:30,921 - lightrag - INFO - Logger initialized for working directory: ./sematic_memory/core_knowledge
+2025-02-11 13:44:30,922 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 13:44:30,958 - lightrag - INFO - Load KV llm_response_cache with 4 data
+2025-02-11 13:44:30,961 - lightrag - INFO - Load KV full_docs with 6 data
+2025-02-11 13:44:30,966 - lightrag - INFO - Load KV text_chunks with 175 data
+2025-02-11 13:44:30,995 - lightrag - INFO - Loaded graph from ./sematic_memory/core_knowledge\graph_chunk_entity_relation.graphml with 1810 nodes, 694 edges
+2025-02-11 13:44:31,149 - lightrag - INFO - Loaded document status storage with 6 records
+2025-02-11 13:44:31,149 - lightrag - INFO - Logger initialized for working directory: ./sematic_memory/company_knowledge
+2025-02-11 13:44:31,150 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 13:44:31,150 - lightrag - INFO - Load KV llm_response_cache with 1 data
+2025-02-11 13:44:31,150 - lightrag - INFO - Load KV full_docs with 0 data
+2025-02-11 13:44:31,150 - lightrag - INFO - Load KV text_chunks with 0 data
+2025-02-11 13:44:31,151 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 13:44:31,151 - lightrag - INFO - Logger initialized for working directory: ./sematic_memory/personal_knowledge
+2025-02-11 13:44:31,151 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 13:44:31,151 - lightrag - INFO - Load KV llm_response_cache with 1 data
+2025-02-11 13:44:31,153 - lightrag - INFO - Load KV full_docs with 0 data
+2025-02-11 13:44:31,153 - lightrag - INFO - Load KV text_chunks with 0 data
+2025-02-11 13:44:31,154 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 13:45:00,478 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 13:45:00,478 - lightrag - INFO - Logger initialized for working directory: ./sematic_memory/core_knowledge
+2025-02-11 13:45:00,478 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 13:45:00,514 - lightrag - INFO - Load KV llm_response_cache with 4 data
+2025-02-11 13:45:00,518 - lightrag - INFO - Load KV full_docs with 6 data
+2025-02-11 13:45:00,523 - lightrag - INFO - Load KV text_chunks with 175 data
+2025-02-11 13:45:00,553 - lightrag - INFO - Loaded graph from ./sematic_memory/core_knowledge\graph_chunk_entity_relation.graphml with 1810 nodes, 694 edges
+2025-02-11 13:45:00,653 - lightrag - INFO - Loaded document status storage with 6 records
+2025-02-11 13:45:00,653 - lightrag - INFO - Logger initialized for working directory: ./sematic_memory/company_knowledge
+2025-02-11 13:45:00,653 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 13:45:00,653 - lightrag - INFO - Load KV llm_response_cache with 1 data
+2025-02-11 13:45:00,653 - lightrag - INFO - Load KV full_docs with 0 data
+2025-02-11 13:45:00,653 - lightrag - INFO - Load KV text_chunks with 0 data
+2025-02-11 13:45:00,655 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 13:45:00,655 - lightrag - INFO - Logger initialized for working directory: ./sematic_memory/personal_knowledge
+2025-02-11 13:45:00,656 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 13:45:00,656 - lightrag - INFO - Load KV llm_response_cache with 1 data
+2025-02-11 13:45:00,656 - lightrag - INFO - Load KV full_docs with 0 data
+2025-02-11 13:45:00,656 - lightrag - INFO - Load KV text_chunks with 0 data
+2025-02-11 13:45:00,657 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 13:45:00,657 - lightrag - INFO - Creating a new event loop in main thread.
+2025-02-11 13:45:02,617 - lightrag - INFO - Using hybrid mode for query processing
+2025-02-11 13:45:03,606 - lightrag - INFO - Query: Singer, Dancer, Thriller, King of Pop, Moonwalk, Grammy Awards, top_k: 60, cosine: 0.2
+2025-02-11 13:45:04,366 - lightrag - INFO - Query: Michael Jackson, Entertainer, Pop culture, top_k: 60, cosine: 0.2
+2025-02-11 13:45:05,643 - lightrag - INFO - Using hybrid mode for query processing
+2025-02-11 13:45:06,807 - lightrag - INFO - Query: Music, Pop culture icon, top_k: 60, cosine: 0.2
+2025-02-11 13:45:06,981 - lightrag - INFO - Global query uses 2 entites, 1 relations, 3 text units
+2025-02-11 13:45:07,324 - lightrag - INFO - Query: Michael Jackson, Singer, King of Pop, Albums, Moonwalk, top_k: 60, cosine: 0.2
+2025-02-11 13:45:07,330 - lightrag - INFO - Local query uses 1 entites, 1 relations, 1 text units
+2025-02-11 13:45:10,053 - lightrag - INFO - Using hybrid mode for query processing
+2025-02-11 13:45:10,995 - lightrag - INFO - Query: Pop singer, King of Pop, Thriller, Moonwalk, Grammy Awards, 1980s, 1990s, top_k: 60, cosine: 0.2
+2025-02-11 13:45:11,811 - lightrag - INFO - Query: Michael Jackson, Celebrity, Music industry, top_k: 60, cosine: 0.2
+2025-02-11 13:45:13,894 - lightrag - INFO - Using hybrid mode for query processing
+2025-02-11 13:45:14,714 - lightrag - INFO - Query: Singer, Dancer, King of Pop, Thriller, Moonwalk, Grammy Awards, Jackson 5, top_k: 60, cosine: 0.2
+2025-02-11 13:45:17,432 - lightrag - INFO - Query: Michael Jackson, Pop culture, Music history, top_k: 60, cosine: 0.2
+2025-02-11 14:00:37,837 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 14:00:37,837 - lightrag - INFO - Logger initialized for working directory: ./sematic_memory/core_knowledge
+2025-02-11 14:00:37,838 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 14:00:37,838 - lightrag - INFO - Load KV llm_response_cache with 0 data
+2025-02-11 14:00:37,838 - lightrag - INFO - Load KV full_docs with 0 data
+2025-02-11 14:00:37,838 - lightrag - INFO - Load KV text_chunks with 0 data
+2025-02-11 14:00:37,839 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 14:00:37,839 - lightrag - INFO - Logger initialized for working directory: ./sematic_memory/company_knowledge
+2025-02-11 14:00:37,839 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 14:00:37,840 - lightrag - INFO - Load KV llm_response_cache with 0 data
+2025-02-11 14:00:37,840 - lightrag - INFO - Load KV full_docs with 0 data
+2025-02-11 14:00:37,840 - lightrag - INFO - Load KV text_chunks with 0 data
+2025-02-11 14:00:37,841 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 14:00:37,841 - lightrag - INFO - Logger initialized for working directory: ./sematic_memory/personal_knowledge
+2025-02-11 14:00:37,841 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 14:00:37,841 - lightrag - INFO - Load KV llm_response_cache with 0 data
+2025-02-11 14:00:37,841 - lightrag - INFO - Load KV full_docs with 0 data
+2025-02-11 14:00:37,842 - lightrag - INFO - Load KV text_chunks with 0 data
+2025-02-11 14:00:37,842 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 14:03:23,084 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 14:03:23,084 - lightrag - INFO - Logger initialized for working directory: ./sematic_memory/core_knowledge
+2025-02-11 14:03:23,084 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 14:03:23,084 - lightrag - INFO - Load KV llm_response_cache with 0 data
+2025-02-11 14:03:23,084 - lightrag - INFO - Load KV full_docs with 0 data
+2025-02-11 14:03:23,085 - lightrag - INFO - Load KV text_chunks with 0 data
+2025-02-11 14:03:23,085 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 14:03:23,085 - lightrag - INFO - Logger initialized for working directory: ./sematic_memory/company_knowledge
+2025-02-11 14:03:23,086 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 14:03:23,086 - lightrag - INFO - Load KV llm_response_cache with 0 data
+2025-02-11 14:03:23,086 - lightrag - INFO - Load KV full_docs with 0 data
+2025-02-11 14:03:23,086 - lightrag - INFO - Load KV text_chunks with 0 data
+2025-02-11 14:03:23,086 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 14:03:23,087 - lightrag - INFO - Logger initialized for working directory: ./sematic_memory/personal_knowledge
+2025-02-11 14:03:23,087 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 14:03:23,087 - lightrag - INFO - Load KV llm_response_cache with 0 data
+2025-02-11 14:03:23,087 - lightrag - INFO - Load KV full_docs with 0 data
+2025-02-11 14:03:23,087 - lightrag - INFO - Load KV text_chunks with 0 data
+2025-02-11 14:03:23,088 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 14:04:11,902 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 14:04:11,903 - lightrag - INFO - Logger initialized for working directory: ./sematic_memory/core_knowledge
+2025-02-11 14:04:11,903 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 14:04:11,903 - lightrag - INFO - Load KV llm_response_cache with 0 data
+2025-02-11 14:04:11,903 - lightrag - INFO - Load KV full_docs with 0 data
+2025-02-11 14:04:11,904 - lightrag - INFO - Load KV text_chunks with 0 data
+2025-02-11 14:04:11,904 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 14:04:11,905 - lightrag - INFO - Logger initialized for working directory: ./sematic_memory/company_knowledge
+2025-02-11 14:04:11,905 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 14:04:11,905 - lightrag - INFO - Load KV llm_response_cache with 0 data
+2025-02-11 14:04:11,905 - lightrag - INFO - Load KV full_docs with 0 data
+2025-02-11 14:04:11,905 - lightrag - INFO - Load KV text_chunks with 0 data
+2025-02-11 14:04:11,906 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 14:04:11,906 - lightrag - INFO - Logger initialized for working directory: ./sematic_memory/personal_knowledge
+2025-02-11 14:04:11,906 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 14:04:11,906 - lightrag - INFO - Load KV llm_response_cache with 0 data
+2025-02-11 14:04:11,907 - lightrag - INFO - Load KV full_docs with 0 data
+2025-02-11 14:04:11,907 - lightrag - INFO - Load KV text_chunks with 0 data
+2025-02-11 14:04:11,907 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 14:06:26,241 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 14:06:26,242 - lightrag - INFO - Logger initialized for working directory: ./sematic_memory/core_knowledge
+2025-02-11 14:06:26,242 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 14:06:26,242 - lightrag - INFO - Load KV llm_response_cache with 0 data
+2025-02-11 14:06:26,242 - lightrag - INFO - Load KV full_docs with 0 data
+2025-02-11 14:06:26,242 - lightrag - INFO - Load KV text_chunks with 0 data
+2025-02-11 14:06:26,243 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 14:06:26,243 - lightrag - INFO - Logger initialized for working directory: ./sematic_memory/company_knowledge
+2025-02-11 14:06:26,243 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 14:06:26,243 - lightrag - INFO - Load KV llm_response_cache with 0 data
+2025-02-11 14:06:26,244 - lightrag - INFO - Load KV full_docs with 0 data
+2025-02-11 14:06:26,244 - lightrag - INFO - Load KV text_chunks with 0 data
+2025-02-11 14:06:26,244 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 14:06:26,244 - lightrag - INFO - Logger initialized for working directory: ./sematic_memory/personal_knowledge
+2025-02-11 14:06:26,245 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 14:06:26,245 - lightrag - INFO - Load KV llm_response_cache with 0 data
+2025-02-11 14:06:26,245 - lightrag - INFO - Load KV full_docs with 0 data
+2025-02-11 14:06:26,245 - lightrag - INFO - Load KV text_chunks with 0 data
+2025-02-11 14:06:26,245 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 14:06:26,281 - lightrag - INFO - Processing 1 new unique documents
+2025-02-11 14:06:26,508 - lightrag - INFO - Inserting 46 vectors to chunks
+2025-02-11 14:07:53,031 - lightrag - INFO - Inserting 585 vectors to entities
+2025-02-11 14:08:01,088 - lightrag - INFO - Inserting 222 vectors to relationships
+2025-02-11 14:08:05,288 - lightrag - INFO - Writing graph with 592 nodes, 222 edges
+2025-02-11 14:09:14,473 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 14:09:14,473 - lightrag - INFO - Logger initialized for working directory: ./semantic_memory/core_knowledge
+2025-02-11 14:09:14,473 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 14:09:14,473 - lightrag - INFO - Load KV llm_response_cache with 0 data
+2025-02-11 14:09:14,473 - lightrag - INFO - Load KV full_docs with 0 data
+2025-02-11 14:09:14,473 - lightrag - INFO - Load KV text_chunks with 0 data
+2025-02-11 14:09:14,474 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 14:09:14,474 - lightrag - INFO - Logger initialized for working directory: ./semantic_memory/company_knowledge
+2025-02-11 14:09:14,474 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 14:09:14,474 - lightrag - INFO - Load KV llm_response_cache with 0 data
+2025-02-11 14:09:14,474 - lightrag - INFO - Load KV full_docs with 0 data
+2025-02-11 14:09:14,475 - lightrag - INFO - Load KV text_chunks with 0 data
+2025-02-11 14:09:14,475 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 14:09:14,475 - lightrag - INFO - Logger initialized for working directory: ./semantic_memory/personal_knowledge
+2025-02-11 14:09:14,476 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 14:09:14,476 - lightrag - INFO - Load KV llm_response_cache with 0 data
+2025-02-11 14:09:14,476 - lightrag - INFO - Load KV full_docs with 0 data
+2025-02-11 14:09:14,476 - lightrag - INFO - Load KV text_chunks with 0 data
+2025-02-11 14:09:14,476 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 14:09:14,514 - lightrag - INFO - Processing 1 new unique documents
+2025-02-11 14:09:14,716 - lightrag - INFO - Inserting 46 vectors to chunks
+2025-02-11 14:10:36,052 - lightrag - INFO - Inserting 568 vectors to entities
+2025-02-11 14:10:43,888 - lightrag - INFO - Inserting 155 vectors to relationships
+2025-02-11 14:10:47,677 - lightrag - INFO - Writing graph with 577 nodes, 155 edges
+2025-02-11 14:13:08,675 - lightrag - INFO - Loaded document status storage with 1 records
+2025-02-11 14:13:08,676 - lightrag - INFO - Logger initialized for working directory: ./semantic_memory/core_knowledge
+2025-02-11 14:13:08,677 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 14:13:08,677 - lightrag - INFO - Load KV llm_response_cache with 0 data
+2025-02-11 14:13:08,677 - lightrag - INFO - Load KV full_docs with 0 data
+2025-02-11 14:13:08,677 - lightrag - INFO - Load KV text_chunks with 0 data
+2025-02-11 14:13:08,678 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 14:13:08,679 - lightrag - INFO - Logger initialized for working directory: ./semantic_memory/company_knowledge
+2025-02-11 14:13:08,679 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 14:13:08,679 - lightrag - INFO - Load KV llm_response_cache with 0 data
+2025-02-11 14:13:08,679 - lightrag - INFO - Load KV full_docs with 0 data
+2025-02-11 14:13:08,679 - lightrag - INFO - Load KV text_chunks with 0 data
+2025-02-11 14:13:08,680 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 14:13:08,680 - lightrag - INFO - Logger initialized for working directory: ./semantic_memory/personal_knowledge
+2025-02-11 14:13:08,681 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 14:13:08,681 - lightrag - INFO - Load KV llm_response_cache with 0 data
+2025-02-11 14:13:08,681 - lightrag - INFO - Load KV full_docs with 0 data
+2025-02-11 14:13:08,681 - lightrag - INFO - Load KV text_chunks with 0 data
+2025-02-11 14:13:08,682 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 14:13:45,250 - lightrag - INFO - Loaded document status storage with 1 records
+2025-02-11 14:13:45,250 - lightrag - INFO - Logger initialized for working directory: ./semantic_memory/core_knowledge
+2025-02-11 14:13:45,251 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 14:13:45,251 - lightrag - INFO - Load KV llm_response_cache with 0 data
+2025-02-11 14:13:45,251 - lightrag - INFO - Load KV full_docs with 0 data
+2025-02-11 14:13:45,251 - lightrag - INFO - Load KV text_chunks with 0 data
+2025-02-11 14:13:45,252 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 14:13:45,252 - lightrag - INFO - Logger initialized for working directory: ./semantic_memory/company_knowledge
+2025-02-11 14:13:45,252 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 14:13:45,252 - lightrag - INFO - Load KV llm_response_cache with 0 data
+2025-02-11 14:13:45,252 - lightrag - INFO - Load KV full_docs with 0 data
+2025-02-11 14:13:45,253 - lightrag - INFO - Load KV text_chunks with 0 data
+2025-02-11 14:13:45,253 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 14:13:45,253 - lightrag - INFO - Logger initialized for working directory: ./semantic_memory/personal_knowledge
+2025-02-11 14:13:45,253 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 14:13:45,253 - lightrag - INFO - Load KV llm_response_cache with 0 data
+2025-02-11 14:13:45,254 - lightrag - INFO - Load KV full_docs with 0 data
+2025-02-11 14:13:45,254 - lightrag - INFO - Load KV text_chunks with 0 data
+2025-02-11 14:13:45,254 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 14:15:12,349 - lightrag - INFO - Loaded document status storage with 1 records
+2025-02-11 14:15:12,350 - lightrag - INFO - Logger initialized for working directory: ./semantic_memory/core_knowledge
+2025-02-11 14:15:12,350 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 14:15:12,351 - lightrag - INFO - Load KV llm_response_cache with 0 data
+2025-02-11 14:15:12,351 - lightrag - INFO - Load KV full_docs with 0 data
+2025-02-11 14:15:12,351 - lightrag - INFO - Load KV text_chunks with 0 data
+2025-02-11 14:15:12,352 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 14:15:12,352 - lightrag - INFO - Logger initialized for working directory: ./semantic_memory/company_knowledge
+2025-02-11 14:15:12,353 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 14:15:12,353 - lightrag - INFO - Load KV llm_response_cache with 0 data
+2025-02-11 14:15:12,353 - lightrag - INFO - Load KV full_docs with 0 data
+2025-02-11 14:15:12,353 - lightrag - INFO - Load KV text_chunks with 0 data
+2025-02-11 14:15:12,354 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 14:15:12,354 - lightrag - INFO - Logger initialized for working directory: ./semantic_memory/personal_knowledge
+2025-02-11 14:15:12,354 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 14:15:12,355 - lightrag - INFO - Load KV llm_response_cache with 0 data
+2025-02-11 14:15:12,355 - lightrag - INFO - Load KV full_docs with 0 data
+2025-02-11 14:15:12,355 - lightrag - INFO - Load KV text_chunks with 0 data
+2025-02-11 14:15:12,356 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 14:15:12,357 - lightrag - INFO - Processing 1 new unique documents
+2025-02-11 14:15:12,585 - lightrag - INFO - Inserting 46 vectors to chunks
+2025-02-11 14:16:48,469 - lightrag - INFO - Inserting 599 vectors to entities
+2025-02-11 14:16:57,376 - lightrag - INFO - Inserting 187 vectors to relationships
+2025-02-11 14:17:02,649 - lightrag - INFO - Writing graph with 605 nodes, 187 edges

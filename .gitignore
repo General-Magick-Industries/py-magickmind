@@ -6,3 +6,6 @@ logs/
 .venv/
 .idea/
 .env
+semantic_memory/
+semantic_memory/**
+tmp/

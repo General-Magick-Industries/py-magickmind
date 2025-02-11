@@ -1,7 +1,7 @@
 from typing import List
 from lightrag import QueryParam
 from libs.reasoning.mcts import MCTS
-from libs.memories.sematic_memory import get_sematic_memory, SEMATIC_MEMORY_TYPE
+from libs.memories.sematic_memory import get_semantic_memory, SEMANTIC_MEMORY_TYPE
 
 DEFAULT_RATING_MODEL = "anthropic/claude-3-5-sonnet-20240620"
 
@@ -16,17 +16,17 @@ class SuperBrain:
         self.rating_model = rating_model
 
         if include_semetic_memory:
-            self.domain_knowledge = get_sematic_memory(
-                SEMATIC_MEMORY_TYPE.DOMAIN_SPECIFIC_KNOWLEDGE)
+            self.domain_knowledge = get_semantic_memory(
+                SEMANTIC_MEMORY_TYPE.DOMAIN_SPECIFIC_KNOWLEDGE)
 
-            self.core_knowledge = get_sematic_memory(
-                SEMATIC_MEMORY_TYPE.CORE_KNOWLEDGE)
+            self.core_knowledge = get_semantic_memory(
+                SEMANTIC_MEMORY_TYPE.CORE_KNOWLEDGE)
 
-            self.company_knowledge = get_sematic_memory(
-                SEMATIC_MEMORY_TYPE.COMPANY_KNOWLEDGE)
+            self.company_knowledge = get_semantic_memory(
+                SEMANTIC_MEMORY_TYPE.COMPANY_KNOWLEDGE)
 
-            self.personal_knowledge = get_sematic_memory(
-                SEMATIC_MEMORY_TYPE.PERSONAL_KNOWLEDGE)
+            self.personal_knowledge = get_semantic_memory(
+                SEMANTIC_MEMORY_TYPE.PERSONAL_KNOWLEDGE)
         else:
             self.domain_knowledge = None
             self.core_knowledge = None
@@ -75,17 +75,21 @@ class SuperBrain:
             answer = mcts.search()
             return answer
 
-    def insert(self, file_path: str, type: SEMATIC_MEMORY_TYPE):
-        with open(file_path, "r") as file:
-            match type:
-                case SEMATIC_MEMORY_TYPE.DOMAIN_SPECIFIC_KNOWLEDGE:
-                    self.domain_knowledge.insert(file.read())
+    async def insert(self, file_path: str, type: SEMANTIC_MEMORY_TYPE):
+        try:
+            with open(file_path, "r", encoding="utf-8") as file:
+                content = file.read()
+        except UnicodeDecodeError:
+            # Fallback to read as binary and decode with a more permissive encoding
+            with open(file_path, "rb") as file:
+                content = file.read().decode('utf-8', errors='ignore')
 
-                case SEMATIC_MEMORY_TYPE.CORE_KNOWLEDGE:
-                    self.core_knowledge.insert(file.read())
-
-                case SEMATIC_MEMORY_TYPE.COMPANY_KNOWLEDGE:
-                    self.company_knowledge.insert(file.read())
-
-                case SEMATIC_MEMORY_TYPE.PERSONAL_KNOWLEDGE:
-                    self.personal_knowledge.insert(file.read())
+        match type:
+            case SEMANTIC_MEMORY_TYPE.DOMAIN_SPECIFIC_KNOWLEDGE:
+                await self.domain_knowledge.ainsert(content)
+            case SEMANTIC_MEMORY_TYPE.CORE_KNOWLEDGE:
+                await self.core_knowledge.ainsert(content)
+            case SEMANTIC_MEMORY_TYPE.COMPANY_KNOWLEDGE:
+                await self.company_knowledge.ainsert(content)
+            case SEMANTIC_MEMORY_TYPE.PERSONAL_KNOWLEDGE:
+                await self.personal_knowledge.ainsert(content)
