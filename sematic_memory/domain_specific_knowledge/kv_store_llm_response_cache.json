@@ -1,0 +1,22 @@
+{
+  "hybrid": {
+    "3e407ed5b4c2465ec1fb4d338b03743c": {
+      "return": "{\"high_level_keywords\": [\"Michael Jackson\", \"Famous individuals\", \"Music industry\"], \"low_level_keywords\": [\"Singer\", \"Dancer\", \"Pop music\", \"King of Pop\", \"Thriller\", \"Grammy Awards\"]}",
+      "cache_type": "keywords",
+      "embedding": null,
+      "embedding_shape": null,
+      "embedding_min": null,
+      "embedding_max": null,
+      "original_prompt": "Who is Michael Jackson?"
+    },
+    "69cab37b5a62716dab944ffc64f1cde5": {
+      "return": "{\"high_level_keywords\": [\"Velocity\", \"Physics\", \"Discussion\"], \"low_level_keywords\": [\"Speed\", \"Motion\", \"Acceleration\", \"Forces\", \"Newton's laws\"]}",
+      "cache_type": "keywords",
+      "embedding": null,
+      "embedding_shape": null,
+      "embedding_min": null,
+      "embedding_max": null,
+      "original_prompt": "Did we talk about velocity and physics?"
+    }
+  }
+}

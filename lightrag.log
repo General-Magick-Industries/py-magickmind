@@ -175,6 +175,7 @@
 2025-02-11 13:09:38,640 - lightrag - INFO - Using hybrid mode for query processing
 2025-02-11 13:09:40,043 - lightrag - INFO - Query: Michael Jackson, Pop culture, Music industry, top_k: 60, cosine: 0.2
 2025-02-11 13:09:40,334 - lightrag - INFO - Query: Singer, Dancer, Entertainer, King of Pop, Thriller, Moonwalk, top_k: 60, cosine: 0.2
+<<<<<<< HEAD
 2025-02-11 13:44:30,921 - lightrag - INFO - Loaded document status storage with 0 records
 2025-02-11 13:44:30,921 - lightrag - INFO - Logger initialized for working directory: ./sematic_memory/core_knowledge
 2025-02-11 13:44:30,922 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
@@ -397,3 +398,207 @@
 2025-02-11 14:16:48,469 - lightrag - INFO - Inserting 599 vectors to entities
 2025-02-11 14:16:57,376 - lightrag - INFO - Inserting 187 vectors to relationships
 2025-02-11 14:17:02,649 - lightrag - INFO - Writing graph with 605 nodes, 187 edges
+=======
+2025-02-11 14:01:47,646 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 14:01:47,646 - lightrag - INFO - Logger initialized for working directory: ./sematic_memory/core_knowledge
+2025-02-11 14:01:47,646 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 14:01:47,687 - lightrag - INFO - Load KV llm_response_cache with 4 data
+2025-02-11 14:01:47,691 - lightrag - INFO - Load KV full_docs with 6 data
+2025-02-11 14:01:47,696 - lightrag - INFO - Load KV text_chunks with 175 data
+2025-02-11 14:01:47,766 - lightrag - INFO - Loaded graph from ./sematic_memory/core_knowledge\graph_chunk_entity_relation.graphml with 1810 nodes, 694 edges
+2025-02-11 14:01:47,878 - lightrag - INFO - Loaded document status storage with 6 records
+2025-02-11 14:01:47,879 - lightrag - INFO - Logger initialized for working directory: ./sematic_memory/company_knowledge
+2025-02-11 14:01:47,879 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 14:01:47,879 - lightrag - INFO - Load KV llm_response_cache with 1 data
+2025-02-11 14:01:47,879 - lightrag - INFO - Load KV full_docs with 0 data
+2025-02-11 14:01:47,880 - lightrag - INFO - Load KV text_chunks with 0 data
+2025-02-11 14:01:47,881 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 14:01:47,882 - lightrag - INFO - Logger initialized for working directory: ./sematic_memory/personal_knowledge
+2025-02-11 14:01:47,882 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 14:01:47,883 - lightrag - INFO - Load KV llm_response_cache with 1 data
+2025-02-11 14:01:47,883 - lightrag - INFO - Load KV full_docs with 0 data
+2025-02-11 14:01:47,883 - lightrag - INFO - Load KV text_chunks with 0 data
+2025-02-11 14:01:47,884 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 14:01:51,400 - lightrag - INFO - Using hybrid mode for query processing
+2025-02-11 14:01:53,002 - lightrag - INFO - Query: Michael Jackson, Famous individuals, Music industry, top_k: 60, cosine: 0.2
+2025-02-11 14:01:53,312 - lightrag - INFO - Query: Singer, Dancer, Pop music, King of Pop, Thriller, Grammy Awards, top_k: 60, cosine: 0.2
+2025-02-11 14:01:56,779 - lightrag - INFO - Using hybrid mode for query processing
+2025-02-11 14:01:57,873 - lightrag - INFO - Query: Michael Jackson, Famous personalities, Entertainment industry, top_k: 60, cosine: 0.2
+2025-02-11 14:01:58,129 - lightrag - INFO - Query: Pop music, Thriller, King of Pop, Moonwalk, Grammy Awards, top_k: 60, cosine: 0.2
+2025-02-11 14:01:58,137 - lightrag - INFO - Global query uses 2 entites, 1 relations, 1 text units
+2025-02-11 14:02:03,140 - lightrag - INFO - Using hybrid mode for query processing
+2025-02-11 14:02:04,268 - lightrag - INFO - Query: Michael Jackson, Famous individuals, Pop culture, Celebrity, top_k: 60, cosine: 0.2
+2025-02-11 14:02:04,874 - lightrag - INFO - Query: Singer, Dancer, King of Pop, Thriller, Moonwalk, 80s music, Grammy Awards, top_k: 60, cosine: 0.2
+2025-02-11 14:02:07,793 - lightrag - INFO - Using hybrid mode for query processing
+2025-02-11 14:02:09,022 - lightrag - INFO - Query: Michael Jackson, Music industry, Pop culture, top_k: 60, cosine: 0.2
+2025-02-11 14:02:09,326 - lightrag - INFO - Query: Singer, Dancer, Songwriter, King of Pop, Thriller, Moonwalk, Grammy Awards, top_k: 60, cosine: 0.2
+2025-02-11 14:05:43,200 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 14:05:43,200 - lightrag - INFO - Logger initialized for working directory: ./sematic_memory/core_knowledge
+2025-02-11 14:05:43,200 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 14:05:43,235 - lightrag - INFO - Load KV llm_response_cache with 4 data
+2025-02-11 14:05:43,239 - lightrag - INFO - Load KV full_docs with 6 data
+2025-02-11 14:05:43,241 - lightrag - INFO - Load KV text_chunks with 175 data
+2025-02-11 14:05:43,270 - lightrag - INFO - Loaded graph from ./sematic_memory/core_knowledge\graph_chunk_entity_relation.graphml with 1810 nodes, 694 edges
+2025-02-11 14:05:43,364 - lightrag - INFO - Loaded document status storage with 6 records
+2025-02-11 14:05:43,365 - lightrag - INFO - Logger initialized for working directory: ./sematic_memory/company_knowledge
+2025-02-11 14:05:43,365 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 14:05:43,366 - lightrag - INFO - Load KV llm_response_cache with 1 data
+2025-02-11 14:05:43,366 - lightrag - INFO - Load KV full_docs with 0 data
+2025-02-11 14:05:43,366 - lightrag - INFO - Load KV text_chunks with 0 data
+2025-02-11 14:05:43,367 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 14:05:43,369 - lightrag - INFO - Logger initialized for working directory: ./sematic_memory/personal_knowledge
+2025-02-11 14:05:43,369 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 14:05:43,369 - lightrag - INFO - Load KV llm_response_cache with 1 data
+2025-02-11 14:05:43,369 - lightrag - INFO - Load KV full_docs with 0 data
+2025-02-11 14:05:43,370 - lightrag - INFO - Load KV text_chunks with 0 data
+2025-02-11 14:05:43,370 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 14:05:44,925 - lightrag - INFO - Using hybrid mode for query processing
+2025-02-11 14:05:46,063 - lightrag - INFO - Query: Motion, Speed, Acceleration, Physics concepts, top_k: 60, cosine: 0.2
+2025-02-11 14:05:46,755 - lightrag - INFO - Query: Velocity, Physics, Discussion history, top_k: 60, cosine: 0.2
+2025-02-11 14:05:48,459 - lightrag - INFO - Using hybrid mode for query processing
+2025-02-11 14:05:49,947 - lightrag - INFO - Query: Speed, Acceleration, Displacement, Motion, Forces, top_k: 60, cosine: 0.2
+2025-02-11 14:05:50,146 - lightrag - INFO - Local query uses 60 entites, 45 relations, 3 text units
+2025-02-11 14:05:50,150 - lightrag - INFO - Query: Velocity, Physics, top_k: 60, cosine: 0.2
+2025-02-11 14:05:50,157 - lightrag - INFO - Global query uses 12 entites, 6 relations, 3 text units
+2025-02-11 14:05:54,847 - lightrag - WARNING - low_level_keywords is empty, switching from hybrid mode to global mode
+2025-02-11 14:05:54,847 - lightrag - INFO - Using global mode for query processing
+2025-02-11 14:05:55,822 - lightrag - INFO - Query: Velocity, Physics, top_k: 60, cosine: 0.2
+2025-02-11 14:05:57,230 - lightrag - WARNING - low_level_keywords is empty, switching from hybrid mode to global mode
+2025-02-11 14:05:57,230 - lightrag - INFO - Using global mode for query processing
+2025-02-11 14:05:58,551 - lightrag - INFO - Query: Physics, Velocity, top_k: 60, cosine: 0.2
+2025-02-11 14:08:55,488 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 14:08:55,490 - lightrag - INFO - Logger initialized for working directory: ./sematic_memory/core_knowledge
+2025-02-11 14:08:55,490 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 14:08:55,522 - lightrag - INFO - Load KV llm_response_cache with 4 data
+2025-02-11 14:08:55,526 - lightrag - INFO - Load KV full_docs with 6 data
+2025-02-11 14:08:55,530 - lightrag - INFO - Load KV text_chunks with 175 data
+2025-02-11 14:08:55,556 - lightrag - INFO - Loaded graph from ./sematic_memory/core_knowledge\graph_chunk_entity_relation.graphml with 1810 nodes, 694 edges
+2025-02-11 14:08:55,650 - lightrag - INFO - Loaded document status storage with 6 records
+2025-02-11 14:08:55,650 - lightrag - INFO - Logger initialized for working directory: ./sematic_memory/company_knowledge
+2025-02-11 14:08:55,651 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 14:08:55,651 - lightrag - INFO - Load KV llm_response_cache with 1 data
+2025-02-11 14:08:55,651 - lightrag - INFO - Load KV full_docs with 0 data
+2025-02-11 14:08:55,651 - lightrag - INFO - Load KV text_chunks with 0 data
+2025-02-11 14:08:55,652 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 14:08:55,653 - lightrag - INFO - Logger initialized for working directory: ./sematic_memory/personal_knowledge
+2025-02-11 14:08:55,653 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 14:08:55,653 - lightrag - INFO - Load KV llm_response_cache with 1 data
+2025-02-11 14:08:55,654 - lightrag - INFO - Load KV full_docs with 0 data
+2025-02-11 14:08:55,655 - lightrag - INFO - Load KV text_chunks with 0 data
+2025-02-11 14:08:55,656 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 14:08:57,360 - lightrag - INFO - Using hybrid mode for query processing
+2025-02-11 14:08:58,602 - lightrag - INFO - Query: Speed, Acceleration, Newton's laws, Kinematics, top_k: 60, cosine: 0.2
+2025-02-11 14:08:58,635 - lightrag - INFO - Query: Velocity, Physics, Conversation history, top_k: 60, cosine: 0.2
+2025-02-11 14:09:00,422 - lightrag - INFO - Using hybrid mode for query processing
+2025-02-11 14:09:01,487 - lightrag - INFO - Query: Velocity, Physics, Previous discussion, top_k: 60, cosine: 0.2
+2025-02-11 14:09:01,667 - lightrag - INFO - Global query uses 25 entites, 13 relations, 3 text units
+2025-02-11 14:09:02,184 - lightrag - INFO - Query: Speed, Motion, Kinematics, Conversation history, top_k: 60, cosine: 0.2
+2025-02-11 14:09:02,195 - lightrag - INFO - Local query uses 60 entites, 27 relations, 3 text units
+2025-02-11 14:09:08,805 - lightrag - INFO - Using hybrid mode for query processing
+2025-02-11 14:09:10,222 - lightrag - INFO - Query: Physics, Velocity, top_k: 60, cosine: 0.2
+2025-02-11 14:09:10,641 - lightrag - INFO - Query: Motion, Speed, Acceleration, Newton's laws, top_k: 60, cosine: 0.2
+2025-02-11 14:09:12,679 - lightrag - INFO - Using hybrid mode for query processing
+2025-02-11 14:09:14,196 - lightrag - INFO - Query: Velocity, Physics, Conversation history, top_k: 60, cosine: 0.2
+2025-02-11 14:09:14,386 - lightrag - INFO - Query: Motion, Speed, Acceleration, Discussion, top_k: 60, cosine: 0.2
+2025-02-11 14:11:07,330 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 14:11:07,333 - lightrag - INFO - Logger initialized for working directory: ./sematic_memory/core_knowledge
+2025-02-11 14:11:07,333 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 14:11:07,365 - lightrag - INFO - Load KV llm_response_cache with 4 data
+2025-02-11 14:11:07,367 - lightrag - INFO - Load KV full_docs with 6 data
+2025-02-11 14:11:07,367 - lightrag - INFO - Load KV text_chunks with 175 data
+2025-02-11 14:11:07,400 - lightrag - INFO - Loaded graph from ./sematic_memory/core_knowledge\graph_chunk_entity_relation.graphml with 1810 nodes, 694 edges
+2025-02-11 14:11:07,489 - lightrag - INFO - Loaded document status storage with 6 records
+2025-02-11 14:11:07,490 - lightrag - INFO - Logger initialized for working directory: ./sematic_memory/company_knowledge
+2025-02-11 14:11:07,490 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 14:11:07,490 - lightrag - INFO - Load KV llm_response_cache with 1 data
+2025-02-11 14:11:07,491 - lightrag - INFO - Load KV full_docs with 0 data
+2025-02-11 14:11:07,491 - lightrag - INFO - Load KV text_chunks with 0 data
+2025-02-11 14:11:07,492 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 14:11:07,492 - lightrag - INFO - Logger initialized for working directory: ./sematic_memory/personal_knowledge
+2025-02-11 14:11:07,493 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 14:11:07,493 - lightrag - INFO - Load KV llm_response_cache with 1 data
+2025-02-11 14:11:07,493 - lightrag - INFO - Load KV full_docs with 0 data
+2025-02-11 14:11:07,493 - lightrag - INFO - Load KV text_chunks with 0 data
+2025-02-11 14:11:07,494 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 14:11:09,763 - lightrag - INFO - Using hybrid mode for query processing
+2025-02-11 14:11:10,830 - lightrag - INFO - Query: Velocity, Physics, top_k: 60, cosine: 0.2
+2025-02-11 14:11:11,205 - lightrag - INFO - Query: Motion, Speed, Acceleration, Force, Displacement, top_k: 60, cosine: 0.2
+2025-02-11 14:11:12,612 - lightrag - INFO - Using hybrid mode for query processing
+2025-02-11 14:11:13,771 - lightrag - INFO - Query: Talk, Discuss, Physics concepts, Speed, Direction, top_k: 60, cosine: 0.2
+2025-02-11 14:11:13,962 - lightrag - INFO - Local query uses 38 entites, 28 relations, 3 text units
+2025-02-11 14:11:14,095 - lightrag - INFO - Query: Velocity, Physics, Conversation history, top_k: 60, cosine: 0.2
+2025-02-11 14:11:14,099 - lightrag - INFO - Global query uses 32 entites, 16 relations, 3 text units
+2025-02-11 14:11:18,480 - lightrag - INFO - Using hybrid mode for query processing
+2025-02-11 14:11:19,462 - lightrag - INFO - Query: Velocity, Physics, Conversation history, top_k: 60, cosine: 0.2
+2025-02-11 14:11:20,109 - lightrag - INFO - Query: Speed, Motion, Discussion, Topics covered, top_k: 60, cosine: 0.2
+2025-02-11 14:11:21,611 - lightrag - INFO - Using hybrid mode for query processing
+2025-02-11 14:11:22,660 - lightrag - INFO - Query: Speed, Motion, Kinematics, Discussion, top_k: 60, cosine: 0.2
+2025-02-11 14:11:22,996 - lightrag - INFO - Query: Velocity, Physics, Conversation history, top_k: 60, cosine: 0.2
+2025-02-11 14:11:56,601 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 14:11:56,602 - lightrag - INFO - Logger initialized for working directory: ./sematic_memory/core_knowledge
+2025-02-11 14:11:56,602 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 14:11:56,632 - lightrag - INFO - Load KV llm_response_cache with 4 data
+2025-02-11 14:11:56,633 - lightrag - INFO - Load KV full_docs with 6 data
+2025-02-11 14:11:56,633 - lightrag - INFO - Load KV text_chunks with 175 data
+2025-02-11 14:11:56,667 - lightrag - INFO - Loaded graph from ./sematic_memory/core_knowledge\graph_chunk_entity_relation.graphml with 1810 nodes, 694 edges
+2025-02-11 14:11:56,756 - lightrag - INFO - Loaded document status storage with 6 records
+2025-02-11 14:11:56,757 - lightrag - INFO - Logger initialized for working directory: ./sematic_memory/company_knowledge
+2025-02-11 14:11:56,757 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 14:11:56,757 - lightrag - INFO - Load KV llm_response_cache with 1 data
+2025-02-11 14:11:56,757 - lightrag - INFO - Load KV full_docs with 0 data
+2025-02-11 14:11:56,758 - lightrag - INFO - Load KV text_chunks with 0 data
+2025-02-11 14:11:56,758 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 14:11:56,759 - lightrag - INFO - Logger initialized for working directory: ./sematic_memory/personal_knowledge
+2025-02-11 14:11:56,759 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 14:11:56,759 - lightrag - INFO - Load KV llm_response_cache with 1 data
+2025-02-11 14:11:56,760 - lightrag - INFO - Load KV full_docs with 0 data
+2025-02-11 14:11:56,760 - lightrag - INFO - Load KV text_chunks with 0 data
+2025-02-11 14:11:56,760 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 14:11:59,851 - lightrag - WARNING - low_level_keywords is empty, switching from hybrid mode to global mode
+2025-02-11 14:11:59,851 - lightrag - INFO - Using global mode for query processing
+2025-02-11 14:12:00,745 - lightrag - INFO - Query: Velocity, Physics, top_k: 60, cosine: 0.2
+2025-02-11 14:12:02,237 - lightrag - INFO - Using hybrid mode for query processing
+2025-02-11 14:12:03,183 - lightrag - INFO - Query: Velocity, Physics, top_k: 60, cosine: 0.2
+2025-02-11 14:12:03,384 - lightrag - INFO - Query: Motion, Speed, Acceleration, top_k: 60, cosine: 0.2
+2025-02-11 14:12:03,386 - lightrag - INFO - Global query uses 12 entites, 6 relations, 3 text units
+2025-02-11 14:12:03,399 - lightrag - INFO - Local query uses 60 entites, 46 relations, 3 text units
+2025-02-11 14:12:07,767 - lightrag - INFO - Using hybrid mode for query processing
+2025-02-11 14:12:08,983 - lightrag - INFO - Query: Velocity, Physics, Discussion history, top_k: 60, cosine: 0.2
+2025-02-11 14:12:09,575 - lightrag - INFO - Query: Speed, Motion, Acceleration, Units, Concepts, top_k: 60, cosine: 0.2
+2025-02-11 14:12:11,241 - lightrag - INFO - Using hybrid mode for query processing
+2025-02-11 14:12:12,411 - lightrag - INFO - Query: Speed, Acceleration, Forces, Motion, top_k: 60, cosine: 0.2
+2025-02-11 14:12:13,007 - lightrag - INFO - Query: Velocity, Physics, Previous discussion, top_k: 60, cosine: 0.2
+2025-02-11 14:15:12,853 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 14:15:12,854 - lightrag - INFO - Logger initialized for working directory: ./sematic_memory/core_knowledge
+2025-02-11 14:15:12,854 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 14:15:12,896 - lightrag - INFO - Load KV llm_response_cache with 4 data
+2025-02-11 14:15:12,901 - lightrag - INFO - Load KV full_docs with 6 data
+2025-02-11 14:15:12,905 - lightrag - INFO - Load KV text_chunks with 175 data
+2025-02-11 14:15:12,926 - lightrag - INFO - Loaded graph from ./sematic_memory/core_knowledge\graph_chunk_entity_relation.graphml with 1810 nodes, 694 edges
+2025-02-11 14:15:13,042 - lightrag - INFO - Loaded document status storage with 6 records
+2025-02-11 14:15:13,044 - lightrag - INFO - Logger initialized for working directory: ./sematic_memory/company_knowledge
+2025-02-11 14:15:13,044 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 14:15:13,045 - lightrag - INFO - Load KV llm_response_cache with 1 data
+2025-02-11 14:15:13,045 - lightrag - INFO - Load KV full_docs with 0 data
+2025-02-11 14:15:13,046 - lightrag - INFO - Load KV text_chunks with 0 data
+2025-02-11 14:15:13,048 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 14:15:13,048 - lightrag - INFO - Logger initialized for working directory: ./sematic_memory/personal_knowledge
+2025-02-11 14:15:13,049 - lightrag - INFO - Load KV json_doc_status_storage with 0 data
+2025-02-11 14:15:13,049 - lightrag - INFO - Load KV llm_response_cache with 1 data
+2025-02-11 14:15:13,049 - lightrag - INFO - Load KV full_docs with 0 data
+2025-02-11 14:15:13,050 - lightrag - INFO - Load KV text_chunks with 0 data
+2025-02-11 14:15:13,051 - lightrag - INFO - Loaded document status storage with 0 records
+2025-02-11 14:15:14,770 - lightrag - INFO - Using hybrid mode for query processing
+2025-02-11 14:15:15,859 - lightrag - INFO - Query: Velocity, Physics, Discussion, top_k: 60, cosine: 0.2
+2025-02-11 14:15:16,166 - lightrag - INFO - Query: Speed, Motion, Acceleration, Forces, Newton's laws, top_k: 60, cosine: 0.2
+2025-02-11 14:15:18,545 - lightrag - WARNING - low_level_keywords is empty, switching from hybrid mode to global mode
+2025-02-11 14:15:18,545 - lightrag - INFO - Using global mode for query processing
+2025-02-11 14:15:20,049 - lightrag - INFO - Query: Velocity, Physics, top_k: 60, cosine: 0.2
+2025-02-11 14:15:20,249 - lightrag - INFO - Global query uses 12 entites, 6 relations, 3 text units
+2025-02-11 14:15:24,257 - lightrag - INFO - Using hybrid mode for query processing
+2025-02-11 14:15:25,994 - lightrag - INFO - Query: Velocity, Physics, Discussion, top_k: 60, cosine: 0.2
+2025-02-11 14:15:26,242 - lightrag - INFO - Query: Speed, Motion, Science conversation, top_k: 60, cosine: 0.2
+2025-02-11 14:15:29,721 - lightrag - INFO - Using hybrid mode for query processing
+2025-02-11 14:15:30,921 - lightrag - INFO - Query: Physics, Velocity, Previous discussion, top_k: 60, cosine: 0.2
+2025-02-11 14:15:30,992 - lightrag - INFO - Query: Speed, Acceleration, Mechanics, Motion, top_k: 60, cosine: 0.2
+>>>>>>> origin/episodic_memory
