@@ -3,12 +3,12 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "super_brain"
+name = "magick_mind"
 version = "0.0.1"
 authors = [
     { name = "GMI", email = "minoak@globalmagicko.com" },
 ]
-description = "A package for the Super Brain project by General Magicko Industries"
+description = "A package for the Magick Mind project by General Magicko Industries"
 readme = "README.md"
 requires-python = ">=3.10"
 classifiers = [
@@ -27,13 +27,14 @@ dependencies = [
     "pydantic-settings>=2.7.1",
     "pymongo",
     "tenacity>=9.0.0",
+    "pygments>=2.17.2",
 ]
 
 [project.urls]
 Homepage = "https://github.com/General-Magick-Industries/AGD_Super_Brain"
 
-[tool.hatch.build.targets.wheel]
-packages = ["libs"]
+# [tool.hatch.build.targets.wheel]
+# packages = ["libs"]
 
-[tool.hatch.build.targets.wheel.force-include]
-"libs" = "super_brain" 
+# [tool.hatch.build.targets.wheel.force-include]
+# "libs" = "super_brain" 

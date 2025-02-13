@@ -6,10 +6,6 @@ logs/
 .venv/
 .idea/
 .env
-<<<<<<< HEAD
 semantic_memory/
 semantic_memory/**
 tmp/
-=======
-
->>>>>>> origin/episodic_memory
