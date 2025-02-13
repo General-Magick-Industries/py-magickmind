@@ -1,2 +1,1 @@
-from .reasoning import MCTS
-from .super_brain import SuperBrain
+from .magick_mind import MagickMind

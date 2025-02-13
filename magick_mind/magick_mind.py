@@ -7,7 +7,7 @@ from magick_mind.memories.sematic_memory import get_semantic_memory, SEMANTIC_ME
 DEFAULT_RATING_MODEL = "anthropic/claude-3-5-sonnet-20240620"
 
 
-class SuperBrain:
+class MagickMind:
     def __init__(
         self,
         include_semetic_memory: bool = False,
