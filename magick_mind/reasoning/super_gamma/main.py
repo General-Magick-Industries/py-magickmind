@@ -1,9 +1,13 @@
 import os
+from typing import Any, List
+
 import math
 import random
 import numpy as np
 import re
 from litellm import completion
+from ..interfaces import ReasoningModel
+
 
 max_children = 3
 
@@ -147,15 +151,19 @@ class Node:
         self.children.append(child_node)
 
 
-class MCTS:
+class SuperGamma(ReasoningModel):
     def __init__(
         self,
-        question,
-        seed_answers,
+        question: str | None,
         model_names,
         rating_model,
-        episodic_memory: str = None,
-        semantic_memory: str = None,
+        seed_answers: List[str] = [
+            "I don't know",
+            "I don't have knowledge about this",
+            "I don't have information about this",
+        ],
+        episodic_memory: Any | None = None,
+        semantic_memory: Any | None = None,
         iterations=2,
         max_depth=3
     ):
@@ -171,19 +179,26 @@ class MCTS:
         self.root = Node(question, random.choice(seed_answers), initial_model)
         self.current_depth = 0
 
-    def search(self):
+    def think(
+        self,
+        user_question: str
+    ) -> str:
+        self.question = user_question
+        return self.__search()
+
+    def __search(self):
         for i in range(self.iterations):
             print(f"\nIteration {i+1}/{self.iterations}")
 
             self.current_depth = 0  # Reset depth at start of each iteration
-            node = self.select(self.root)
+            node = self.__select(self.root)
             # print(f"Selected Node: {node.answer}")
             if not node.is_fully_expanded() and self.current_depth < self.max_depth:
-                node = self.expand(node)
+                node = self.__expand(node)
                 # print(f"\nExpanded Node: {node.answer}")
-            reward = self.simulate(node)
+            reward = self.__simulate(node)
             # print(f"\nSimulated Reward: {reward}")
-            self.backpropagate(node, reward)
+            self.__backpropagate(node, reward)
         # print(f"Visits to most visited child: {self.root.most_visited_child().visits}")
         best_answer = self.root.most_visited_child().answer
 
@@ -199,7 +214,7 @@ class MCTS:
 
         return best_answer
 
-    def select(self, node):
+    def __select(self, node):
         while node.is_fully_expanded() and node.children:
             self.current_depth += 1
             if self.current_depth >= self.max_depth:
@@ -207,7 +222,7 @@ class MCTS:
             node = node.best_child()
         return node
 
-    def expand(self, node):
+    def __expand(self, node):
         for j in range(max_children - len(node.children)):
             # Children inherit the parent's model
             child_node = Node(self.question, node.answer,
@@ -231,12 +246,12 @@ class MCTS:
             child_node.answer = improved_answer
         return random.choice(node.children)
 
-    def simulate(self, node):
+    def __simulate(self, node):
         rating = rate_answer(
             self.rating_model, self.question, node.answer, self.episodic_memory, self.semantic_memory)
         return rating
 
-    def backpropagate(self, node, reward):
+    def __backpropagate(self, node, reward):
         while node is not None:
             node.visits += 1
             node.value += reward

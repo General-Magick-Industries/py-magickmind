@@ -1,8 +1,10 @@
 from typing import List
 from lightrag import QueryParam
-from magick_mind.reasoning.mcts import MCTS
+from magick_mind.reasoning.super_gamma.main import SuperGamma
 from magick_mind.memories.episodic_memory import get_episodic_memory
-from magick_mind.memories.sematic_memory import get_semantic_memory, SEMANTIC_MEMORY_TYPE
+from magick_mind.memories.semantic_memory.sematic_memory import get_semantic_memory
+from magick_mind.memories.semantic_memory.types import SEMANTIC_MEMORY_TYPE
+from magick_mind.reasoning.interfaces import ReasoningModel
 
 DEFAULT_RATING_MODEL = "anthropic/claude-3-5-sonnet-20240620"
 
@@ -10,11 +12,13 @@ DEFAULT_RATING_MODEL = "anthropic/claude-3-5-sonnet-20240620"
 class MagickMind:
     def __init__(
         self,
+        reasoning_model: ReasoningModel,
         include_semetic_memory: bool = False,
         rating_model: str = DEFAULT_RATING_MODEL,
     ):
         self.include_semetic_memory = include_semetic_memory
         self.rating_model = rating_model
+        self.reasoning_model = reasoning_model
 
         if include_semetic_memory:
             self.domain_knowledge = get_semantic_memory(
@@ -66,8 +70,7 @@ class MagickMind:
         episodic_memory = get_episodic_memory(question)
         print(f"Episodic Memory: {episodic_memory}")
 
-        mcts = MCTS(
-            question=question,
+        reasoning_alg = SuperGamma(
             seed_answers=seed_answers,
             model_names=small_brains,
             rating_model=self.rating_model,
@@ -77,7 +80,7 @@ class MagickMind:
             episodic_memory=episodic_memory
         )
 
-        answer = mcts.search()
+        answer = reasoning_alg.think(question=question)
         return answer
 
     async def insert(self, file_path: str, type: SEMANTIC_MEMORY_TYPE):

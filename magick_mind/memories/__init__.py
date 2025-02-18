@@ -1,1 +1,1 @@
-from .sematic_memory import SEMANTIC_MEMORY_TYPE, get_semantic_memory
+from .semantic_memory.sematic_memory import get_semantic_memory, SemanticMemory
