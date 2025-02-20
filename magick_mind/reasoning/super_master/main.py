@@ -87,7 +87,7 @@ def rate_answer(rating_model, question, answer, episodic_memory, semantic_memory
         f"Answer: {answer}\n\n"
         "As an expert on this topic, please provide a detailed critique of the answer, pointing out every flaw. "
         "Provide only a critique, not a suggested answer. "
-        "Then, rate the correctness of the answer on a scale of 0 to 100. "
+        "Then, rate the correctness of the answer on a scale of 0 to 100."
         "Then, provide the confidence score in the correctness rating of the answer on a scale of 0 to 100."
         "The response should be in the following format:\n"
         "Critique: <detailed critique>\n"
@@ -104,10 +104,12 @@ def rate_answer(rating_model, question, answer, episodic_memory, semantic_memory
         confidence_match = re.search(r"Confidence Score:\s*(\d+)", rating_response)
         if rating_match and confidence_match:
             rating = int(rating_match.group(1))
+            confidence = int(confidence_match.group(1))
             if rating > 95:
                 rating = 95
+            if confidence > 95:
+                confidence = 95
             rating = float(rating) / 100
-            confidence = int(confidence_match.group(1))
             confidence = float(confidence) / 100
         else:
             raise ValueError("Rating not found in the response")
