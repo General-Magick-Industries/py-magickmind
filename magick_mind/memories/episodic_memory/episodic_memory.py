@@ -174,6 +174,7 @@ class EpisodicMemory:
                 }
             }
         ]
+        #TODO add goals (long term and short term)
         
         try:
             result = list(self.collection.aggregate(pipeline))
@@ -210,6 +211,35 @@ class EpisodicMemory:
             return f"No conversations found for the date {selected_date.strftime('%Y-%m-%d')}"
         
         return f"""Summary of conversations from {selected_date.strftime('%Y-%m-%d')}:
+        {chr(10).join(summaries)}"""
+    
+    def get_previous_week_conversation(self, selected_date: datetime) -> str:
+        """Get conversation summaries for a specific week"""
+        start_date = selected_date - timedelta(days=selected_date.weekday())
+        end_date = start_date + timedelta(days=7)
+        
+        conversations = self.collection.find({
+            "timestamp": {
+                "$gte": start_date,
+                "$lt": end_date
+            },
+            "workspace_id": self.workspace_id,
+            "user_id": self.user_id
+        }, {
+            "conversation_summary": 1,
+            "timestamp": 1,
+            "_id": 0
+        }).sort("timestamp", 1)
+
+        summaries = [
+            f"[{conv['timestamp'].strftime('%H:%M:%S')}] {conv['conversation_summary']}"
+            for conv in conversations
+        ]
+
+        if not summaries:
+            return f"No conversations found for the week starting {start_date.strftime('%Y-%m-%d')}"
+
+        return f"""Summary of conversations from the week starting {start_date.strftime('%Y-%m-%d')}:
         {chr(10).join(summaries)}"""
 
     def get_previous_month_conversation(self, selected_date: datetime) -> str:
@@ -272,12 +302,15 @@ class EpisodicMemory:
         """Get comprehensive episodic memory including temporal and similarity-based recalls"""
         now = datetime.now()
         previous_day = self.get_previous_day_conversation(now)
+        previous_week = self.get_previous_week_conversation(now)    
         previous_month = self.get_previous_month_conversation(now)
         previous_year = self.get_previous_year_conversation(now)
         similar_conversations = self.recall(query)
         
         return f"""Previous day conversation:
         {previous_day}\n\n
+        Previous week conversation:
+        {previous_week}\n\n
         Previous month conversation:
         {previous_month}\n\n
         Previous year conversation:
