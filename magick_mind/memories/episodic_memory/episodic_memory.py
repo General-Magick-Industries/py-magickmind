@@ -6,20 +6,23 @@ from dataclasses import dataclass, field
 from litellm import completion, embedding
 from pymongo import MongoClient
 
+
 @dataclass
 class EpisodicMemory:
-    mongo_uri: Optional[str] = field(default_factory=lambda: os.environ.get("MONGODB_URI"))
+    mongo_uri: Optional[str] = field(
+        default_factory=lambda: os.environ.get("MONGODB_URI"))
     db_name: Optional[str] = field(default_factory=lambda: "agentic_memory")
-    collection_name: Optional[str] = field(default_factory=lambda: "episodic_memory")
+    collection_name: Optional[str] = field(
+        default_factory=lambda: "episodic_memory")
     workspace_id: Optional[str] = field(default=None)
     user_id: Optional[str] = field(default=None)
-    
+
     def __post_init__(self):
         """Initialize MongoDB connection and collection"""
         mongo_client = MongoClient(self.mongo_uri)
         db = mongo_client.get_database(self.db_name)
         self.collection = db.get_collection(self.collection_name)
-        
+
         if self.collection_name not in db.list_collection_names():
             db.create_collection(self.collection_name)
             self.collection.create_index([
@@ -131,10 +134,10 @@ class EpisodicMemory:
     def store_memory(self, reflection: dict, conversation: str):
         """Store memory in MongoDB"""
         text_to_embed = (f"{conversation} "
-                        f"{', '.join(reflection['context_tags'])} "
-                        f"{reflection['conversation_summary']} "
-                        f"{reflection['what_worked']} "
-                        f"{reflection['what_to_avoid']}")
+                         f"{', '.join(reflection['context_tags'])} "
+                         f"{reflection['conversation_summary']} "
+                         f"{reflection['what_worked']} "
+                         f"{reflection['what_to_avoid']}")
         memory_doc = {
             "workspace_id": self.workspace_id,
             "user_id": self.user_id,
@@ -154,7 +157,7 @@ class EpisodicMemory:
         pipeline = [
             {
                 "$vectorSearch": {
-                    "index": "vector_index", 
+                    "index": "vector_index",
                     "path": "embedding",
                     "queryVector": query_embedding,
                     "numCandidates": 3,
@@ -165,17 +168,17 @@ class EpisodicMemory:
                 "$project": {
                     "_id": 0,
                     "conversation": 1,
-                    "context_tags": 1, 
+                    "context_tags": 1,
                     "conversation_summary": 1,
                     "what_worked": 1,
                     "what_to_avoid": 1,
                     "timestamp": 1,
-                    "score": { "$meta": "vectorSearchScore" }
+                    "score": {"$meta": "vectorSearchScore"}
                 }
             }
         ]
-        #TODO add goals (long term and short term)
-        
+        # TODO add goals (long term and short term)
+
         try:
             result = list(self.collection.aggregate(pipeline))
             return ''.join([f"[{conv['timestamp'].strftime('%H:%M:%S')}] {conv['conversation_summary']}\n" for conv in result])
@@ -186,9 +189,10 @@ class EpisodicMemory:
 
     def get_previous_day_conversation(self, selected_date: datetime) -> str:
         """Get conversation summaries for a specific day"""
-        start_date = selected_date.replace(hour=0, minute=0, second=0, microsecond=0)
+        start_date = selected_date.replace(
+            hour=0, minute=0, second=0, microsecond=0)
         end_date = start_date + timedelta(days=1)
-        
+
         conversations = self.collection.find({
             "timestamp": {
                 "$gte": start_date,
@@ -201,23 +205,23 @@ class EpisodicMemory:
             "timestamp": 1,
             "_id": 0
         }).sort("timestamp", 1)
-        
+
         summaries = [
             f"[{conv['timestamp'].strftime('%H:%M:%S')}] {conv['conversation_summary']}"
             for conv in conversations
         ]
-        
+
         if not summaries:
             return f"No conversations found for the date {selected_date.strftime('%Y-%m-%d')}"
-        
+
         return f"""Summary of conversations from {selected_date.strftime('%Y-%m-%d')}:
         {chr(10).join(summaries)}"""
-    
+
     def get_previous_week_conversation(self, selected_date: datetime) -> str:
         """Get conversation summaries for a specific week"""
         start_date = selected_date - timedelta(days=selected_date.weekday())
         end_date = start_date + timedelta(days=7)
-        
+
         conversations = self.collection.find({
             "timestamp": {
                 "$gte": start_date,
@@ -245,8 +249,9 @@ class EpisodicMemory:
     def get_previous_month_conversation(self, selected_date: datetime) -> str:
         """Get conversation summaries for a specific month"""
         start_date = selected_date.replace(day=1)
-        end_date = (selected_date.replace(day=1) + timedelta(days=30)).replace(day=1)
-        
+        end_date = (selected_date.replace(day=1) +
+                    timedelta(days=30)).replace(day=1)
+
         conversations = self.collection.find({
             "timestamp": {
                 "$gte": start_date,
@@ -265,15 +270,16 @@ class EpisodicMemory:
 
         if not summaries:
             return "No conversations found for this month"
-        
+
         return f"""Summary of conversations from {selected_date.strftime('%Y-%m')}:
         {chr(10).join(summaries)}"""
 
     def get_previous_year_conversation(self, selected_date: datetime) -> str:
         """Get conversation summaries for a specific year"""
         start_date = selected_date.replace(day=1, month=1)
-        end_date = (selected_date.replace(day=1, month=1) + timedelta(days=365)).replace(day=1, month=1)
-        
+        end_date = (selected_date.replace(day=1, month=1) +
+                    timedelta(days=365)).replace(day=1, month=1)
+
         conversations = self.collection.find({
             "timestamp": {
                 "$gte": start_date,
@@ -294,7 +300,7 @@ class EpisodicMemory:
 
         if not summaries:
             return "No conversations found for this year"
-        
+
         return f"""Summary of conversations from {selected_date.strftime('%Y')}:
         {chr(10).join(summaries)}"""
 
@@ -302,11 +308,11 @@ class EpisodicMemory:
         """Get comprehensive episodic memory including temporal and similarity-based recalls"""
         now = datetime.now()
         previous_day = self.get_previous_day_conversation(now)
-        previous_week = self.get_previous_week_conversation(now)    
+        previous_week = self.get_previous_week_conversation(now)
         previous_month = self.get_previous_month_conversation(now)
         previous_year = self.get_previous_year_conversation(now)
         similar_conversations = self.recall(query)
-        
+
         return f"""Previous day conversation:
         {previous_day}\n\n
         Previous week conversation:
@@ -319,8 +325,8 @@ class EpisodicMemory:
         {similar_conversations}
         """
 
+
 def get_episodic_memory(query: str) -> str:
     """Helper function to get episodic memory without explicitly creating class instance"""
     memory = EpisodicMemory()
     return memory.get_episodic_memory(query)
-

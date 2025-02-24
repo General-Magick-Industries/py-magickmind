@@ -1,0 +1,1 @@
+MAX_CHILDREN = 3
