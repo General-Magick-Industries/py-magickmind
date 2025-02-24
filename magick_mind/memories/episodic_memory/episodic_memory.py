@@ -324,9 +324,3 @@ class EpisodicMemory:
         Similar conversations:
         {similar_conversations}
         """
-
-
-def get_episodic_memory(query: str) -> str:
-    """Helper function to get episodic memory without explicitly creating class instance"""
-    memory = EpisodicMemory()
-    return memory.get_episodic_memory(query)
