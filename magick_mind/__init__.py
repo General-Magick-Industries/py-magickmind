@@ -1,1 +1,2 @@
-from .magick_mind import MagickMind
+from .main import MagickMind
+from .memories import SemanticMemory
