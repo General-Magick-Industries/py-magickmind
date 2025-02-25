@@ -17,7 +17,6 @@ class SuperMaster(ReasoningModel):
     def __init__(
         self,
         inference_providers: List[InferenceProvider],
-        rating_inference_provider: InferenceProvider,
         question: str | None = None,
         episodic_memory: Any | None = None,
         semantic_memory: Any | None = None,
@@ -28,7 +27,6 @@ class SuperMaster(ReasoningModel):
         self.inference_providers: List[InferenceProvider] = inference_providers
         self.iterations: int = iterations
         self.max_depth: int = max_depth
-        self.rating_inference_provider: InferenceProvider = rating_inference_provider
         self.episodic_memory: str | None = episodic_memory
         self.semantic_memory: str | None = semantic_memory
         self.root: Node | None = None
@@ -83,7 +81,7 @@ class SuperMaster(ReasoningModel):
             answer=improved_answer,
             episodic_memory=self.episodic_memory,
             semantic_memory=self.semantic_memory,
-            inference_provider=self.rating_inference_provider,
+            inference_provider=initial_inference_provider,
         )
         return improved_answer, rating, confidence
 
@@ -158,7 +156,7 @@ class SuperMaster(ReasoningModel):
                 answer=improved_answer,
                 episodic_memory=self.episodic_memory,
                 semantic_memory=self.semantic_memory,
-                inference_provider=self.rating_inference_provider,
+                inference_provider=inference_provider,
             )
 
             child_node.answer = improved_answer
