@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import Any
 
 
 class ReasoningModel(ABC):
@@ -9,7 +10,13 @@ class ReasoningModel(ABC):
     """
 
     @abstractmethod
-    def think(self) -> str:
+    async def process(
+        self,
+        stimulus: str,
+        semantic_memory: Any | None = None,
+        episodic_memory: Any | None = None,
+        iterations: int | None = None,
+    ) -> str:
         """Execute the reasoning process and return the result.
 
         Returns:

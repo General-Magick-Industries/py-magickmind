@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "magick_mind"
-version = "0.0.2"
+version = "0.0.1"
 authors = [
     { name = "GMI", email = "minoak@globalmagicko.com" },
 ]
@@ -24,13 +24,14 @@ dependencies = [
     "numpy>=2.2.2",
     "pipmaster>=0.4.0",
     "pydantic-settings>=2.7.1",
-    "pymongo",
+    "pymongo>=4.11.1",
     "tenacity>=9.0.0",
     "pygments>=2.17.2",
+    "bs4>=0.0.2",
 ]
 
 [project.urls]
-Homepage = "https://github.com/General-Magick-Industries/AGD_Super_Brain"
+Homepage = "https://github.com/General-Magick-Industries/AGD_Magick_Mind"
 
 # [tool.hatch.build.targets.wheel]
 # packages = ["libs"]
