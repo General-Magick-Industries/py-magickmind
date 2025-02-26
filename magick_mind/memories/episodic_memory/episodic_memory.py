@@ -1,10 +1,12 @@
-from datetime import datetime, timedelta
 import json
 import os
-from typing import List, Optional, Dict
+from datetime import datetime, timedelta
+from typing import List, Optional
 from dataclasses import dataclass, field
 from litellm import completion, embedding
 from pymongo import MongoClient
+
+from magick_mind.utils.chat_completion_request import chat_completion_request
 
 
 @dataclass
@@ -131,7 +133,7 @@ class EpisodicMemory:
         )
         return json.loads(response.choices[0].message.content)
 
-    def store_memory(self, reflection: dict, conversation: str):
+    def store_memory(self, reflection: dict, conversation: str) -> None:
         """Store memory in MongoDB"""
         text_to_embed = (f"{conversation} "
                          f"{', '.join(reflection['context_tags'])} "

@@ -13,9 +13,9 @@ class ReasoningModel(ABC):
     async def process(
         self,
         stimulus: str,
+        iterations: int,
         semantic_memory: Any | None = None,
         episodic_memory: Any | None = None,
-        iterations: int | None = None,
     ) -> str:
         """Execute the reasoning process and return the result.
 

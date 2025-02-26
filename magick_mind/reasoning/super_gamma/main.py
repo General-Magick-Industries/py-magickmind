@@ -22,30 +22,35 @@ class SuperGamma(ReasoningModel):
         ],
         episodic_memory: Any | None = None,
         semantic_memory: Any | None = None,
-        iterations: int = 3,
     ):
         self.question = question
         self.seed_answers = seed_answers
         self.inference_providers = inference_providers
-        self.iterations = iterations
         self.rating_inference_provider = rating_inference_provider
         self.episodic_memory = episodic_memory
         self.semantic_memory = semantic_memory
-        initial_inference_provider = random.choice(inference_providers)
+        self.initial_inference_provider = random.choice(inference_providers)
         self.root = Node(
-            question,
-            random.choice(seed_answers),
-            initial_inference_provider
+            self.question,
+            random.choice(self.seed_answers),
+            self.initial_inference_provider
         )
 
     async def process(
         self,
         stimulus: str,
+        iterations: int,
         semantic_memory: Any | None = None,
         episodic_memory: Any | None = None,
-        iterations: int | None = None,
     ) -> str:
         self.question = stimulus
+        self.iterations = iterations
+
+        self.root = Node(
+            self.question,
+            random.choice(self.seed_answers),
+            self.initial_inference_provider
+        )
 
         if semantic_memory:
             self.semantic_memory = semantic_memory
@@ -53,16 +58,13 @@ class SuperGamma(ReasoningModel):
         if episodic_memory:
             self.episodic_memory = episodic_memory
 
-        if iterations:
-            self.iterations = iterations
-
         answer = await self.__search()
 
         return answer
 
     async def __search(self):
         for i in range(self.iterations):
-            print(f"\nIteration {i+1}/{self.iterations}")
+            print(f"\nIteration {i+1} of {self.iterations}")
             node = self.__select(self.root)
             if not node.is_fully_expanded():
                 node = await self.__expand(node)
@@ -91,24 +93,21 @@ class SuperGamma(ReasoningModel):
         tasks = []
 
         if node is self.root:
-            # Create tasks for root node expansion
             for inference in self.inference_providers:
                 task = asyncio.create_task(
                     self.__create_and_improve_child_node(node, inference)
                 )
                 tasks.append(task)
         else:
-            # Create tasks for regular node expansion
-            remaining_children = MAX_CHILDREN - len(node.children)
-            for _ in range(remaining_children):
+            for _ in range(MAX_CHILDREN):
                 task = asyncio.create_task(
                     self.__create_and_improve_child_node(
                         node, node.inference_provider)
                 )
                 tasks.append(task)
 
-        # Wait for all tasks to complete
         await asyncio.gather(*tasks)
+
         return random.choice(node.children)
 
     async def __create_and_improve_child_node(self, parent_node, inference_provider):

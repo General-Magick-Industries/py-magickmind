@@ -3,7 +3,10 @@ import os
 from magick_mind.brainoids import AvailableBrainoids
 
 
-def chat_completion_request(prompt, model: AvailableBrainoids):
+def chat_completion_request(
+    prompt: str,
+    model: AvailableBrainoids,
+):
     messages = [
         {
             "role": "user",
