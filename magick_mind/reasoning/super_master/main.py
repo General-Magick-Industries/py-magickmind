@@ -54,7 +54,7 @@ class SuperMaster(ReasoningModel):
 
         return answer
 
-    async def __get_initial_answer(self) -> Tuple[str, float, float]:
+    async def __get_initial_answer(self) -> Tuple[str, float, float, InferenceProvider]:
         initial_inference_provider = random.choice(self.inference_providers)
         initial_answer = initial_inference_provider.infer(
             self.question,
@@ -83,14 +83,14 @@ class SuperMaster(ReasoningModel):
             semantic_memory=self.semantic_memory,
             inference_provider=initial_inference_provider,
         )
-        return improved_answer, rating, confidence
+        return improved_answer, rating, confidence, initial_inference_provider
 
     async def __search(self) -> str:
-        initial_answer, rating, confidence = await self.__get_initial_answer()
+        initial_answer, rating, confidence, inference_provider = await self.__get_initial_answer()
         self.root = Node(
             question=self.question,
             answer=initial_answer,
-            inference_provider=random.choice(self.inference_providers),
+            inference_provider=inference_provider,
             rating=rating,
             confidence=confidence,
         )
