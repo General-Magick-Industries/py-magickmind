@@ -1,14 +1,21 @@
-env/
-.vscode/
 **/__pycache__/
+.vscode/
 *.tar
 logs/
-.venv/
 .idea/
-.env
 tmp/
+
 # StarUML temporary files
 *.mdj.bak
 *.mdj~
 semantic_working_dir
 *.log
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
