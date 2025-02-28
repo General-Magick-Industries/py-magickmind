@@ -17,7 +17,6 @@ class EpisodicMemory:
     collection_name: Optional[str] = field(
         default_factory=lambda: "episodic_memory")
     workspace_id: Optional[str] = field(default=None)
-    user_id: Optional[str] = field(default=None)
 
     def __post_init__(self):
         """Initialize MongoDB connection and collection"""
@@ -142,7 +141,6 @@ class EpisodicMemory:
                          f"{reflection['what_to_avoid']}")
         memory_doc = {
             "workspace_id": self.workspace_id,
-            "user_id": self.user_id,
             "conversation": conversation,
             "context_tags": reflection["context_tags"],
             "conversation_summary": reflection["conversation_summary"],
@@ -157,6 +155,11 @@ class EpisodicMemory:
         """Retrieve most relevant memory based on query"""
         query_embedding = self.get_embedding(query)
         pipeline = [
+            {
+                "$match": {
+                    "workspace_id": self.workspace_id,
+                }
+            },
             {
                 "$vectorSearch": {
                     "index": "vector_index",
@@ -201,7 +204,6 @@ class EpisodicMemory:
                 "$lt": end_date
             },
             "workspace_id": self.workspace_id,
-            "user_id": self.user_id
         }, {
             "conversation_summary": 1,
             "timestamp": 1,
@@ -230,7 +232,6 @@ class EpisodicMemory:
                 "$lt": end_date
             },
             "workspace_id": self.workspace_id,
-            "user_id": self.user_id
         }, {
             "conversation_summary": 1,
             "timestamp": 1,
@@ -288,7 +289,6 @@ class EpisodicMemory:
                 "$lt": end_date
             },
             "workspace_id": self.workspace_id,
-            "user_id": self.user_id
         }, {
             "conversation_summary": 1,
             "timestamp": 1,
