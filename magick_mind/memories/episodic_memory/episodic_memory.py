@@ -27,10 +27,7 @@ class EpisodicMemory:
             self.collection.create_index(
                 [("embedding", "vectorSearch")],
                 {
-                    "vectorSearchOptions": {
-                        "numDimensions": 1536,
-                        "similarity": "cosine",
-                    }
+                    "vectorSearchOptions": {"numDimensions": 1536,"similarity": "cosine"}
                 },
             )
 
