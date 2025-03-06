@@ -38,41 +38,12 @@ class EpisodicMemory:
         else:
             db = mongo_client[self.db_name]
 
-        if self.collection_name in db.list_collection_names():
-            self.collection = db[self.collection_name]
-        else:
-            self.collection = db.create_collection(self.collection_name)
-
-        # Check if index exists
-        existing_indexes = self.collection.list_search_indexes()
-        index_exists = any(
-            index.get("name") == "vector_index" for index in existing_indexes
-        )
-        if not index_exists:
-            search_index_model = SearchIndexModel(
-                definition={
-                    "fields": [
-                        {
-                            "type": "vector",
-                            "numDimensions": 3072,
-                            "path": "embedding",
-                            "similarity": "cosine",
-                        }
-                    ]
-                },
-                name="vector_index",
-                type="vectorSearch",
-            )
-            self.collection.create_search_index(model=search_index_model)
-
-        self.key = f"episodic_memory:{self.workspace_id}"
-        self.redis = Redis(host=self.redis_host, port=self.redis_port, db=self.redis_db)
-        # Only initialize if the key doesn't exist yet
-        if not self.redis.exists(self.key):
-            self.redis.json().set(
-                self.key,
-                Path.root_path(),
-                PriorConversation(messages=[]).model_dump(),
+        if self.collection_name not in db.list_collection_names():
+            db.create_collection(self.collection_name)
+            self.collection.create_index(
+                [("embedding", "vectorSearch")],
+                {
+                    "vectorSearchOptions": {"numDimensions": 1536,"similarity": "cosine"}},
             )
 
     def get_embedding(self, query: str) -> List[float]:
