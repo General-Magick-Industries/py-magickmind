@@ -2,9 +2,9 @@ name: AGD Magick Mind CI
 
 on:
   push:
-    branches: [main]
+    branches: [github-actions-test]
   pull_request:
-    branches: [main]
+    branches: [github-actions-test]
 
 jobs:
   lint:
