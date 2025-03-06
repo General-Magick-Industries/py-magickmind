@@ -18,6 +18,9 @@ class MagickMind:
         episodic_memory: EpisodicMemory | None = None,
         iterations: int = 3,
     ) -> str:
+        if not stimulus:
+            raise ValueError("Stimulus cannot be empty")
+
         if semantic_memory:
             semantic_memory = await semantic_memory.recall(stimulus)
             print(f"Semantic Memory: {semantic_memory}")
