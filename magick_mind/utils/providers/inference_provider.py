@@ -1,11 +1,10 @@
 import os
-from typing import Optional, List
+from typing import Optional
 from litellm import completion
 from dataclasses import dataclass, field
 from magick_mind.brainoids import AvailableBrainoids
 from magick_mind.utils.providers.abstraction import InferenceProvider
 from magick_mind.utils.providers.inference.constants import MessageRole
-from magick_mind.utils.providers.inference.dto.message_dto import MessageDTO
 
 
 @dataclass
