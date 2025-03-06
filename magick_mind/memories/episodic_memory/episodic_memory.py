@@ -6,16 +6,14 @@ from dataclasses import dataclass, field
 from litellm import completion, embedding
 from pymongo import MongoClient
 
-from magick_mind.utils.chat_completion_request import chat_completion_request
-
 
 @dataclass
 class EpisodicMemory:
     mongo_uri: Optional[str] = field(
-        default_factory=lambda: os.environ.get("MONGODB_URI"))
+        default_factory=lambda: os.environ.get("MONGODB_URI")
+    )
     db_name: Optional[str] = field(default_factory=lambda: "agentic_memory")
-    collection_name: Optional[str] = field(
-        default_factory=lambda: "episodic_memory")
+    collection_name: Optional[str] = field(default_factory=lambda: "episodic_memory")
     workspace_id: Optional[str] = field(default=None)
 
     def __post_init__(self):
@@ -26,19 +24,20 @@ class EpisodicMemory:
 
         if self.collection_name not in db.list_collection_names():
             db.create_collection(self.collection_name)
-            self.collection.create_index([
-                ("embedding", "vectorSearch")
-            ], {
-                "vectorSearchOptions": {
-                    "numDimensions": 1536,
-                    "similarity": "cosine"
-                }
-            })
+            self.collection.create_index(
+                [("embedding", "vectorSearch")],
+                {
+                    "vectorSearchOptions": {
+                        "numDimensions": 1536,
+                        "similarity": "cosine",
+                    }
+                },
+            )
 
     def get_embedding(self, query: str) -> List[float]:
         """Get embedding for a query using LiteLLM's embedding function"""
         response = embedding(model="text-embedding-3-large", input=[query])
-        return response.data[0]['embedding']
+        return response.data[0]["embedding"]
 
     def reflect(self, conversation: str) -> dict:
         """Generate reflection on conversation"""
@@ -128,17 +127,19 @@ class EpisodicMemory:
         response = completion(
             model="gpt-4o-mini",
             messages=[{"role": "user", "content": reflection_prompt}],
-            response_format=response_format
+            response_format=response_format,
         )
         return json.loads(response.choices[0].message.content)
 
     def store_memory(self, reflection: dict, conversation: str) -> None:
         """Store memory in MongoDB"""
-        text_to_embed = (f"{conversation} "
-                         f"{', '.join(reflection['context_tags'])} "
-                         f"{reflection['conversation_summary']} "
-                         f"{reflection['what_worked']} "
-                         f"{reflection['what_to_avoid']}")
+        text_to_embed = (
+            f"{conversation} "
+            f"{', '.join(reflection['context_tags'])} "
+            f"{reflection['conversation_summary']} "
+            f"{reflection['what_worked']} "
+            f"{reflection['what_to_avoid']}"
+        )
         memory_doc = {
             "workspace_id": self.workspace_id,
             "conversation": conversation,
@@ -147,7 +148,7 @@ class EpisodicMemory:
             "what_worked": reflection["what_worked"],
             "what_to_avoid": reflection["what_to_avoid"],
             "timestamp": datetime.now(),
-            "embedding": self.get_embedding(text_to_embed)
+            "embedding": self.get_embedding(text_to_embed),
         }
         self.collection.insert_one(memory_doc)
 
@@ -166,7 +167,7 @@ class EpisodicMemory:
                     "path": "embedding",
                     "queryVector": query_embedding,
                     "numCandidates": 3,
-                    "limit": 3
+                    "limit": 3,
                 }
             },
             {
@@ -178,37 +179,41 @@ class EpisodicMemory:
                     "what_worked": 1,
                     "what_to_avoid": 1,
                     "timestamp": 1,
-                    "score": {"$meta": "vectorSearchScore"}
+                    "score": {"$meta": "vectorSearchScore"},
                 }
-            }
+            },
         ]
         # TODO add goals (long term and short term)
 
         try:
             result = list(self.collection.aggregate(pipeline))
-            return ''.join([f"[{conv['timestamp'].strftime('%H:%M:%S')}] {conv['conversation_summary']}\n" for conv in result])
+            return "".join(
+                [
+                    f"[{conv['timestamp'].strftime('%H:%M:%S')}] {conv['conversation_summary']}\n"
+                    for conv in result
+                ]
+            )
         except Exception:
             # Fallback to most recent document if vector search fails
             recent = self.collection.find_one(sort=[("timestamp", -1)])
-            return f"[{recent['timestamp'].strftime('%H:%M:%S')}] {recent['conversation_summary']}" if recent else None
+            return (
+                f"[{recent['timestamp'].strftime('%H:%M:%S')}] {recent['conversation_summary']}"
+                if recent
+                else None
+            )
 
     def get_previous_day_conversation(self, selected_date: datetime) -> str:
         """Get conversation summaries for a specific day"""
-        start_date = selected_date.replace(
-            hour=0, minute=0, second=0, microsecond=0)
+        start_date = selected_date.replace(hour=0, minute=0, second=0, microsecond=0)
         end_date = start_date + timedelta(days=1)
 
-        conversations = self.collection.find({
-            "timestamp": {
-                "$gte": start_date,
-                "$lt": end_date
+        conversations = self.collection.find(
+            {
+                "timestamp": {"$gte": start_date, "$lt": end_date},
+                "workspace_id": self.workspace_id,
             },
-            "workspace_id": self.workspace_id,
-        }, {
-            "conversation_summary": 1,
-            "timestamp": 1,
-            "_id": 0
-        }).sort("timestamp", 1)
+            {"conversation_summary": 1, "timestamp": 1, "_id": 0},
+        ).sort("timestamp", 1)
 
         summaries = [
             f"[{conv['timestamp'].strftime('%H:%M:%S')}] {conv['conversation_summary']}"
@@ -218,7 +223,7 @@ class EpisodicMemory:
         if not summaries:
             return f"No conversations found for the date {selected_date.strftime('%Y-%m-%d')}"
 
-        return f"""Summary of conversations from {selected_date.strftime('%Y-%m-%d')}:
+        return f"""Summary of conversations from {selected_date.strftime("%Y-%m-%d")}:
         {chr(10).join(summaries)}"""
 
     def get_previous_week_conversation(self, selected_date: datetime) -> str:
@@ -226,17 +231,13 @@ class EpisodicMemory:
         start_date = selected_date - timedelta(days=selected_date.weekday())
         end_date = start_date + timedelta(days=7)
 
-        conversations = self.collection.find({
-            "timestamp": {
-                "$gte": start_date,
-                "$lt": end_date
+        conversations = self.collection.find(
+            {
+                "timestamp": {"$gte": start_date, "$lt": end_date},
+                "workspace_id": self.workspace_id,
             },
-            "workspace_id": self.workspace_id,
-        }, {
-            "conversation_summary": 1,
-            "timestamp": 1,
-            "_id": 0
-        }).sort("timestamp", 1)
+            {"conversation_summary": 1, "timestamp": 1, "_id": 0},
+        ).sort("timestamp", 1)
 
         summaries = [
             f"[{conv['timestamp'].strftime('%H:%M:%S')}] {conv['conversation_summary']}"
@@ -246,25 +247,18 @@ class EpisodicMemory:
         if not summaries:
             return f"No conversations found for the week starting {start_date.strftime('%Y-%m-%d')}"
 
-        return f"""Summary of conversations from the week starting {start_date.strftime('%Y-%m-%d')}:
+        return f"""Summary of conversations from the week starting {start_date.strftime("%Y-%m-%d")}:
         {chr(10).join(summaries)}"""
 
     def get_previous_month_conversation(self, selected_date: datetime) -> str:
         """Get conversation summaries for a specific month"""
         start_date = selected_date.replace(day=1)
-        end_date = (selected_date.replace(day=1) +
-                    timedelta(days=30)).replace(day=1)
+        end_date = (selected_date.replace(day=1) + timedelta(days=30)).replace(day=1)
 
-        conversations = self.collection.find({
-            "timestamp": {
-                "$gte": start_date,
-                "$lt": end_date
-            }
-        }, {
-            "conversation_summary": 1,
-            "timestamp": 1,
-            "_id": 0
-        }).sort("timestamp", 1)
+        conversations = self.collection.find(
+            {"timestamp": {"$gte": start_date, "$lt": end_date}},
+            {"conversation_summary": 1, "timestamp": 1, "_id": 0},
+        ).sort("timestamp", 1)
 
         summaries = [
             f"[{conv['timestamp'].strftime('%H:%M:%S')}] {conv['conversation_summary']}"
@@ -274,26 +268,23 @@ class EpisodicMemory:
         if not summaries:
             return "No conversations found for this month"
 
-        return f"""Summary of conversations from {selected_date.strftime('%Y-%m')}:
+        return f"""Summary of conversations from {selected_date.strftime("%Y-%m")}:
         {chr(10).join(summaries)}"""
 
     def get_previous_year_conversation(self, selected_date: datetime) -> str:
         """Get conversation summaries for a specific year"""
         start_date = selected_date.replace(day=1, month=1)
-        end_date = (selected_date.replace(day=1, month=1) +
-                    timedelta(days=365)).replace(day=1, month=1)
+        end_date = (
+            selected_date.replace(day=1, month=1) + timedelta(days=365)
+        ).replace(day=1, month=1)
 
-        conversations = self.collection.find({
-            "timestamp": {
-                "$gte": start_date,
-                "$lt": end_date
+        conversations = self.collection.find(
+            {
+                "timestamp": {"$gte": start_date, "$lt": end_date},
+                "workspace_id": self.workspace_id,
             },
-            "workspace_id": self.workspace_id,
-        }, {
-            "conversation_summary": 1,
-            "timestamp": 1,
-            "_id": 0
-        }).sort("timestamp", 1)
+            {"conversation_summary": 1, "timestamp": 1, "_id": 0},
+        ).sort("timestamp", 1)
 
         summaries = [
             f"[{conv['timestamp'].strftime('%H:%M:%S')}] {conv['conversation_summary']}"
@@ -303,7 +294,7 @@ class EpisodicMemory:
         if not summaries:
             return "No conversations found for this year"
 
-        return f"""Summary of conversations from {selected_date.strftime('%Y')}:
+        return f"""Summary of conversations from {selected_date.strftime("%Y")}:
         {chr(10).join(summaries)}"""
 
     def get_episodic_memory(self, query: str) -> str:

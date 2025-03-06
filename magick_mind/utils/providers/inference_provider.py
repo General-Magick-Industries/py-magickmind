@@ -18,14 +18,9 @@ class LiteLLMInferenceProvider(InferenceProvider):
         self,
         prompt: str,
         # messages: Optional[List[MessageDTO]] = None,
-        response_format: Optional[dict] = None
+        response_format: Optional[dict] = None,
     ) -> Optional[str]:
-        messages = [
-            {
-                "role": MessageRole.USER.value,
-                "content": prompt
-            }
-        ]
+        messages = [{"role": MessageRole.USER.value, "content": prompt}]
 
         # if messages:
         #     messages.append(MessageDTO(role=MessageRole.USER, content=prompt))
@@ -37,7 +32,11 @@ class LiteLLMInferenceProvider(InferenceProvider):
             max_tokens=1500,
             api_key=self.api_key,
             base_url=self.base_url,
-            response_format=response_format if "gpt" in self.model.value else None
+            response_format=response_format if "gpt" in self.model.value else None,
         )
 
-        return chat_response.choices[0].message.content if chat_response.choices else None
+        answers = (
+            chat_response.choices[0].message.content if chat_response.choices else None
+        )
+
+        return answers

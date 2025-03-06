@@ -1,15 +1,24 @@
 import re
 from magick_mind.utils.providers.abstraction import InferenceProvider
+from magick_mind.reasoning.super_gamma.dto import (
+    GetCritiqueDTO,
+    ImproveAnswerDTO,
+    RateAnswerDTO,
+)
 
 
-async def get_critique(question, draft_answer, episodic_memory, semantic_memory, inference_provider: InferenceProvider):
+async def get_critique(
+    get_critique_dto: GetCritiqueDTO,
+    inference_provider: InferenceProvider,
+):
     prompt = (
-        f"Episodic Memory: {episodic_memory}\n"
-        f"Semantic Memory: {semantic_memory}\n"
+        f"Episodic Memory: {get_critique_dto.episodic_memory}\n"
+        f"Semantic Memory: {get_critique_dto.semantic_memory}\n"
         "You can use the episodic memory and semantic memory to improve the answer if the user question is related to the episodic memory or semantic memory."
-        f"Question: {question}\n"
-        f"Draft Answer: {draft_answer}\n"
-        "Please critique the draft answer. "
+        f"Question: {get_critique_dto.question}\n"
+        f"Draft Answer: {get_critique_dto.draft_answer}\n"
+        + (f"Role: {get_critique_dto.role}\n" if get_critique_dto.role else "")
+        + "Please critique the draft answer. "
         "Do a careful assessment of whether the answer is correct or not, and why."
         "Consider multiple ways of verifying the correctness of the answer."
         "Do point out every flaw and hold the draft answer to a high standard. "
@@ -22,15 +31,19 @@ async def get_critique(question, draft_answer, episodic_memory, semantic_memory,
     return inference_provider.infer(prompt)
 
 
-async def improve_answer(question, draft_answer, critique, episodic_memory, semantic_memory, inference_provider: InferenceProvider):
+async def improve_answer(
+    improve_answer_dto: ImproveAnswerDTO,
+    inference_provider: InferenceProvider,
+):
     prompt = (
-        f"Episodic Memory: {episodic_memory}\n"
-        f"Semantic Memory: {semantic_memory}\n"
+        f"Episodic Memory: {improve_answer_dto.episodic_memory}\n"
+        f"Semantic Memory: {improve_answer_dto.semantic_memory}\n"
         "You can use the episodic memory and semantic memory to improve the answer if the user question is related to the episodic memory or semantic memory."
-        f"Question: {question}\n"
-        f"Draft Answer: {draft_answer}\n"
-        f"Critique: {critique}\n\n"
-        "Please improve the draft answer based on the critique. Follow this format:\n"
+        f"Question: {improve_answer_dto.question}\n"
+        f"Draft Answer: {improve_answer_dto.draft_answer}\n"
+        f"Critique: {improve_answer_dto.critique}\n\n"
+        + (f"Role: {improve_answer_dto.role}\n" if improve_answer_dto.role else "")
+        + "Please improve the draft answer based on the critique. Follow this format:\n"
         "Reasoning Process: <step-by-step reasoning process>\n"
         "Verification: <verification of the facts>\n"
         "Final Answer: <the improved and verified answer>\n"
@@ -40,14 +53,18 @@ async def improve_answer(question, draft_answer, critique, episodic_memory, sema
     return inference_provider.infer(prompt)
 
 
-def rate_answer(question, answer, episodic_memory, semantic_memory, inference_provider: InferenceProvider):
+async def rate_answer(
+    rate_answer_dto: RateAnswerDTO,
+    inference_provider: InferenceProvider,
+):
     prompt = (
-        f"Episodic Memory: {episodic_memory}\n"
-        f"Semantic Memory: {semantic_memory}\n"
+        f"Episodic Memory: {rate_answer_dto.episodic_memory}\n"
+        f"Semantic Memory: {rate_answer_dto.semantic_memory}\n"
         "You can use the episodic memory and semantic memory to improve the answer if the user question is related to the episodic memory or semantic memory."
-        f"Question: {question}\n"
-        f"Answer: {answer}\n\n"
-        "As an expert on this topic, please provide a detailed critique of the answer, pointing out every flaw. "
+        f"Question: {rate_answer_dto.question}\n"
+        f"Answer: {rate_answer_dto.answer}\n\n"
+        + (f"Role: {rate_answer_dto.role}\n" if rate_answer_dto.role else "")
+        + "As an expert on this topic, please provide a detailed critique of the answer, pointing out every flaw. "
         "Provide only a critique, not a suggested answer. "
         "Then, rate the answer on a scale of 0 to 100. "
         "The response should be in the following format:\n"
@@ -60,7 +77,7 @@ def rate_answer(question, answer, episodic_memory, semantic_memory, inference_pr
 
     # Extract the rating
     try:
-        match = re.search(r'Rating:\s*(\d+)', rating_response)
+        match = re.search(r"Rating:\s*(\d+)", rating_response)
         if match:
             rating = int(match.group(1))
             if rating > 95:

@@ -12,7 +12,7 @@ class Node:
         question: str,
         answer: str,
         inference_provider: InferenceProvider,
-        parent: Self | None = None
+        parent: Self | None = None,
     ):
         self.question = question
         self.answer = answer
@@ -29,10 +29,11 @@ class Node:
         choices_weights = []
         for child in self.children:
             if child.visits == 0:
-                weight = float('inf')  # Prioritize unexplored nodes
+                weight = float("inf")  # Prioritize unexplored nodes
             else:
-                weight = (child.value / child.visits) + exploration_weight * \
-                    math.sqrt((2 * math.log(self.visits) / child.visits))
+                weight = (child.value / child.visits) + exploration_weight * math.sqrt(
+                    (2 * math.log(self.visits) / child.visits)
+                )
             choices_weights.append(weight)
         return self.children[np.argmax(choices_weights)]
 

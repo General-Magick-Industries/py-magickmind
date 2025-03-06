@@ -1,6 +1,7 @@
 import json
 from litellm import completion
 
+
 def track_topic_change(current_message: str, prior_conversation: str = None) -> bool:
     prompt = f"""
     You are a helpful assistant that tracks the topic of a conversation.
@@ -29,9 +30,7 @@ def track_topic_change(current_message: str, prior_conversation: str = None) -> 
                         "description": "True if there is a change in the topic, otherwise False",
                     },
                 },
-                "required": [
-                    "topic_change"
-                ],
+                "required": ["topic_change"],
                 "additionalProperties": False,
             },
             "strict": True,

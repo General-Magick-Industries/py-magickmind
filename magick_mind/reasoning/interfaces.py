@@ -14,6 +14,7 @@ class ReasoningModel(ABC):
         self,
         stimulus: str,
         iterations: int,
+        role: str | None = None,
         semantic_memory: Any | None = None,
         episodic_memory: Any | None = None,
     ) -> str:

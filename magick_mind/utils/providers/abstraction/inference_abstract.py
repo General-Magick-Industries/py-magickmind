@@ -9,6 +9,6 @@ class InferenceProvider(ABC):
         self,
         prompt: str,
         messages: Optional[List[MessageDTO]] = None,
-        response_format: Optional[dict] = None
+        response_format: Optional[dict] = None,
     ) -> Optional[str]:
         pass

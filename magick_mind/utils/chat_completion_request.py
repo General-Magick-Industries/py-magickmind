@@ -7,12 +7,7 @@ def chat_completion_request(
     prompt: str,
     model: AvailableBrainoids,
 ):
-    messages = [
-        {
-            "role": "user",
-            "content": prompt
-        }
-    ]
+    messages = [{"role": "user", "content": prompt}]
 
     # Create chat completions using LiteLLM's completion function
     chat_response = completion(

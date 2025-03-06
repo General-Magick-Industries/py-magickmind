@@ -1,12 +1,21 @@
-import random
 import re
+import random
+import asyncio
 from typing import Any, List
 from magick_mind.reasoning.interfaces import ReasoningModel
 from magick_mind.reasoning.super_gamma.node import Node
 from magick_mind.reasoning.super_gamma.constants import MAX_CHILDREN
-from magick_mind.reasoning.super_gamma.functions import get_critique, improve_answer, rate_answer
+from magick_mind.reasoning.super_gamma.functions import (
+    get_critique,
+    improve_answer,
+    rate_answer,
+)
+from magick_mind.reasoning.super_gamma.dto import (
+    GetCritiqueDTO,
+    ImproveAnswerDTO,
+    RateAnswerDTO,
+)
 from magick_mind.utils.providers.abstraction import InferenceProvider
-import asyncio
 
 
 class SuperGamma(ReasoningModel):
@@ -33,23 +42,25 @@ class SuperGamma(ReasoningModel):
         self.root = Node(
             self.question,
             random.choice(self.seed_answers),
-            self.initial_inference_provider
+            self.initial_inference_provider,
         )
 
     async def process(
         self,
         stimulus: str,
         iterations: int,
+        role: str | None = None,
         semantic_memory: Any | None = None,
         episodic_memory: Any | None = None,
     ) -> str:
         self.question = stimulus
         self.iterations = iterations
+        self.role = role
 
         self.root = Node(
             self.question,
             random.choice(self.seed_answers),
-            self.initial_inference_provider
+            self.initial_inference_provider,
         )
 
         if semantic_memory:
@@ -64,17 +75,17 @@ class SuperGamma(ReasoningModel):
 
     async def __search(self):
         for i in range(self.iterations):
-            print(f"\nIteration {i+1} of {self.iterations}")
+            # print(f"\nIteration {i + 1} of {self.iterations}")
             node = self.__select(self.root)
             if not node.is_fully_expanded():
                 node = await self.__expand(node)
-            reward = self.__simulate(node)
+            reward = await self.__simulate(node)
             self.__backpropagate(node, reward)
         best_answer = self.root.most_visited_child().answer
 
         # print(f"Best Answer: {best_answer}")
 
-        match = re.search(r'Final Answer:(.*?)(?=\Z)', best_answer, re.DOTALL)
+        match = re.search(r"Final Answer:(.*?)(?=\Z)", best_answer, re.DOTALL)
 
         if match:
             best_answer = match.group(1).strip()
@@ -101,8 +112,7 @@ class SuperGamma(ReasoningModel):
         else:
             for _ in range(MAX_CHILDREN):
                 task = asyncio.create_task(
-                    self.__create_and_improve_child_node(
-                        node, node.inference_provider)
+                    self.__create_and_improve_child_node(node, node.inference_provider)
                 )
                 tasks.append(task)
 
@@ -113,39 +123,45 @@ class SuperGamma(ReasoningModel):
     async def __create_and_improve_child_node(self, parent_node, inference_provider):
         """Helper method to create and improve a child node"""
         child_node = Node(
-            self.question,
-            parent_node.answer,
-            inference_provider,
-            parent=parent_node
+            self.question, parent_node.answer, inference_provider, parent=parent_node
         )
         parent_node.add_child(child_node)
 
         critique = await get_critique(
-            self.question,
-            child_node.answer,
-            self.episodic_memory,
-            self.semantic_memory,
-            child_node.inference_provider,
+            get_critique_dto=GetCritiqueDTO(
+                question=self.question,
+                draft_answer=child_node.answer,
+                episodic_memory=self.episodic_memory,
+                semantic_memory=self.semantic_memory,
+                role=self.role,
+            ),
+            inference_provider=child_node.inference_provider,
         )
 
         improved_answer = await improve_answer(
-            self.question,
-            child_node.answer,
-            critique,
-            self.episodic_memory,
-            self.semantic_memory,
-            child_node.inference_provider,
+            improve_answer_dto=ImproveAnswerDTO(
+                question=self.question,
+                draft_answer=child_node.answer,
+                critique=critique,
+                episodic_memory=self.episodic_memory,
+                semantic_memory=self.semantic_memory,
+                role=self.role,
+            ),
+            inference_provider=child_node.inference_provider,
         )
         child_node.answer = improved_answer
         return child_node
 
-    def __simulate(self, node: Node):
-        rating = rate_answer(
-            self.question,
-            node.answer,
-            self.episodic_memory,
-            self.semantic_memory,
-            self.rating_inference_provider,
+    async def __simulate(self, node: Node):
+        rating = await rate_answer(
+            rate_answer_dto=RateAnswerDTO(
+                question=self.question,
+                answer=node.answer,
+                episodic_memory=self.episodic_memory,
+                semantic_memory=self.semantic_memory,
+                role=self.role,
+            ),
+            inference_provider=self.rating_inference_provider,
         )
 
         return rating

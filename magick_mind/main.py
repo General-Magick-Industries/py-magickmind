@@ -1,4 +1,3 @@
-from typing import Any
 from magick_mind.memories.episodic_memory.episodic_memory import EpisodicMemory
 from magick_mind.memories.semantic_memory.semantic_memory import SemanticMemory
 from magick_mind.reasoning.interfaces import ReasoningModel
@@ -14,9 +13,10 @@ class MagickMind:
     async def think(
         self,
         stimulus: str,
+        role: str | None = None,
         semantic_memory: SemanticMemory | None = None,
         episodic_memory: EpisodicMemory | None = None,
-        iterations: int = 3
+        iterations: int = 3,
     ) -> str:
         if semantic_memory:
             semantic_memory = await semantic_memory.recall(stimulus)
@@ -28,9 +28,10 @@ class MagickMind:
 
         answer = await self.reasoning_model.process(
             stimulus=stimulus,
+            iterations=iterations,
+            role=role,
             semantic_memory=semantic_memory,
             episodic_memory=episodic_memory,
-            iterations=iterations
         )
 
         return answer

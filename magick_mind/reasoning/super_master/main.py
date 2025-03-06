@@ -86,7 +86,12 @@ class SuperMaster(ReasoningModel):
         return improved_answer, rating, confidence, initial_inference_provider
 
     async def __search(self) -> str:
-        initial_answer, rating, confidence, inference_provider = await self.__get_initial_answer()
+        (
+            initial_answer,
+            rating,
+            confidence,
+            inference_provider,
+        ) = await self.__get_initial_answer()
         self.root = Node(
             question=self.question,
             answer=initial_answer,
@@ -95,7 +100,7 @@ class SuperMaster(ReasoningModel):
             confidence=confidence,
         )
         for i in range(self.iterations):
-            print(f"\nIteration {i+1}/{self.iterations}")
+            print(f"\nIteration {i + 1}/{self.iterations}")
 
             self.current_depth = 0  # Reset depth at start of each iteration
             node = self.__select(self.root)
@@ -105,7 +110,6 @@ class SuperMaster(ReasoningModel):
             if node.rating > 0.93:
                 break
         best_answer = self.root.most_visited_child().answer
-
 
         match = re.search(r"Final Answer:(.*?)(?=\Z)", best_answer, re.DOTALL)
 
