@@ -2,7 +2,6 @@ from typing import List, Self
 from .constants import MAX_CHILDREN
 import math
 import numpy as np
-from magick_mind.brainoids import AvailableBrainoids
 from magick_mind.utils.providers.abstraction import InferenceProvider
 
 

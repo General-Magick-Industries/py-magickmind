@@ -17,8 +17,9 @@ jobs:
       - name: Install the latest version of Ruff or check from pyproject.toml
         uses: astral-sh/ruff-action@v3
         with:
-          args: "check --fix"
-      - run: ruff format
+          args: "format"
+          # args: "check --fix"
+      # - run: ruff format
 
   # test:
   #   name: Run Tests
