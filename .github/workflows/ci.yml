@@ -29,6 +29,26 @@ jobs:
         #   else
         #     echo "::set-output name=modified::false"
         #   fi
+      # - name: Debug set-output state
+      #   run: |
+      #     echo steps.git_status.outputs.modified
+      #     echo steps.git_status.outputs.modified == 'true'
+      # - name: Ensure branch is checked out
+      #   run: |
+      #     # Determine branch name based on event type
+      #     if [ -n "${GITHUB_HEAD_REF}" ]; then
+      #       # Pull Request event: use head ref (source branch)
+      #       branch="${GITHUB_HEAD_REF}"
+      #     elif [[ "${GITHUB_REF}" == refs/heads/* ]]; then
+      #       # Push event: extract branch name from GITHUB_REF
+      #       branch="${GITHUB_REF#refs/heads/}"
+      #     else
+      #       echo "Not a branch event (likely a tag); skipping commit step."
+      #     exit 0
+      #     fi
+      #     echo "Switching to branch: $branch"
+      #     git switch $branch
+
       - name: Push changes
         if: steps.git_status.outputs.modified == 'true'
         run: |
