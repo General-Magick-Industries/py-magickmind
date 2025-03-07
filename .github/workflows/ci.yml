@@ -13,6 +13,12 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          # 'ref:' determines which branch, tag, or commit the action checks out.
+          # For pull request events, 'github.head_ref' contains the source branch of the PR.
+          # For push events, 'github.head_ref' is empty, so we fall back to 'github.ref',
+          # which contains the full ref (e.g., "refs/heads/main").
+          ref: ${{ github.head_ref || github.ref }}
 
       - name: Install and Format with Ruff
         uses: astral-sh/ruff-action@v3
@@ -33,25 +39,25 @@ jobs:
       #   run: |
       #     echo steps.git_status.outputs.modified
       #     echo steps.git_status.outputs.modified == 'true'
-      - name: Ensure branch is checked out
-        run: |
-          # Determine branch name based on event type
-          if [ -n "${GITHUB_HEAD_REF}" ]; then
-            # Pull Request event: use head ref (source branch)
-            branch="${GITHUB_HEAD_REF}"
-            echo "Detected a pull request. Using head ref: $branch"
-            # Fetch the branch from the remote if it isn’t available locally.
-            git fetch origin "${branch}:${branch}"
-          elif [[ "${GITHUB_REF}" == refs/heads/* ]]; then
-            # Push event: extract branch name from GITHUB_REF
-            branch="${GITHUB_REF#refs/heads/}"
-            echo "Detected a push event on branch: $branch"
-          else
-            echo "Not a branch event (likely a tag); skipping commit step."
-            exit 0
-          fi
-          echo "Switching to branch: $branch"
-          git switch $branch
+      # - name: Ensure branch is checked out
+      #   run: |
+      #     # Determine branch name based on event type
+      #     if [ -n "${GITHUB_HEAD_REF}" ]; then
+      #       # Pull Request event: use head ref (source branch)
+      #       branch="${GITHUB_HEAD_REF}"
+      #       echo "Detected a pull request. Using head ref: $branch"
+      #       # Fetch the branch from the remote if it isn’t available locally.
+      #       git fetch origin "${branch}:${branch}"
+      #     elif [[ "${GITHUB_REF}" == refs/heads/* ]]; then
+      #       # Push event: extract branch name from GITHUB_REF
+      #       branch="${GITHUB_REF#refs/heads/}"
+      #       echo "Detected a push event on branch: $branch"
+      #     else
+      #       echo "Not a branch event (likely a tag); skipping commit step."
+      #       exit 0
+      #     fi
+      #     echo "Switching to branch: $branch"
+      #     git switch $branch
 
       - name: Push changes
         if: steps.git_status.outputs.modified == 'true'
