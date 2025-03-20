@@ -20,6 +20,7 @@ def track_topic_change(current_message: str, prior_conversation: str = None) -> 
     Compare the prior conversation with the current message.
     Return True if there is a significant change in the topic or conversation direction.
     Return False if the current message continues the same topic or is closely related to the prior conversation.
+    If prior conversation is None, return False.
     """
     response_format = {
         "type": "json_schema",

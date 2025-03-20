@@ -5,6 +5,7 @@ from typing import List, Optional
 from dataclasses import dataclass, field
 from litellm import completion, embedding
 from pymongo import MongoClient
+from pymongo.operations import SearchIndexModel
 from redis import Redis
 from redis.commands.json.path import Path
 from magick_mind.memories.episodic_memory.topic_track import track_topic_change
@@ -31,28 +32,37 @@ class EpisodicMemory:
     def __post_init__(self):
         """Initialize MongoDB connection and collection"""
         mongo_client = MongoClient(self.mongo_uri)
-        db = mongo_client.get_database(self.db_name)
-        self.collection = db.get_collection(self.collection_name)
+        if self.db_name not in mongo_client.list_database_names():
+            db = mongo_client.get_database(self.db_name)
+        else:
+            db = mongo_client[self.db_name]
 
-        # Check if collection exists and create it with index if it doesn't
-        # if self.collection_name not in db.list_collection_names():
-        # db.create_collection(self.collection_name)
-        # Create index without any session parameter
-        # self.collection.create_index(
-        #     [("embedding", "vectorSearch")],
-        #     {
-        #         "vectorSearchOptions": {
-        #             "numDimensions": 1536,
-        #             "similarity": "cosine",
-        #         }
-        #     },
-        # )
+        if self.collection_name in db.list_collection_names():
+            self.collection = db[self.collection_name]
+        else:
+            self.collection = db.create_collection(self.collection_name)
 
-        self.collection.create_index(
-            [("embedding", 1)],  # Changed from "vectorSearch" to 1
-            name="vector_index",
-            **{"vectorIndexVersion": 1, "numDimensions": 1536, "similarity": "cosine"},
+        # Check if index exists
+        existing_indexes = self.collection.list_search_indexes()
+        index_exists = any(
+            index.get("name") == "vector_index" for index in existing_indexes
         )
+        if not index_exists:
+            search_index_model = SearchIndexModel(
+                definition={
+                    "fields": [
+                        {
+                            "type": "vector",
+                            "numDimensions": 3072,
+                            "path": "embedding",
+                            "similarity": "cosine",
+                        }
+                    ]
+                },
+                name="vector_index",
+                type="vectorSearch",
+            )
+            self.collection.create_search_index(model=search_index_model)
 
         self.key = f"episodic_memory:{self.workspace_id}"
         self.redis = Redis(host=self.redis_host, port=self.redis_port, db=self.redis_db)

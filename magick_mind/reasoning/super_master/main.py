@@ -35,6 +35,7 @@ class SuperMaster(ReasoningModel):
     async def process(
         self,
         stimulus: str,
+        role: str | None = None,
         semantic_memory: Any | None = None,
         episodic_memory: Any | None = None,
         iterations: int | None = None,
