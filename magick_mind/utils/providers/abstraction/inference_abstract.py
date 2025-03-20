@@ -7,8 +7,9 @@ class InferenceProvider(ABC):
     @abstractmethod
     def infer(
         self,
-        prompt: str,
-        messages: Optional[List[MessageDTO]] = None,
+        messages: Optional[List[MessageDTO]],
         response_format: Optional[dict] = None,
+        temperature: float = 0.6,
+        max_tokens: int = 1500,
     ) -> Optional[str]:
         pass

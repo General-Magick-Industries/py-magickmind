@@ -1,5 +1,7 @@
 from magick_mind.memories.episodic_memory.episodic_memory import EpisodicMemory
 from magick_mind.memories.semantic_memory.semantic_memory import SemanticMemory
+from magick_mind.utils.providers.inference.constants import MessageRole
+from magick_mind.memories.episodic_memory.dto.episodic_memory_dto import MessageDTO
 from magick_mind.reasoning.interfaces import ReasoningModel
 
 
@@ -23,11 +25,10 @@ class MagickMind:
 
         if semantic_memory:
             semantic_memory = await semantic_memory.recall(stimulus)
-            print(f"Semantic Memory: {semantic_memory}")
 
         if episodic_memory:
-            episodic_memory = episodic_memory.get_episodic_memory(stimulus)
-            print(f"Episodic Memory: {episodic_memory}")
+            # topic track
+            episodic_memory = episodic_memory.recall(stimulus)
 
         answer = await self.reasoning_model.process(
             stimulus=stimulus,
@@ -36,5 +37,9 @@ class MagickMind:
             semantic_memory=semantic_memory,
             episodic_memory=episodic_memory,
         )
+
+        if episodic_memory:
+            last_message = MessageDTO(role=MessageRole.ASSISTANT.value, content=answer)
+            episodic_memory.update_prior_conversation(last_message)
 
         return answer

@@ -33,7 +33,7 @@ dependencies = [
 [project.optional-dependencies]
 semantic = ["lightrag-hku>=1.1.5"]
 
-episodic = ["pymongo>=4.11.1"]
+episodic = ["pymongo>=4.11.1", "redis[hiredis]>=5.2.1"]
 
 test = [
     "pytest>=8.3.5",

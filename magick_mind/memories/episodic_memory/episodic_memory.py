@@ -1,20 +1,32 @@
 import json
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import List, Optional
 from dataclasses import dataclass, field
 from litellm import completion, embedding
 from pymongo import MongoClient
+from redis import Redis
+from redis.commands.json.path import Path
+from magick_mind.memories.episodic_memory.topic_track import track_topic_change
+from magick_mind.memories.episodic_memory.dto.episodic_memory_dto import (
+    EpisodicMemoryResponseDTO,
+    PriorConversation,
+    MessageDTO,
+)
+from magick_mind.utils.providers.inference.constants import MessageRole
 
 
 @dataclass
 class EpisodicMemory:
+    workspace_id: str
     mongo_uri: Optional[str] = field(
         default_factory=lambda: os.environ.get("MONGODB_URI")
     )
     db_name: Optional[str] = field(default_factory=lambda: "agentic_memory")
     collection_name: Optional[str] = field(default_factory=lambda: "episodic_memory")
-    workspace_id: Optional[str] = field(default=None)
+    redis_host: str = field(default_factory=lambda: os.environ.get("REDIS_HOST"))
+    redis_port: int = field(default_factory=lambda: int(os.environ.get("REDIS_PORT")))
+    redis_db: int = field(default_factory=lambda: int(os.environ.get("REDIS_DB")))
 
     def __post_init__(self):
         """Initialize MongoDB connection and collection"""
@@ -22,17 +34,28 @@ class EpisodicMemory:
         db = mongo_client.get_database(self.db_name)
         self.collection = db.get_collection(self.collection_name)
 
-        if self.collection_name not in db.list_collection_names():
-            db.create_collection(self.collection_name)
-            self.collection.create_index(
-                [("embedding", "vectorSearch")],
-                {
-                    "vectorSearchOptions": {
-                        "numDimensions": 1536,
-                        "similarity": "cosine",
-                    }
-                },
-            )
+        # Check if collection exists and create it with index if it doesn't
+        # if self.collection_name not in db.list_collection_names():
+        # db.create_collection(self.collection_name)
+        # Create index without any session parameter
+        # self.collection.create_index(
+        #     [("embedding", "vectorSearch")],
+        #     {
+        #         "vectorSearchOptions": {
+        #             "numDimensions": 1536,
+        #             "similarity": "cosine",
+        #         }
+        #     },
+        # )
+
+        self.collection.create_index(
+            [("embedding", 1)],  # Changed from "vectorSearch" to 1
+            name="vector_index",
+            **{"vectorIndexVersion": 1, "numDimensions": 1536, "similarity": "cosine"},
+        )
+
+        self.key = f"episodic_memory:{self.workspace_id}"
+        self.redis = Redis(host=self.redis_host, port=self.redis_port, db=self.redis_db)
 
     def get_embedding(self, query: str) -> List[float]:
         """Get embedding for a query using LiteLLM's embedding function"""
@@ -100,6 +123,7 @@ class EpisodicMemory:
 
         {conversation}
         """
+
         response_format = {
             "type": "json_schema",
             "json_schema": {
@@ -129,6 +153,7 @@ class EpisodicMemory:
             messages=[{"role": "user", "content": reflection_prompt}],
             response_format=response_format,
         )
+
         return json.loads(response.choices[0].message.content)
 
     def store_memory(self, reflection: dict, conversation: str) -> None:
@@ -140,6 +165,7 @@ class EpisodicMemory:
             f"{reflection['what_worked']} "
             f"{reflection['what_to_avoid']}"
         )
+
         memory_doc = {
             "workspace_id": self.workspace_id,
             "conversation": conversation,
@@ -147,12 +173,13 @@ class EpisodicMemory:
             "conversation_summary": reflection["conversation_summary"],
             "what_worked": reflection["what_worked"],
             "what_to_avoid": reflection["what_to_avoid"],
-            "timestamp": datetime.now(),
+            "timestamp": datetime.now(timezone.utc),
             "embedding": self.get_embedding(text_to_embed),
         }
+
         self.collection.insert_one(memory_doc)
 
-    def recall(self, query: str) -> Optional[str]:
+    def similar(self, query: str) -> Optional[str]:
         """Retrieve most relevant memory based on query"""
         query_embedding = self.get_embedding(query)
         pipeline = [
@@ -183,7 +210,6 @@ class EpisodicMemory:
                 }
             },
         ]
-        # TODO add goals (long term and short term)
 
         try:
             result = list(self.collection.aggregate(pipeline))
@@ -202,7 +228,7 @@ class EpisodicMemory:
                 else None
             )
 
-    def get_previous_day_conversation(self, selected_date: datetime) -> str:
+    def _get_previous_day_conversation(self, selected_date: datetime) -> str:
         """Get conversation summaries for a specific day"""
         start_date = selected_date.replace(hour=0, minute=0, second=0, microsecond=0)
         end_date = start_date + timedelta(days=1)
@@ -226,7 +252,7 @@ class EpisodicMemory:
         return f"""Summary of conversations from {selected_date.strftime("%Y-%m-%d")}:
         {chr(10).join(summaries)}"""
 
-    def get_previous_week_conversation(self, selected_date: datetime) -> str:
+    def _get_previous_week_conversation(self, selected_date: datetime) -> str:
         """Get conversation summaries for a specific week"""
         start_date = selected_date - timedelta(days=selected_date.weekday())
         end_date = start_date + timedelta(days=7)
@@ -250,13 +276,16 @@ class EpisodicMemory:
         return f"""Summary of conversations from the week starting {start_date.strftime("%Y-%m-%d")}:
         {chr(10).join(summaries)}"""
 
-    def get_previous_month_conversation(self, selected_date: datetime) -> str:
+    def _get_previous_month_conversation(self, selected_date: datetime) -> str:
         """Get conversation summaries for a specific month"""
         start_date = selected_date.replace(day=1)
         end_date = (selected_date.replace(day=1) + timedelta(days=30)).replace(day=1)
 
         conversations = self.collection.find(
-            {"timestamp": {"$gte": start_date, "$lt": end_date}},
+            {
+                "timestamp": {"$gte": start_date, "$lt": end_date},
+                "workspace_id": self.workspace_id,
+            },
             {"conversation_summary": 1, "timestamp": 1, "_id": 0},
         ).sort("timestamp", 1)
 
@@ -271,7 +300,7 @@ class EpisodicMemory:
         return f"""Summary of conversations from {selected_date.strftime("%Y-%m")}:
         {chr(10).join(summaries)}"""
 
-    def get_previous_year_conversation(self, selected_date: datetime) -> str:
+    def _get_previous_year_conversation(self, selected_date: datetime) -> str:
         """Get conversation summaries for a specific year"""
         start_date = selected_date.replace(day=1, month=1)
         end_date = (
@@ -297,23 +326,67 @@ class EpisodicMemory:
         return f"""Summary of conversations from {selected_date.strftime("%Y")}:
         {chr(10).join(summaries)}"""
 
-    def get_episodic_memory(self, query: str) -> str:
-        """Get comprehensive episodic memory including temporal and similarity-based recalls"""
-        now = datetime.now()
-        previous_day = self.get_previous_day_conversation(now)
-        previous_week = self.get_previous_week_conversation(now)
-        previous_month = self.get_previous_month_conversation(now)
-        previous_year = self.get_previous_year_conversation(now)
-        similar_conversations = self.recall(query)
+    def get_prior_conversation(self) -> PriorConversation:
+        """Get the prior conversation from Redis"""
+        conversation_data = self.redis.json().get(self.key, Path.root_path())
+        conversation = PriorConversation.model_validate(conversation_data)
+        return conversation
 
-        return f"""Previous day conversation:
-        {previous_day}\n\n
-        Previous week conversation:
-        {previous_week}\n\n
-        Previous month conversation:
-        {previous_month}\n\n
-        Previous year conversation:
-        {previous_year}\n\n
-        Similar conversations:
-        {similar_conversations}
-        """
+    def update_prior_conversation(self, last_message: MessageDTO) -> None:
+        """Update the prior conversation in Redis"""
+        conversation_data = self.redis.json().get(self.key, Path.root_path())
+        conversation = PriorConversation.model_validate(conversation_data)
+        conversation.messages.append(last_message)
+        self.redis.json().set(self.key, Path.root_path(), conversation.model_dump())
+
+    def recall(self, query: str) -> EpisodicMemoryResponseDTO:
+        # TOPIC TRACK
+        # IF TOPIC CHANGES, Prior Conversation converts to reflect
+        # Then call store memory with output from the reflect
+
+        # IF TOPIC NOT CHANGES, update the chat history in Rediss
+
+        """Get comprehensive episodic memory including temporal and similarity-based recalls"""
+        now = datetime.now(timezone.utc)
+
+        previous_conversation = self.get_prior_conversation()
+
+        # Convert PriorConversation object to string format
+        conversation_string = "\n".join(
+            [
+                f"{message.role}: {message.content}"
+                for message in previous_conversation.messages
+            ]
+        )
+
+        topic_change = track_topic_change(query, conversation_string)
+
+        if topic_change:
+            reflection = self.reflect(conversation_string)
+            self.store_memory(reflection, conversation_string)
+            self.update_prior_conversation(
+                PriorConversation(
+                    messages=[
+                        MessageDTO(role=MessageRole.USER.value, content=query),
+                    ]
+                )
+            )
+        else:
+            previous_conversation.messages.append(
+                MessageDTO(role=MessageRole.USER.value, content=query)
+            )
+            self.update_prior_conversation(previous_conversation)
+
+        previous_day = self._get_previous_day_conversation(now)
+        previous_week = self._get_previous_week_conversation(now)
+        previous_month = self._get_previous_month_conversation(now)
+        previous_year = self._get_previous_year_conversation(now)
+        similar_conversations = self.similar(query)
+
+        return EpisodicMemoryResponseDTO(
+            previous_day_conversation=previous_day,
+            previous_week_conversation=previous_week,
+            previous_month_conversation=previous_month,
+            previous_year_conversation=previous_year,
+            similar_conversations=similar_conversations,
+        )

@@ -1,5 +1,8 @@
 import json
-from litellm import completion
+from magick_mind.brainoids.available_brainoids import AvailableBrainoids
+from magick_mind.utils.providers.inference_provider import LiteLLMInferenceProvider
+from magick_mind.utils.providers.inference.constants import MessageRole
+from magick_mind.utils.providers.inference.dto import MessageDTO
 
 
 def track_topic_change(current_message: str, prior_conversation: str = None) -> bool:
@@ -37,12 +40,17 @@ def track_topic_change(current_message: str, prior_conversation: str = None) -> 
         },
     }
 
-    response = completion(
-        model="gpt-4o",
-        messages=[
-            {"role": "system", "content": prompt},
-            {"role": "user", "content": current_message},
-        ],
+    inference_provider = LiteLLMInferenceProvider(
+        model=AvailableBrainoids.GPT_4o,
+    )
+
+    messages = [
+        MessageDTO(role=MessageRole.USER.value, content=prompt),
+    ]
+
+    response = inference_provider.infer(
+        messages=messages,
         response_format=response_format,
     )
-    return json.loads(response.choices[0].message.content)["topic_change"]
+
+    return json.loads(response)["topic_change"]

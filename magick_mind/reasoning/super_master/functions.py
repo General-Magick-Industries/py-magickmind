@@ -1,6 +1,7 @@
 import re
-
 from magick_mind.utils.providers.abstraction import InferenceProvider
+from magick_mind.utils.providers.inference.constants import MessageRole
+from magick_mind.utils.providers.inference.dto import MessageDTO
 
 
 # Get Critique
@@ -26,8 +27,11 @@ async def get_critique(
         "Do not provide a revised answer."
     )
 
-    # Create the request to the LLM
-    return inference_provider.infer(prompt)
+    messages = [
+        MessageDTO(role=MessageRole.USER.value, content=prompt),
+    ]
+
+    return inference_provider.infer(messages=messages)
 
 
 async def improve_answer(
@@ -51,10 +55,11 @@ async def improve_answer(
         "Final Answer: <the improved and verified answer>\n"
     )
 
-    # Create the request to the LLM
-    improved_response = inference_provider.infer(prompt)
+    messages = [
+        MessageDTO(role=MessageRole.USER.value, content=prompt),
+    ]
 
-    # print(f"Improved response: {improved_response}")
+    improved_response = inference_provider.infer(messages=messages)
 
     return improved_response
 
@@ -82,8 +87,11 @@ async def rate_answer(
         "Confidence Score: <confidence score>"
     )
 
-    # Create the request to the LLM
-    rating_response = inference_provider.infer(prompt)
+    messages = [
+        MessageDTO(role=MessageRole.USER.value, content=prompt),
+    ]
+
+    rating_response = inference_provider.infer(messages=messages)
 
     # Extract the rating
     try:

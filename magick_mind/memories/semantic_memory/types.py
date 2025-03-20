@@ -1,7 +1,7 @@
 from enum import Enum as PyEnum
 
 
-class SEMANTIC_MEMORY_TYPE(PyEnum):
+class SemanticMemoryType(PyEnum):
     DOMAIN_SPECIFIC_KNOWLEDGE = "domain_specific_knowledge"
     CORE_KNOWLEDGE = "core_knowledge"
     COMPANY_KNOWLEDGE = "company_knowledge"

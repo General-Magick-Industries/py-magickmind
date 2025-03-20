@@ -24,16 +24,16 @@ class SuperGamma(ReasoningModel):
         inference_providers: List[InferenceProvider],
         rating_inference_provider: InferenceProvider,
         question: str | None = None,
-        seed_answers: List[str] = [
-            "I don't know",
-            "I don't have knowledge about this",
-            "I don't have information about this",
-        ],
+        seed_answers: List[str] = None,
         episodic_memory: Any | None = None,
         semantic_memory: Any | None = None,
     ):
         self.question = question
-        self.seed_answers = seed_answers
+        self.seed_answers = seed_answers or [
+            "I don't know",
+            "I don't have knowledge about this",
+            "I don't have information about this",
+        ]
         self.inference_providers = inference_providers
         self.rating_inference_provider = rating_inference_provider
         self.episodic_memory = episodic_memory
@@ -74,7 +74,7 @@ class SuperGamma(ReasoningModel):
         return answer
 
     async def __search(self):
-        for i in range(self.iterations):
+        for _ in range(self.iterations):
             # print(f"\nIteration {i + 1} of {self.iterations}")
             node = self.__select(self.root)
             if not node.is_fully_expanded():
@@ -85,7 +85,7 @@ class SuperGamma(ReasoningModel):
 
         # print(f"Best Answer: {best_answer}")
 
-        match = re.search(r"Final Answer:(.*?)(?=\Z)", best_answer, re.DOTALL)
+        match = re.search(r"Final Answer:(.*)\Z", best_answer, re.DOTALL)
 
         if match:
             best_answer = match.group(1).strip()

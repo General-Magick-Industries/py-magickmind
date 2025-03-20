@@ -111,7 +111,7 @@ class SuperMaster(ReasoningModel):
                 break
         best_answer = self.root.most_visited_child().answer
 
-        match = re.search(r"Final Answer:(.*?)(?=\Z)", best_answer, re.DOTALL)
+        match = re.search(r"Final Answer:(.*)\Z", best_answer, re.DOTALL)
 
         if match:
             best_answer = match.group(1).strip()

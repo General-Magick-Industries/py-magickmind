@@ -1,8 +1,6 @@
-from dataclasses import dataclass
-from magick_mind.utils.providers.inference.constants import MessageRole
+from pydantic import BaseModel
 
 
-@dataclass
-class MessageDTO:
-    role: MessageRole
+class MessageDTO(BaseModel):
+    role: str
     content: str

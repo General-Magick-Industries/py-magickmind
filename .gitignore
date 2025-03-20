@@ -19,3 +19,6 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+
+episodic_memory_test.py
+test.py
