@@ -22,7 +22,7 @@ class LiteLLMInferenceProvider(InferenceProvider):
     ) -> Optional[str]:
         chat_response = completion(
             model=self.model.value,
-            messages=messages,
+            messages=[message.model_dump() for message in messages],
             temperature=temperature,
             max_tokens=max_tokens,
             api_key=self.api_key,
