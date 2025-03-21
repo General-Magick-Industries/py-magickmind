@@ -26,9 +26,9 @@ class MagickMind:
         if semantic_memory:
             semantic_memory = await semantic_memory.recall(stimulus)
 
-        if episodic_memory:
-            # topic track
-            episodic_memory_data = episodic_memory.recall(stimulus)
+        episodic_memory_data = (
+            episodic_memory.recall(stimulus) if episodic_memory else None
+        )
 
         answer = await self.reasoning_model.process(
             stimulus=stimulus,
