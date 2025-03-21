@@ -5,6 +5,7 @@ from typing import List
 
 @dataclass
 class EpisodicMemoryResponseDTO:
+    today_conversation: str
     previous_day_conversation: str
     previous_week_conversation: str
     previous_month_conversation: str
@@ -18,4 +19,4 @@ class MessageDTO(BaseModel):
 
 
 class PriorConversation(BaseModel):
-    messages: List[MessageDTO]
+    messages: List[MessageDTO] = []

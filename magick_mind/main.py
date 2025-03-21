@@ -28,18 +28,20 @@ class MagickMind:
 
         if episodic_memory:
             # topic track
-            episodic_memory = episodic_memory.recall(stimulus)
+            episodic_memory_data = episodic_memory.recall(stimulus)
 
         answer = await self.reasoning_model.process(
             stimulus=stimulus,
             iterations=iterations,
             role=role,
             semantic_memory=semantic_memory,
-            episodic_memory=episodic_memory,
+            episodic_memory=episodic_memory_data,
         )
 
         if episodic_memory:
+            prior_conversation = episodic_memory.get_prior_conversation()
             last_message = MessageDTO(role=MessageRole.ASSISTANT.value, content=answer)
-            episodic_memory.update_prior_conversation(last_message)
+            prior_conversation.messages.append(last_message)
+            episodic_memory.update_prior_conversation(prior_conversation)
 
         return answer

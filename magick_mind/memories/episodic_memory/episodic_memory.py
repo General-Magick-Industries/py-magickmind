@@ -28,6 +28,7 @@ class EpisodicMemory:
     redis_host: str = field(default_factory=lambda: os.environ.get("REDIS_HOST"))
     redis_port: int = field(default_factory=lambda: int(os.environ.get("REDIS_PORT")))
     redis_db: int = field(default_factory=lambda: int(os.environ.get("REDIS_DB")))
+    topic_change: bool = field(default_factory=lambda: False)
 
     def __post_init__(self):
         """Initialize MongoDB connection and collection"""
@@ -66,6 +67,13 @@ class EpisodicMemory:
 
         self.key = f"episodic_memory:{self.workspace_id}"
         self.redis = Redis(host=self.redis_host, port=self.redis_port, db=self.redis_db)
+        # Only initialize if the key doesn't exist yet
+        if not self.redis.exists(self.key):
+            self.redis.json().set(
+                self.key,
+                Path.root_path(),
+                PriorConversation(messages=[]).model_dump(),
+            )
 
     def get_embedding(self, query: str) -> List[float]:
         """Get embedding for a query using LiteLLM's embedding function"""
@@ -238,7 +246,7 @@ class EpisodicMemory:
                 else None
             )
 
-    def _get_previous_day_conversation(self, selected_date: datetime) -> str:
+    def _get_today_conversation(self, selected_date: datetime) -> str:
         """Get conversation summaries for a specific day"""
         start_date = selected_date.replace(hour=0, minute=0, second=0, microsecond=0)
         end_date = start_date + timedelta(days=1)
@@ -259,8 +267,38 @@ class EpisodicMemory:
         if not summaries:
             return f"No conversations found for the date {selected_date.strftime('%Y-%m-%d')}"
 
-        return f"""Summary of conversations from {selected_date.strftime("%Y-%m-%d")}:
+        summary = f"""Summary of conversations from {selected_date.strftime("%Y-%m-%d")}:
         {chr(10).join(summaries)}"""
+
+        return summary
+
+    def _get_previous_day_conversation(self, selected_date: datetime) -> str:
+        """Get conversation summaries for a specific day"""
+        start_date = selected_date.replace(hour=0, minute=0, second=0, microsecond=0)
+        end_date = start_date - timedelta(days=1)
+
+        conversations = self.collection.find(
+            {
+                "timestamp": {"$gte": start_date, "$lt": end_date},
+                "workspace_id": self.workspace_id,
+            },
+            {"conversation_summary": 1, "timestamp": 1, "_id": 0},
+        ).sort("timestamp", 1)
+
+        summaries = [
+            f"[{conv['timestamp'].strftime('%H:%M:%S')}] {conv['conversation_summary']}"
+            for conv in conversations
+        ]
+
+        if not summaries:
+            return f"No conversations found for the date {selected_date.strftime('%Y-%m-%d')}"
+
+        summary = f"""Summary of conversations from {selected_date.strftime("%Y-%m-%d")}:
+        {chr(10).join(summaries)}"""
+
+        print(summary)
+
+        return summary
 
     def _get_previous_week_conversation(self, selected_date: datetime) -> str:
         """Get conversation summaries for a specific week"""
@@ -342,19 +380,20 @@ class EpisodicMemory:
         conversation = PriorConversation.model_validate(conversation_data)
         return conversation
 
-    def update_prior_conversation(self, last_message: MessageDTO) -> None:
+    def update_prior_conversation(
+        self, conversation_history: PriorConversation
+    ) -> None:
         """Update the prior conversation in Redis"""
-        conversation_data = self.redis.json().get(self.key, Path.root_path())
-        conversation = PriorConversation.model_validate(conversation_data)
-        conversation.messages.append(last_message)
-        self.redis.json().set(self.key, Path.root_path(), conversation.model_dump())
+        self.redis.json().set(
+            self.key, Path.root_path(), conversation_history.model_dump()
+        )
 
     def recall(self, query: str) -> EpisodicMemoryResponseDTO:
         # TOPIC TRACK
         # IF TOPIC CHANGES, Prior Conversation converts to reflect
         # Then call store memory with output from the reflect
 
-        # IF TOPIC NOT CHANGES, update the chat history in Rediss
+        # IF TOPIC NOT CHANGES, update the chat history in Redis
 
         """Get comprehensive episodic memory including temporal and similarity-based recalls"""
         now = datetime.now(timezone.utc)
@@ -369,16 +408,14 @@ class EpisodicMemory:
             ]
         )
 
-        topic_change = track_topic_change(query, conversation_string)
+        self.topic_change = track_topic_change(query, conversation_string)
 
-        if topic_change:
+        if self.topic_change:
             reflection = self.reflect(conversation_string)
             self.store_memory(reflection, conversation_string)
             self.update_prior_conversation(
                 PriorConversation(
-                    messages=[
-                        MessageDTO(role=MessageRole.USER.value, content=query),
-                    ]
+                    messages=[MessageDTO(role=MessageRole.USER.value, content=query)]
                 )
             )
         else:
@@ -387,6 +424,7 @@ class EpisodicMemory:
             )
             self.update_prior_conversation(previous_conversation)
 
+        today_conversation = self._get_today_conversation(now)
         previous_day = self._get_previous_day_conversation(now)
         previous_week = self._get_previous_week_conversation(now)
         previous_month = self._get_previous_month_conversation(now)
@@ -394,6 +432,7 @@ class EpisodicMemory:
         similar_conversations = self.similar(query)
 
         return EpisodicMemoryResponseDTO(
+            today_conversation=today_conversation,
             previous_day_conversation=previous_day,
             previous_week_conversation=previous_week,
             previous_month_conversation=previous_month,
