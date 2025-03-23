@@ -34,4 +34,4 @@ class RateAnswerDTO:
 class AgentAnswerDTO(BaseModel):
     reasoning_process: str
     verification: str
-    final_answer: str
+    final_answer: str | dict

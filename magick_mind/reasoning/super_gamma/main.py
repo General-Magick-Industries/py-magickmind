@@ -14,7 +14,6 @@ from magick_mind.reasoning.super_gamma.dto import (
     GetCritiqueDTO,
     ImproveAnswerDTO,
     RateAnswerDTO,
-    AgentAnswerDTO,
 )
 from magick_mind.utils.providers.abstraction import InferenceProvider
 
@@ -82,19 +81,19 @@ class SuperGamma(ReasoningModel):
                 node = await self.__expand(node)
             reward = await self.__simulate(node)
             self.__backpropagate(node, reward)
-        best_answer: AgentAnswerDTO = self.root.most_visited_child().answer
+        best_answer = self.root.most_visited_child().answer
 
         # print(f"Best Answer: {best_answer}")
 
-        # match = re.search(r"Final Answer:(.*)\Z", best_answer, re.DOTALL)
+        match = re.search(r"Final Answer:(.*)\Z", best_answer, re.DOTALL)
 
-        # if match:
-        #     best_answer = match.group(1).strip()
-        # else:
-        #     # If no "Final Answer:" found, return the original answer
-        #     best_answer = best_answer.strip()
+        if match:
+            best_answer = match.group(1).strip()
+        else:
+            # If no "Final Answer:" found, return the original answer
+            best_answer = best_answer.strip()
 
-        return best_answer.final_answer
+        return best_answer
 
     def __select(self, node: Node):
         while node.is_fully_expanded() and node.children:

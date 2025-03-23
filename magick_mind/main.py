@@ -40,7 +40,9 @@ class MagickMind:
 
         if episodic_memory:
             prior_conversation = episodic_memory.get_prior_conversation()
-            last_message = MessageDTO(role=MessageRole.ASSISTANT.value, content=answer)
+            last_message = MessageDTO(
+                role=MessageRole.ASSISTANT.value, content=answer.__str__()
+            )
             prior_conversation.messages.append(last_message)
             episodic_memory.update_prior_conversation(prior_conversation)
 
