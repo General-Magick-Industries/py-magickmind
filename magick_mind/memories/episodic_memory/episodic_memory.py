@@ -1,9 +1,9 @@
 import json
 import os
 from datetime import datetime, timedelta, timezone
-from typing import List, Optional
+from typing import Optional
 from dataclasses import dataclass, field
-from litellm import completion, embedding
+from litellm import completion
 from pymongo import MongoClient
 from pymongo.operations import SearchIndexModel
 from redis import Redis
@@ -15,6 +15,7 @@ from magick_mind.memories.episodic_memory.dto.episodic_memory_dto import (
     MessageDTO,
 )
 from magick_mind.utils.providers.inference.constants import MessageRole
+from magick_mind.utils.helpers import get_embedding
 
 
 @dataclass
@@ -74,11 +75,6 @@ class EpisodicMemory:
                 Path.root_path(),
                 PriorConversation(messages=[]).model_dump(),
             )
-
-    def get_embedding(self, query: str) -> List[float]:
-        """Get embedding for a query using LiteLLM's embedding function"""
-        response = embedding(model="text-embedding-3-large", input=[query])
-        return response.data[0]["embedding"]
 
     def reflect(self, conversation: str) -> dict:
         """Generate reflection on conversation"""
@@ -192,14 +188,14 @@ class EpisodicMemory:
             "what_worked": reflection["what_worked"],
             "what_to_avoid": reflection["what_to_avoid"],
             "timestamp": datetime.now(timezone.utc),
-            "embedding": self.get_embedding(text_to_embed),
+            "embedding": get_embedding(text_to_embed),
         }
 
         self.collection.insert_one(memory_doc)
 
     def similar(self, query: str) -> Optional[str]:
         """Retrieve most relevant memory based on query"""
-        query_embedding = self.get_embedding(query)
+        query_embedding = get_embedding(query)
         pipeline = [
             {
                 "$match": {
