@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from typing import Optional
+from pydantic import BaseModel
 
 
 @dataclass
@@ -28,3 +29,9 @@ class RateAnswerDTO:
     episodic_memory: Optional[str] = None
     semantic_memory: Optional[str] = None
     role: Optional[str] = None
+
+
+class AgentAnswerDTO(BaseModel):
+    reasoning_process: str
+    verification: str
+    final_answer: str

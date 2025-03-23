@@ -1,4 +1,5 @@
 import re
+import json
 from magick_mind.utils.providers.abstraction import InferenceProvider
 from magick_mind.utils.providers.inference.constants import MessageRole
 from magick_mind.utils.providers.inference.dto import MessageDTO
@@ -6,6 +7,7 @@ from magick_mind.reasoning.super_gamma.dto import (
     GetCritiqueDTO,
     ImproveAnswerDTO,
     RateAnswerDTO,
+    AgentAnswerDTO,
 )
 
 
@@ -39,7 +41,7 @@ async def get_critique(
 async def improve_answer(
     improve_answer_dto: ImproveAnswerDTO,
     inference_provider: InferenceProvider,
-):
+) -> AgentAnswerDTO:
     prompt = (
         f"Episodic Memory: {improve_answer_dto.episodic_memory}\n"
         f"Semantic Memory: {improve_answer_dto.semantic_memory}\n"
@@ -48,17 +50,27 @@ async def improve_answer(
         f"Draft Answer: {improve_answer_dto.draft_answer}\n"
         f"Critique: {improve_answer_dto.critique}\n\n"
         + (f"Role: {improve_answer_dto.role}\n" if improve_answer_dto.role else "")
-        + "Please improve the draft answer based on the critique. Follow this format:\n"
-        "Reasoning Process: <step-by-step reasoning process>\n"
-        "Verification: <verification of the facts>\n"
-        "Final Answer: <the improved and verified answer>\n"
+        + "Please improve the draft answer based on the critique. DO NOT ADD ANYTHING BEFORE OR AFTER THE FORMAT. Follow this format:\n"
+        """
+        {
+            "reasoning_process": "<step-by-step reasoning process>",
+            "verification": "<verification of the facts>",
+            "final_answer": "<the improved and verified answer>"
+        }
+        """
     )
+
+    # "Reasoning Process: <step-by-step reasoning process>\n"
+    # "Verification: <verification of the facts>\n"
+    # "Final Answer: <the improved and verified answer>\n"
 
     messages = [
         MessageDTO(role=MessageRole.USER.value, content=prompt),
     ]
 
-    return inference_provider.infer(messages=messages)
+    agent_answer = inference_provider.infer(messages=messages)
+
+    return AgentAnswerDTO(**json.loads(agent_answer))
 
 
 async def rate_answer(
