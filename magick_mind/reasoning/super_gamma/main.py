@@ -85,13 +85,13 @@ class SuperGamma(ReasoningModel):
 
         # print(f"Best Answer: {best_answer}")
 
-        match = re.search(r"Final Answer:(.*)\Z", best_answer, re.DOTALL)
+        # match = re.search(r"Final Answer:(.*)\Z", best_answer, re.DOTALL)
 
-        if match:
-            best_answer = match.group(1).strip()
-        else:
-            # If no "Final Answer:" found, return the original answer
-            best_answer = best_answer.strip()
+        # if match:
+        #     best_answer = match.group(1).strip()
+        # else:
+        #     # If no "Final Answer:" found, return the original answer
+        #     best_answer = best_answer.strip()
 
         return best_answer
 
