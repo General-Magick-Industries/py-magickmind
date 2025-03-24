@@ -1,4 +1,3 @@
-import re
 import random
 import asyncio
 from typing import Any, List
