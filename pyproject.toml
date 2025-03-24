@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "magick_mind"
-version = "0.0.8"
+version = "0.1.8"
 authors = [
     { name = "Adrian", email = "minoak@globalmagicko.com" },
     { name = "Turtle", email = "turtle@globalmagicko.com" },
