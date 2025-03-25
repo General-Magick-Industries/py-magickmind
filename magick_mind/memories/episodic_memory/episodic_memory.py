@@ -62,9 +62,12 @@ class EpisodicMemory:
             search_index_model = SearchIndexModel(
                 definition={
                     "fields": [
-                        { "type": "vector",
-                            "numDimensions": 3072,"path": "embedding",
-                            "similarity": "cosine",}
+                        {
+                            "type": "vector",
+                            "numDimensions": 3072,
+                            "path": "embedding",
+                            "similarity": "cosine",
+                        }
                     ]
                 },
                 name="vector_index",
