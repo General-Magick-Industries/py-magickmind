@@ -2,9 +2,9 @@ name: AGD Magick Mind CI
 
 on:
   push:
-    branches: [main]
+    branches: [github_actions_test]
   pull_request:
-    branches: [main]
+    branches: [github_actions_test]
 
 jobs:
   lint:
@@ -84,4 +84,3 @@ jobs:
   #
   #     - name: Run tests
   #       run: pytest
-
