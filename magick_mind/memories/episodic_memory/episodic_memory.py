@@ -1,9 +1,11 @@
 import json
 import os
-from datetime import datetime, timedelta, timezone
-from typing import List, Optional
+from datetime import datetime, timedelta, timezone, time
+from typing import Optional
 from dataclasses import dataclass, field
-from litellm import completion, embedding
+from enum import Enum
+from dateutil.relativedelta import relativedelta
+from litellm import completion
 from pymongo import MongoClient
 from pymongo.operations import SearchIndexModel
 from redis import Redis
@@ -15,6 +17,14 @@ from magick_mind.memories.episodic_memory.dto.episodic_memory_dto import (
     MessageDTO,
 )
 from magick_mind.utils.providers.inference.constants import MessageRole
+from magick_mind.utils.helpers import get_embedding
+
+
+class LookbackUnit(Enum):
+    DAY = "day"
+    WEEK = "week"
+    MONTH = "month"
+    YEAR = "year"
 
 
 @dataclass
@@ -74,11 +84,6 @@ class EpisodicMemory:
                 Path.root_path(),
                 PriorConversation(messages=[]).model_dump(),
             )
-
-    def get_embedding(self, query: str) -> List[float]:
-        """Get embedding for a query using LiteLLM's embedding function"""
-        response = embedding(model="text-embedding-3-large", input=[query])
-        return response.data[0]["embedding"]
 
     def reflect(self, conversation: str) -> dict:
         """Generate reflection on conversation"""
@@ -192,14 +197,14 @@ class EpisodicMemory:
             "what_worked": reflection["what_worked"],
             "what_to_avoid": reflection["what_to_avoid"],
             "timestamp": datetime.now(timezone.utc),
-            "embedding": self.get_embedding(text_to_embed),
+            "embedding": get_embedding(text_to_embed),
         }
 
         self.collection.insert_one(memory_doc)
 
     def similar(self, query: str) -> Optional[str]:
         """Retrieve most relevant memory based on query"""
-        query_embedding = self.get_embedding(query)
+        query_embedding = get_embedding(query)
         pipeline = [
             {
                 "$match": {
@@ -246,10 +251,61 @@ class EpisodicMemory:
                 else None
             )
 
-    def _get_today_conversation(self, selected_date: datetime) -> str:
-        """Get conversation summaries for a specific day"""
-        start_date = selected_date.replace(hour=0, minute=0, second=0, microsecond=0)
-        end_date = start_date + timedelta(days=1)
+    def _get_previous_conversations(
+        self, selected_date: datetime, unit: LookbackUnit, offset: int = 0
+    ) -> str:
+        """
+        Fetch conversation summaries based on a specified time unit and an optional offset.
+
+        The offset parameter allows you to control whether you want the current period (offset=0)
+        or a previous period (offset=1 for one period ago, etc.). For example:
+
+            - For DAY:
+            - offset=0 returns today's conversations.
+            - offset=1 returns yesterday's conversations.
+
+            - For WEEK, MONTH, and YEAR:
+            - offset=0 returns conversations from the current week/month/year.
+            - offset=1 returns conversations from the previous week/month/year.
+
+        The function resets the time to the beginning of the day using datetime.combine() and
+        uses relativedelta for robust month and year arithmetic.
+
+        Args:
+            selected_date (datetime): The reference date.
+            unit (LookbackUnit): The unit of time (DAY, WEEK, MONTH, or YEAR).
+            offset (int): The number of periods to shift back. If 0, fetch the current period;
+                        if 1, fetch the previous period, etc.
+
+        Returns:
+            str: A summary of conversations for the specified period. If no conversations are found,
+                returns an appropriate message.
+        """
+        # Set base to the start of the day for selected_date.
+        base_day = datetime.combine(
+            selected_date.date(), time.min, tzinfo=selected_date.tzinfo
+        )
+
+        if unit == LookbackUnit.DAY:
+            start_date = base_day - timedelta(days=offset)
+            end_date = start_date + timedelta(days=1)
+        elif unit == LookbackUnit.WEEK:
+            # Determine the start of the week (assuming Monday as the first day)
+            base_week = base_day - timedelta(days=selected_date.weekday())
+            start_date = base_week - timedelta(weeks=offset)
+            end_date = start_date + timedelta(weeks=1)
+        elif unit == LookbackUnit.MONTH:
+            # Base is the first day of the selected month.
+            base_month = base_day.replace(day=1)
+            start_date = base_month - relativedelta(months=offset)
+            end_date = start_date + relativedelta(months=1)
+        elif unit == LookbackUnit.YEAR:
+            # Base is the first day of the selected year.
+            base_year = base_day.replace(month=1, day=1)
+            start_date = base_year - relativedelta(years=offset)
+            end_date = start_date + relativedelta(years=1)
+        else:
+            raise ValueError("Unsupported LookbackUnit")
 
         conversations = self.collection.find(
             {
@@ -265,114 +321,12 @@ class EpisodicMemory:
         ]
 
         if not summaries:
-            return f"No conversations found for the date {selected_date.strftime('%Y-%m-%d')}"
+            return f"No conversations found for {unit.value} (offset={offset}) starting {start_date.strftime('%Y-%m-%d')}"
 
-        summary = f"""Summary of conversations from {selected_date.strftime("%Y-%m-%d")}:
-        {chr(10).join(summaries)}"""
-
-        return summary
-
-    def _get_previous_day_conversation(self, selected_date: datetime) -> str:
-        """Get conversation summaries for a specific day"""
-        start_date = selected_date.replace(hour=0, minute=0, second=0, microsecond=0)
-        end_date = start_date - timedelta(days=1)
-
-        conversations = self.collection.find(
-            {
-                "timestamp": {"$gte": start_date, "$lt": end_date},
-                "workspace_id": self.workspace_id,
-            },
-            {"conversation_summary": 1, "timestamp": 1, "_id": 0},
-        ).sort("timestamp", 1)
-
-        summaries = [
-            f"[{conv['timestamp'].strftime('%H:%M:%S')}] {conv['conversation_summary']}"
-            for conv in conversations
-        ]
-
-        if not summaries:
-            return f"No conversations found for the date {selected_date.strftime('%Y-%m-%d')}"
-
-        summary = f"""Summary of conversations from {selected_date.strftime("%Y-%m-%d")}:
-        {chr(10).join(summaries)}"""
-
-        print(summary)
-
-        return summary
-
-    def _get_previous_week_conversation(self, selected_date: datetime) -> str:
-        """Get conversation summaries for a specific week"""
-        start_date = selected_date - timedelta(days=selected_date.weekday())
-        end_date = start_date + timedelta(days=7)
-
-        conversations = self.collection.find(
-            {
-                "timestamp": {"$gte": start_date, "$lt": end_date},
-                "workspace_id": self.workspace_id,
-            },
-            {"conversation_summary": 1, "timestamp": 1, "_id": 0},
-        ).sort("timestamp", 1)
-
-        summaries = [
-            f"[{conv['timestamp'].strftime('%H:%M:%S')}] {conv['conversation_summary']}"
-            for conv in conversations
-        ]
-
-        if not summaries:
-            return f"No conversations found for the week starting {start_date.strftime('%Y-%m-%d')}"
-
-        return f"""Summary of conversations from the week starting {start_date.strftime("%Y-%m-%d")}:
-        {chr(10).join(summaries)}"""
-
-    def _get_previous_month_conversation(self, selected_date: datetime) -> str:
-        """Get conversation summaries for a specific month"""
-        start_date = selected_date.replace(day=1)
-        end_date = (selected_date.replace(day=1) + timedelta(days=30)).replace(day=1)
-
-        conversations = self.collection.find(
-            {
-                "timestamp": {"$gte": start_date, "$lt": end_date},
-                "workspace_id": self.workspace_id,
-            },
-            {"conversation_summary": 1, "timestamp": 1, "_id": 0},
-        ).sort("timestamp", 1)
-
-        summaries = [
-            f"[{conv['timestamp'].strftime('%H:%M:%S')}] {conv['conversation_summary']}"
-            for conv in conversations
-        ]
-
-        if not summaries:
-            return "No conversations found for this month"
-
-        return f"""Summary of conversations from {selected_date.strftime("%Y-%m")}:
-        {chr(10).join(summaries)}"""
-
-    def _get_previous_year_conversation(self, selected_date: datetime) -> str:
-        """Get conversation summaries for a specific year"""
-        start_date = selected_date.replace(day=1, month=1)
-        end_date = (
-            selected_date.replace(day=1, month=1) + timedelta(days=365)
-        ).replace(day=1, month=1)
-
-        conversations = self.collection.find(
-            {
-                "timestamp": {"$gte": start_date, "$lt": end_date},
-                "workspace_id": self.workspace_id,
-            },
-            {"conversation_summary": 1, "timestamp": 1, "_id": 0},
-        ).sort("timestamp", 1)
-
-        summaries = [
-            f"[{conv['timestamp'].strftime('%H:%M:%S')}] {conv['conversation_summary']}"
-            for conv in conversations
-        ]
-
-        if not summaries:
-            return "No conversations found for this year"
-
-        return f"""Summary of conversations from {selected_date.strftime("%Y")}:
-        {chr(10).join(summaries)}"""
+        return (
+            f"Summary of conversations for {unit.value} (offset={offset}) starting {start_date.strftime('%Y-%m-%d')}:\n"
+            + "\n".join(summaries)
+        )
 
     def get_prior_conversation(self) -> PriorConversation:
         """Get the prior conversation from Redis"""
@@ -424,18 +378,18 @@ class EpisodicMemory:
             )
             self.update_prior_conversation(previous_conversation)
 
-        today_conversation = self._get_today_conversation(now)
-        previous_day = self._get_previous_day_conversation(now)
-        previous_week = self._get_previous_week_conversation(now)
-        previous_month = self._get_previous_month_conversation(now)
-        previous_year = self._get_previous_year_conversation(now)
+        today_conversation = self._get_previous_conversations(now, LookbackUnit.DAY)
+        previous_day = self._get_previous_conversations(now, LookbackUnit.DAY, 1)
+        current_week = self._get_previous_conversations(now, LookbackUnit.WEEK)
+        current_month = self._get_previous_conversations(now, LookbackUnit.MONTH)
+        current_year = self._get_previous_conversations(now, LookbackUnit.YEAR)
         similar_conversations = self.similar(query)
 
         return EpisodicMemoryResponseDTO(
             today_conversation=today_conversation,
             previous_day_conversation=previous_day,
-            previous_week_conversation=previous_week,
-            previous_month_conversation=previous_month,
-            previous_year_conversation=previous_year,
+            previous_week_conversation=current_week,
+            previous_month_conversation=current_month,
+            previous_year_conversation=current_year,
             similar_conversations=similar_conversations,
         )
