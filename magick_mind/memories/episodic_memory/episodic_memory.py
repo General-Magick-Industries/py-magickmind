@@ -292,26 +292,27 @@ class EpisodicMemory:
             selected_date.date(), time.min, tzinfo=selected_date.tzinfo
         )
 
-        if unit == LookbackUnit.DAY:
-            start_date = base_day - timedelta(days=offset)
-            end_date = start_date + timedelta(days=1)
-        elif unit == LookbackUnit.WEEK:
-            # Determine the start of the week (assuming Monday as the first day)
-            base_week = base_day - timedelta(days=selected_date.weekday())
-            start_date = base_week - timedelta(weeks=offset)
-            end_date = start_date + timedelta(weeks=1)
-        elif unit == LookbackUnit.MONTH:
-            # Base is the first day of the selected month.
-            base_month = base_day.replace(day=1)
-            start_date = base_month - relativedelta(months=offset)
-            end_date = start_date + relativedelta(months=1)
-        elif unit == LookbackUnit.YEAR:
-            # Base is the first day of the selected year.
-            base_year = base_day.replace(month=1, day=1)
-            start_date = base_year - relativedelta(years=offset)
-            end_date = start_date + relativedelta(years=1)
-        else:
-            raise ValueError("Unsupported LookbackUnit")
+        match unit:
+            case LookbackUnit.DAY:
+                start_date = base_day - timedelta(days=offset)
+                end_date = start_date + timedelta(days=1)
+            case LookbackUnit.WEEK:
+                # Determine the start of the week (assuming Monday as the first day)
+                base_week = base_day - timedelta(days=selected_date.weekday())
+                start_date = base_week - timedelta(weeks=offset)
+                end_date = start_date + timedelta(weeks=1)
+            case LookbackUnit.MONTH:
+                # Base is the first day of the selected month.
+                base_month = base_day.replace(day=1)
+                start_date = base_month - relativedelta(months=offset)
+                end_date = start_date + relativedelta(months=1)
+            case LookbackUnit.YEAR:
+                # Base is the first day of the selected year.
+                base_year = base_day.replace(month=1, day=1)
+                start_date = base_year - relativedelta(years=offset)
+                end_date = start_date + relativedelta(years=1)
+            case _:
+                raise ValueError("Unsupported LookbackUnit")
 
         conversations = self.collection.find(
             {
