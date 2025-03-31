@@ -30,12 +30,27 @@ class MagickMind:
             episodic_memory.recall(stimulus) if episodic_memory else None
         )
 
+        episodic_memory_string = (
+            "Today's Conversation: "
+            + episodic_memory_data.today_conversation
+            + "\nPrevious Day's Conversation: "
+            + episodic_memory_data.previous_day_conversation
+            + "\nPrevious Week's Conversation: "
+            + episodic_memory_data.previous_week_conversation
+            + "\nPrevious Month's Conversation: "
+            + episodic_memory_data.previous_month_conversation
+            + "\nPrevious Year's Conversation: "
+            + episodic_memory_data.previous_year_conversation
+            + "\nSimilar Conversations: "
+            + episodic_memory_data.similar_conversations
+        )
+
         answer = await self.reasoning_model.process(
             stimulus=stimulus,
             iterations=iterations,
             role=role,
             semantic_memory=semantic_memory,
-            episodic_memory=episodic_memory_data,
+            episodic_memory=episodic_memory_string,
         )
 
         if episodic_memory:

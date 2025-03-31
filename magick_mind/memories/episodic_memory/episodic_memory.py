@@ -8,8 +8,6 @@ from dateutil.relativedelta import relativedelta
 from litellm import completion
 from pymongo import MongoClient
 from pymongo.operations import SearchIndexModel
-from redis import Redis
-from redis.commands.json.path import Path
 from magick_mind.memories.episodic_memory.topic_track import track_topic_change
 from magick_mind.memories.episodic_memory.dto.episodic_memory_dto import (
     EpisodicMemoryResponseDTO,
@@ -35,23 +33,29 @@ class EpisodicMemory:
     )
     db_name: Optional[str] = field(default_factory=lambda: "agentic_memory")
     collection_name: Optional[str] = field(default_factory=lambda: "episodic_memory")
-    redis_host: str = field(default_factory=lambda: os.environ.get("REDIS_HOST"))
-    redis_port: int = field(default_factory=lambda: int(os.environ.get("REDIS_PORT")))
-    redis_db: int = field(default_factory=lambda: int(os.environ.get("REDIS_DB")))
+    conv_db_name: Optional[str] = field(default_factory=lambda: "conversation")
+    conv_collection_name: Optional[str] = field(
+        default_factory=lambda: "conversation_memory"
+    )
     topic_change: bool = field(default_factory=lambda: False)
 
     def __post_init__(self):
         """Initialize MongoDB connection and collection"""
         mongo_client = MongoClient(self.mongo_uri)
-        if self.db_name not in mongo_client.list_database_names():
-            db = mongo_client.get_database(self.db_name)
-        else:
-            db = mongo_client[self.db_name]
 
-        if self.collection_name in db.list_collection_names():
-            self.collection = db[self.collection_name]
-        else:
-            self.collection = db.create_collection(self.collection_name)
+        db = mongo_client.get_database(self.db_name)
+        self.collection = (
+            db[self.collection_name]
+            if self.collection_name in db.list_collection_names()
+            else db.create_collection(self.collection_name)
+        )
+
+        conv_db = mongo_client.get_database(self.conv_db_name)
+        self.conversation_collection = (
+            conv_db[self.conv_collection_name]
+            if self.conv_collection_name in conv_db.list_collection_names()
+            else conv_db.create_collection(self.conv_collection_name)
+        )
 
         # Check if index exists
         existing_indexes = self.collection.list_search_indexes()
@@ -75,14 +79,16 @@ class EpisodicMemory:
             )
             self.collection.create_search_index(model=search_index_model)
 
-        self.key = f"episodic_memory:{self.workspace_id}"
-        self.redis = Redis(host=self.redis_host, port=self.redis_port, db=self.redis_db)
-        # Only initialize if the key doesn't exist yet
-        if not self.redis.exists(self.key):
-            self.redis.json().set(
-                self.key,
-                Path.root_path(),
-                PriorConversation(messages=[]).model_dump(),
+        # Check if workspace conversation exists
+        workspace_conversation = self.conversation_collection.find_one(
+            {"workspace_id": self.workspace_id}
+        )
+        if not workspace_conversation:
+            self.conversation_collection.insert_one(
+                {
+                    "workspace_id": self.workspace_id,
+                    "messages": [],
+                }
             )
 
     def reflect(self, conversation: str) -> dict:
@@ -286,26 +292,27 @@ class EpisodicMemory:
             selected_date.date(), time.min, tzinfo=selected_date.tzinfo
         )
 
-        if unit == LookbackUnit.DAY:
-            start_date = base_day - timedelta(days=offset)
-            end_date = start_date + timedelta(days=1)
-        elif unit == LookbackUnit.WEEK:
-            # Determine the start of the week (assuming Monday as the first day)
-            base_week = base_day - timedelta(days=selected_date.weekday())
-            start_date = base_week - timedelta(weeks=offset)
-            end_date = start_date + timedelta(weeks=1)
-        elif unit == LookbackUnit.MONTH:
-            # Base is the first day of the selected month.
-            base_month = base_day.replace(day=1)
-            start_date = base_month - relativedelta(months=offset)
-            end_date = start_date + relativedelta(months=1)
-        elif unit == LookbackUnit.YEAR:
-            # Base is the first day of the selected year.
-            base_year = base_day.replace(month=1, day=1)
-            start_date = base_year - relativedelta(years=offset)
-            end_date = start_date + relativedelta(years=1)
-        else:
-            raise ValueError("Unsupported LookbackUnit")
+        match unit:
+            case LookbackUnit.DAY:
+                start_date = base_day - timedelta(days=offset)
+                end_date = start_date + timedelta(days=1)
+            case LookbackUnit.WEEK:
+                # Determine the start of the week (assuming Monday as the first day)
+                base_week = base_day - timedelta(days=selected_date.weekday())
+                start_date = base_week - timedelta(weeks=offset)
+                end_date = start_date + timedelta(weeks=1)
+            case LookbackUnit.MONTH:
+                # Base is the first day of the selected month.
+                base_month = base_day.replace(day=1)
+                start_date = base_month - relativedelta(months=offset)
+                end_date = start_date + relativedelta(months=1)
+            case LookbackUnit.YEAR:
+                # Base is the first day of the selected year.
+                base_year = base_day.replace(month=1, day=1)
+                start_date = base_year - relativedelta(years=offset)
+                end_date = start_date + relativedelta(years=1)
+            case _:
+                raise ValueError("Unsupported LookbackUnit")
 
         conversations = self.collection.find(
             {
@@ -329,17 +336,28 @@ class EpisodicMemory:
         )
 
     def get_prior_conversation(self) -> PriorConversation:
-        """Get the prior conversation from Redis"""
-        conversation_data = self.redis.json().get(self.key, Path.root_path())
+        """Get the prior conversation from MongoDB"""
+        conversation_data = self.conversation_collection.find_one(
+            {"workspace_id": self.workspace_id}, {"messages": 1, "_id": 0}
+        )
         conversation = PriorConversation.model_validate(conversation_data)
         return conversation
 
     def update_prior_conversation(
         self, conversation_history: PriorConversation
     ) -> None:
-        """Update the prior conversation in Redis"""
-        self.redis.json().set(
-            self.key, Path.root_path(), conversation_history.model_dump()
+        """Update the prior conversation in MongoDB"""
+        self.conversation_collection.update_one(
+            {"workspace_id": self.workspace_id},
+            {
+                "$set": {
+                    "messages": [
+                        message.model_dump()
+                        for message in conversation_history.messages
+                    ]
+                }
+            },
+            upsert=True,
         )
 
     def recall(self, query: str) -> EpisodicMemoryResponseDTO:
