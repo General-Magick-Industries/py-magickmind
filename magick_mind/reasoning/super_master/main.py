@@ -17,6 +17,8 @@ from magick_mind.reasoning.super_master.node import Node
 from magick_mind.utils.providers.abstraction import InferenceProvider
 from magick_mind.utils.providers.inference.constants import MessageRole
 from magick_mind.utils.providers.inference.dto.message_dto import MessageDTO
+from magick_mind.utils.response_format import get_answer_response_format
+from pydantic import BaseModel
 
 
 class SuperMaster(ReasoningModel):
@@ -40,6 +42,7 @@ class SuperMaster(ReasoningModel):
         role: str | None = None,
         semantic_memory: Any | None = None,
         episodic_memory: Any | None = None,
+        response_format: BaseModel | None = None,
     ) -> str:
         self.question = stimulus
         self.iterations = iterations
@@ -51,16 +54,18 @@ class SuperMaster(ReasoningModel):
         if episodic_memory:
             self.episodic_memory = episodic_memory
 
-        answer = await self.__search()
+        answer = await self.__search(response_format=response_format)
 
         return answer
 
-    async def __get_initial_answer(self) -> Tuple[str, float, float, InferenceProvider]:
+    async def __get_initial_answer(
+        self, response_format: BaseModel | None = None
+    ) -> Tuple[BaseModel, float, float, InferenceProvider]:
         initial_inference_provider = random.choice(self.inference_providers)
         initial_answer = initial_inference_provider.infer(
             messages=[
                 MessageDTO(role=MessageRole.USER.value, content=self.question),
-            ]
+            ],
         )
 
         critique = await get_critique(
@@ -82,13 +87,14 @@ class SuperMaster(ReasoningModel):
                 episodic_memory=self.episodic_memory,
                 semantic_memory=self.semantic_memory,
                 role=self.role,
+                response_format=get_answer_response_format(response_format),
             ),
             inference_provider=initial_inference_provider,
         )
         rating, confidence = await rate_answer(
             rate_answer_dto=RateAnswerDTO(
                 question=self.question,
-                answer=improved_answer,
+                answer=improved_answer.model_dump_json(),
                 episodic_memory=self.episodic_memory,
                 semantic_memory=self.semantic_memory,
                 role=self.role,
@@ -97,13 +103,13 @@ class SuperMaster(ReasoningModel):
         )
         return improved_answer, rating, confidence, initial_inference_provider
 
-    async def __search(self) -> str:
+    async def __search(self, response_format: BaseModel | None = None) -> str:
         (
             initial_answer,
             rating,
             confidence,
             inference_provider,
-        ) = await self.__get_initial_answer()
+        ) = await self.__get_initial_answer(response_format=response_format)
         self.root = Node(
             question=self.question,
             answer=initial_answer,
@@ -114,7 +120,7 @@ class SuperMaster(ReasoningModel):
         for _ in range(self.iterations):
             node = self.__select(self.root)
             if not node.is_fully_expanded():
-                node = await self.__expand(node)
+                node = await self.__expand(node, response_format=response_format)
             self.__backpropagate(node, node.rating)
             if node.rating > 0.93:
                 break
@@ -127,13 +133,17 @@ class SuperMaster(ReasoningModel):
             node = node.best_child()
         return node
 
-    async def __expand(self, node: Node) -> Node:
+    async def __expand(
+        self, node: Node, response_format: BaseModel | None = None
+    ) -> Node:
         tasks = []
 
         # Create tasks for all inference providers
         tasks = [
             asyncio.create_task(
-                self.__create_and_improve_child_node(node, inference_provider)
+                self.__create_and_improve_child_node(
+                    node, inference_provider, response_format
+                )
             )
             for inference_provider in self.inference_providers
         ]
@@ -144,7 +154,10 @@ class SuperMaster(ReasoningModel):
         return best_child
 
     async def __create_and_improve_child_node(
-        self, node: Node, inference_provider: InferenceProvider
+        self,
+        node: Node,
+        inference_provider: InferenceProvider,
+        response_format: BaseModel | None = None,
     ):
         # Children inherit the parent's model
         child_node = Node(self.question, node.answer, inference_provider, parent=node)
@@ -164,11 +177,12 @@ class SuperMaster(ReasoningModel):
         improved_answer = await improve_answer(
             improve_answer_dto=ImproveAnswerDTO(
                 question=self.question,
-                draft_answer=child_node.answer,
+                draft_answer=child_node.answer.model_dump_json(),
                 critique=critique,
                 episodic_memory=self.episodic_memory,
                 semantic_memory=self.semantic_memory,
                 role=self.role,
+                response_format=get_answer_response_format(response_format),
             ),
             inference_provider=inference_provider,
         )

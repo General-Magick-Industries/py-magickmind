@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Any
+from pydantic import BaseModel
 
 
 class ReasoningModel(ABC):
@@ -17,6 +18,7 @@ class ReasoningModel(ABC):
         role: str | None = None,
         semantic_memory: Any | None = None,
         episodic_memory: Any | None = None,
+        response_format: BaseModel | None = None,
     ) -> str:
         """Execute the reasoning process and return the result.
 

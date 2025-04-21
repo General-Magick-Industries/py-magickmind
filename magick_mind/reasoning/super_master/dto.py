@@ -20,6 +20,7 @@ class ImproveAnswerDTO:
     episodic_memory: Optional[str] = None
     semantic_memory: Optional[str] = None
     role: Optional[str] = None
+    response_format: Optional[BaseModel] = None
 
 
 @dataclass

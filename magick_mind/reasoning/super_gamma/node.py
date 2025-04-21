@@ -3,13 +3,14 @@ from .constants import MAX_CHILDREN
 import math
 import numpy as np
 from magick_mind.utils.providers.abstraction import InferenceProvider
+from pydantic import BaseModel
 
 
 class Node:
     def __init__(
         self,
         question: str,
-        answer: str,
+        answer: BaseModel,
         inference_provider: InferenceProvider,
         parent: Self | None = None,
     ):

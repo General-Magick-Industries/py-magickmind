@@ -7,6 +7,10 @@ from magick_mind.reasoning.super_master.dto import (
 from magick_mind.utils.providers.abstraction import InferenceProvider
 from magick_mind.utils.providers.inference.constants import MessageRole
 from magick_mind.utils.providers.inference.dto import MessageDTO
+from magick_mind.utils.response_format import (
+    AnswerResponse,
+    SuperMasterRateAnswerResponse,
+)
 
 
 # Get Critique
@@ -63,9 +67,22 @@ async def improve_answer(
         MessageDTO(role=MessageRole.USER.value, content=prompt),
     ]
 
-    improved_response = inference_provider.infer(messages=messages)
+    improved_answer = inference_provider.infer(
+        messages=messages, response_format=improve_answer_dto.response_format
+    )
 
-    return improved_response
+    try:
+        if improved_answer:
+            response_model = improve_answer_dto.response_format.model_validate_json(
+                improved_answer
+            )
+            improved_answer = response_model
+    except Exception:
+        improved_answer = AnswerResponse(
+            reasoning_process="", verification="", final_answer=""
+        )
+
+    return improved_answer
 
 
 async def rate_answer(
@@ -93,21 +110,18 @@ async def rate_answer(
         MessageDTO(role=MessageRole.USER.value, content=prompt),
     ]
 
-    rating_response = inference_provider.infer(messages=messages)
+    rating_response = inference_provider.infer(
+        messages=messages, response_format=SuperMasterRateAnswerResponse
+    )
 
     # Extract the rating
     try:
-        rating_match = re.search(r"Rating:\s*(\d+)", rating_response)
-        confidence_match = re.search(r"Confidence Score:\s*(\d+)", rating_response)
-        if rating_match and confidence_match:
-            rating = int(rating_match.group(1))
-            confidence = int(confidence_match.group(1))
-            if rating > 95:
-                rating = 95
-            if confidence > 95:
-                confidence = 95
-            rating = float(rating) / 100
-            confidence = float(confidence) / 100
+        if rating_response:
+            response_model = SuperMasterRateAnswerResponse.model_validate_json(
+                rating_response
+            )
+            rating = response_model.rating
+            confidence = response_model.confidence_score
         else:
             raise ValueError("Rating not found in the response")
     except Exception as e:
