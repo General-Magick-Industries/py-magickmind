@@ -10,11 +10,15 @@ from magick_mind.reasoning.super_gamma.functions import (
     rate_answer,
 )
 from magick_mind.reasoning.super_gamma.dto import (
+    AgentAnswerDTO,
     GetCritiqueDTO,
     ImproveAnswerDTO,
     RateAnswerDTO,
 )
 from magick_mind.utils.providers.abstraction import InferenceProvider
+from pydantic import BaseModel
+
+from magick_mind.utils.response_format import get_answer_response_format
 
 
 class SuperGamma(ReasoningModel):
@@ -23,15 +27,20 @@ class SuperGamma(ReasoningModel):
         inference_providers: List[InferenceProvider],
         rating_inference_provider: InferenceProvider,
         question: str | None = None,
-        seed_answers: List[str] = None,
         episodic_memory: Any | None = None,
         semantic_memory: Any | None = None,
     ):
         self.question = question
-        self.seed_answers = seed_answers or [
-            "I don't know",
-            "I don't have knowledge about this",
-            "I don't have information about this",
+        self.seed_answers = [
+            AgentAnswerDTO(
+                final_answer="I don't know",
+            ),
+            AgentAnswerDTO(
+                final_answer="I don't have knowledge about this",
+            ),
+            AgentAnswerDTO(
+                final_answer="I don't have information about this",
+            ),
         ]
         self.inference_providers = inference_providers
         self.rating_inference_provider = rating_inference_provider
@@ -51,6 +60,7 @@ class SuperGamma(ReasoningModel):
         role: str | None = None,
         semantic_memory: Any | None = None,
         episodic_memory: Any | None = None,
+        response_format: BaseModel | None = None,
     ) -> str:
         self.question = stimulus
         self.iterations = iterations
@@ -68,29 +78,19 @@ class SuperGamma(ReasoningModel):
         if episodic_memory:
             self.episodic_memory = episodic_memory
 
-        answer = await self.__search()
+        answer = await self.__search(response_format=response_format)
 
         return answer
 
-    async def __search(self):
+    async def __search(self, response_format: BaseModel | None = None):
         for _ in range(self.iterations):
             # print(f"\nIteration {i + 1} of {self.iterations}")
             node = self.__select(self.root)
             if not node.is_fully_expanded():
-                node = await self.__expand(node)
+                node = await self.__expand(node, response_format)
             reward = await self.__simulate(node)
             self.__backpropagate(node, reward)
         best_answer = self.root.most_visited_child().answer
-
-        # print(f"Best Answer: {best_answer}")
-
-        # match = re.search(r"Final Answer:(.*)\Z", best_answer, re.DOTALL)
-
-        # if match:
-        #     best_answer = match.group(1).strip()
-        # else:
-        #     # If no "Final Answer:" found, return the original answer
-        #     best_answer = best_answer.strip()
 
         return best_answer
 
@@ -99,19 +99,23 @@ class SuperGamma(ReasoningModel):
             node = node.best_child()
         return node
 
-    async def __expand(self, node: Node):
+    async def __expand(self, node: Node, response_format: BaseModel | None = None):
         tasks = []
 
         if node is self.root:
             for inference in self.inference_providers:
                 task = asyncio.create_task(
-                    self.__create_and_improve_child_node(node, inference)
+                    self.__create_and_improve_child_node(
+                        node, inference, response_format
+                    )
                 )
                 tasks.append(task)
         else:
             for _ in range(MAX_CHILDREN):
                 task = asyncio.create_task(
-                    self.__create_and_improve_child_node(node, node.inference_provider)
+                    self.__create_and_improve_child_node(
+                        node, node.inference_provider, response_format
+                    )
                 )
                 tasks.append(task)
 
@@ -119,7 +123,9 @@ class SuperGamma(ReasoningModel):
 
         return random.choice(node.children)
 
-    async def __create_and_improve_child_node(self, parent_node, inference_provider):
+    async def __create_and_improve_child_node(
+        self, parent_node, inference_provider, response_format: BaseModel | None = None
+    ):
         """Helper method to create and improve a child node"""
         child_node = Node(
             self.question, parent_node.answer, inference_provider, parent=parent_node
@@ -129,7 +135,7 @@ class SuperGamma(ReasoningModel):
         critique = await get_critique(
             get_critique_dto=GetCritiqueDTO(
                 question=self.question,
-                draft_answer=child_node.answer,
+                draft_answer=child_node.answer.model_dump_json(),
                 episodic_memory=self.episodic_memory,
                 semantic_memory=self.semantic_memory,
                 role=self.role,
@@ -140,11 +146,12 @@ class SuperGamma(ReasoningModel):
         improved_answer = await improve_answer(
             improve_answer_dto=ImproveAnswerDTO(
                 question=self.question,
-                draft_answer=child_node.answer,
+                draft_answer=child_node.answer.model_dump_json(),
                 critique=critique,
                 episodic_memory=self.episodic_memory,
                 semantic_memory=self.semantic_memory,
                 role=self.role,
+                response_format=get_answer_response_format(response_format),
             ),
             inference_provider=child_node.inference_provider,
         )
@@ -155,7 +162,7 @@ class SuperGamma(ReasoningModel):
         rating = await rate_answer(
             rate_answer_dto=RateAnswerDTO(
                 question=self.question,
-                answer=node.answer,
+                answer=node.answer.model_dump_json(),
                 episodic_memory=self.episodic_memory,
                 semantic_memory=self.semantic_memory,
                 role=self.role,

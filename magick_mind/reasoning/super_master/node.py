@@ -1,6 +1,6 @@
 import math
 import numpy as np
-
+from pydantic import BaseModel
 from typing import List, Self
 
 from magick_mind.utils.providers.abstraction import InferenceProvider
@@ -10,14 +10,14 @@ class Node:
     def __init__(
         self,
         question: str,
-        answer: str,
+        answer: BaseModel,
         inference_provider: InferenceProvider,
         parent: Self | None = None,
         rating: float = 0.0,
         confidence: float = 0.0,
     ):
         self.question: str = question
-        self.answer: str = answer
+        self.answer: BaseModel = answer
         self.inference_provider: InferenceProvider = inference_provider
         self.parent: Node | None = parent
         self.children: List[Node] = []

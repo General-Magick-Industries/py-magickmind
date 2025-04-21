@@ -1,4 +1,5 @@
 version = 1
+revision = 1
 requires-python = ">=3.10"
 
 [[package]]
@@ -686,13 +687,13 @@ dependencies = [
     { name = "pipmaster" },
     { name = "pydantic-settings" },
     { name = "pygments" },
-    { name = "python-dateutil" },
     { name = "tenacity" },
 ]
 
 [package.optional-dependencies]
 episodic = [
     { name = "pymongo" },
+    { name = "python-dateutil" },
     { name = "redis", extra = ["hiredis"] },
 ]
 semantic = [
@@ -717,10 +718,11 @@ requires-dist = [
     { name = "pymongo", marker = "extra == 'episodic'", specifier = ">=4.11.1" },
     { name = "pytest", marker = "extra == 'test'", specifier = ">=8.3.5" },
     { name = "pytest-asyncio", marker = "extra == 'test'", specifier = ">=0.23.5" },
-    { name = "python-dateutil", specifier = ">=2.9.0.post0" },
+    { name = "python-dateutil", marker = "extra == 'episodic'", specifier = ">=2.9.0.post0" },
     { name = "redis", extras = ["hiredis"], marker = "extra == 'episodic'", specifier = ">=5.2.1" },
     { name = "tenacity", specifier = ">=9.0.0" },
 ]
+provides-extras = ["semantic", "episodic", "test"]
 
 [[package]]
 name = "markupsafe"

@@ -1,4 +1,3 @@
-import re
 from magick_mind.utils.providers.abstraction import InferenceProvider
 from magick_mind.utils.providers.inference.constants import MessageRole
 from magick_mind.utils.providers.inference.dto import MessageDTO
@@ -7,12 +6,16 @@ from magick_mind.reasoning.super_gamma.dto import (
     ImproveAnswerDTO,
     RateAnswerDTO,
 )
+from magick_mind.utils.response_format import (
+    AnswerResponse,
+    SuperGammaRateAnswerResponse,
+)
 
 
 async def get_critique(
     get_critique_dto: GetCritiqueDTO,
     inference_provider: InferenceProvider,
-):
+) -> str:
     prompt = (
         f"Episodic Memory: {get_critique_dto.episodic_memory}\n"
         f"Semantic Memory: {get_critique_dto.semantic_memory}\n"
@@ -39,7 +42,7 @@ async def get_critique(
 async def improve_answer(
     improve_answer_dto: ImproveAnswerDTO,
     inference_provider: InferenceProvider,
-) -> str:
+) -> AnswerResponse:
     prompt = (
         f"Episodic Memory: {improve_answer_dto.episodic_memory}\n"
         f"Semantic Memory: {improve_answer_dto.semantic_memory}\n"
@@ -56,30 +59,34 @@ async def improve_answer(
             "final_answer": "<the improved and verified answer>"
         }
         """
-        # "Reasoning Process: <step-by-step reasoning process>\n"
-        # "Verification: <verification of the facts>\n"
-        # "Final Answer: <the improved and verified answer>\n"
     )
-
-    # """
-    #     {
-    #         "reasoning_process": "<step-by-step reasoning process>",
-    #         "verification": "<verification of the facts>",
-    #         "final_answer": "<the improved and verified answer>"
-    #     }
-    #     """
 
     messages = [
         MessageDTO(role=MessageRole.USER.value, content=prompt),
     ]
 
-    return inference_provider.infer(messages=messages)
+    improved_answer = inference_provider.infer(
+        messages=messages, response_format=improve_answer_dto.response_format
+    )
+    # Extract the improved answer
+    try:
+        if improved_answer:
+            response_model = improve_answer_dto.response_format.model_validate_json(
+                improved_answer
+            )
+            improved_answer = response_model
+    except Exception:
+        improved_answer = AnswerResponse(
+            reasoning_process="", verification="", final_answer=""
+        )
+
+    return improved_answer
 
 
 async def rate_answer(
     rate_answer_dto: RateAnswerDTO,
     inference_provider: InferenceProvider,
-):
+) -> float:
     prompt = (
         f"Episodic Memory: {rate_answer_dto.episodic_memory}\n"
         f"Semantic Memory: {rate_answer_dto.semantic_memory}\n"
@@ -99,16 +106,17 @@ async def rate_answer(
         MessageDTO(role=MessageRole.USER.value, content=prompt),
     ]
 
-    rating_response = inference_provider.infer(messages=messages)
+    rating_response = inference_provider.infer(
+        messages=messages, response_format=SuperGammaRateAnswerResponse
+    )
 
     # Extract the rating
     try:
-        match = re.search(r"Rating:\s*(\d+)", rating_response)
-        if match:
-            rating = int(match.group(1))
-            if rating > 95:
-                rating = 95
-            rating = float(rating) / 100
+        if rating_response:
+            response_model = SuperGammaRateAnswerResponse.model_validate_json(
+                rating_response
+            )
+            rating = response_model.rating
         else:
             raise ValueError("Rating not found in the response")
     except Exception as e:

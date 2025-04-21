@@ -20,6 +20,7 @@ class ImproveAnswerDTO:
     episodic_memory: Optional[str] = None
     semantic_memory: Optional[str] = None
     role: Optional[str] = None
+    response_format: Optional[BaseModel] = None
 
 
 @dataclass
@@ -32,6 +33,6 @@ class RateAnswerDTO:
 
 
 class AgentAnswerDTO(BaseModel):
-    reasoning_process: str
-    verification: str
-    final_answer: str | dict
+    reasoning_process: Optional[str] = None
+    verification: Optional[str] = None
+    final_answer: str | BaseModel
