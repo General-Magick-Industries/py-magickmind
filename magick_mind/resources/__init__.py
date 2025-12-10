@@ -20,4 +20,3 @@ from .base import BaseResource
 #         self.chat = ChatResourceV2(http_client)
 
 __all__ = ["BaseResource"]
-

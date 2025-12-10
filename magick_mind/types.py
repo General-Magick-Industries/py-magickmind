@@ -5,12 +5,14 @@ from typing import TypedDict, NotRequired
 
 class LoginRequest(TypedDict):
     """Request body for /v1/auth/login"""
+
     email: str
     password: str
 
 
 class TokenResponse(TypedDict):
     """Response from /v1/auth/login"""
+
     success: bool
     message: str
     access_token: str
@@ -25,5 +27,6 @@ class TokenResponse(TypedDict):
 
 class BaseResponse(TypedDict):
     """Base response structure"""
+
     success: bool
     message: str
