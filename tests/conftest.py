@@ -12,7 +12,4 @@ def base_url():
 @pytest.fixture
 def test_credentials():
     """Test credentials."""
-    return {
-        "email": "test@example.com",
-        "password": "testpass123"
-    }
+    return {"email": "test@example.com", "password": "testpass123"}
