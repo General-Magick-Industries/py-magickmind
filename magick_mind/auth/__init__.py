@@ -1,7 +1,7 @@
 """Authentication module for Magick Mind SDK."""
 
-from .base import AuthProvider
-from .email_password import EmailPasswordAuth
+from magick_mind.auth.base import AuthProvider
+from magick_mind.auth.email_password import EmailPasswordAuth
 
 __all__ = [
     "AuthProvider",
