@@ -114,31 +114,19 @@ client.beta.chat.send(...)      # Beta API version (breaking)
 
 ```python
 # resources/v1/chat.py
-from ...models.v1.chat import ChatSendRequest, ChatSendResponse
-from ..base import BaseResource
+from typing import Optional
+from magick_mind.models.v1.chat import ChatSendRequest, ChatSendResponse
+from magick_mind.resources.base import BaseResource
 
 class ChatResourceV1(BaseResource):
-    """Client for /v1/magickmind/chat endpoints."""
-    
-    def send(
-        self,
-        api_key: str,
-        message: str,
-        chat_id: str,
-        sender_id: str,
-    ) -> ChatSendResponse:
+    def send(self, message: str, model: str = "gpt-4") -> ChatSendResponse:
         """Send a chat message."""
-        request = ChatSendRequest(
-            api_key=api_key,
-            message=message,
-            chat_id=chat_id,
-            sender_id=sender_id,
-        )
-        response = self._http.post(
-            "/v1/magickmind/chat",
-            json=request.model_dump()
-        )
-        return ChatSendResponse.model_validate(response.json())
+        payload = ChatSendRequest(message=message, model=model)
+        
+        # self.http gives access to authenticated httpx client
+        resp = self.http.post("/v1/chat/completions", json=payload.model_dump())
+        
+        return ChatSendResponse(**resp.json())
 ```
 
 ## Resource Containers
@@ -167,13 +155,13 @@ class V2Resources:
 Update `client.py`:
 
 ```python
-from .resources import V1Resources, V2Resources
+from magick_mind.resources import V1Resources, V2Resources
 
 class MagickMind:
     def __init__(self, ...):
-        # ... existing init ...
+        # ... auth setup ...
         
-        # Version namespaces
+        # Initialize resources with http client
         self.v1 = V1Resources(self.http)
         self.v2 = V2Resources(self.http)
         

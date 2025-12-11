@@ -2,9 +2,9 @@
 
 from typing import Optional
 
-from .auth import AuthProvider, EmailPasswordAuth
-from .config import SDKConfig
-from .http import HTTPClient
+from magick_mind.auth import AuthProvider, EmailPasswordAuth
+from magick_mind.config import SDKConfig
+from magick_mind.http import HTTPClient
 
 
 class MagickMind:

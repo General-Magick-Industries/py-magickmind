@@ -1,5 +1,5 @@
 """HTTP client module for Magick Mind SDK."""
 
-from .client import HTTPClient
+from magick_mind.http.client import HTTPClient
 
 __all__ = ["HTTPClient"]

@@ -1,6 +1,6 @@
 """Resource clients for API endpoints."""
 
-from .base import BaseResource
+from magick_mind.resources.base import BaseResource
 
 # TODO: Add V1Resources, V2Resources when resources are implemented
 # See docs/contributing/resource_implementation_guide/ for reference

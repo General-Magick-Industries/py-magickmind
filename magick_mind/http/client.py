@@ -3,9 +3,9 @@
 from typing import Any, Dict, Optional
 import httpx
 
-from ..auth.base import AuthProvider
-from ..config import SDKConfig
-from ..exceptions import APIError, RateLimitError
+from magick_mind.auth.base import AuthProvider
+from magick_mind.config import SDKConfig
+from magick_mind.exceptions import APIError, RateLimitError
 
 
 class HTTPClient:
