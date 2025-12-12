@@ -20,6 +20,9 @@ class SDKConfig:
     verify_ssl: bool = True
     """Whether to verify SSL certificates"""
 
+    ws_endpoint: Optional[str] = None
+    """Explicit WebSocket endpoint URL (optional)"""
+
     def normalized_base_url(self) -> str:
         """Return base URL without trailing slash."""
         return self.base_url.rstrip("/")
