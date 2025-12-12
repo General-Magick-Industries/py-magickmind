@@ -27,6 +27,17 @@ class AuthProvider(ABC):
         """
         pass
 
+    @abstractmethod
+    def get_token(self) -> str:
+        """
+        Get the raw access token.
+        Should handle refresh if needed.
+
+        Returns:
+            Raw access token string
+        """
+        pass
+
     def refresh_if_needed(self) -> None:
         """
         Refresh authentication credentials if needed.

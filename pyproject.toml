@@ -17,6 +17,7 @@ classifiers = [
 dependencies = [
     "httpx>=0.27.0",
     "pydantic>=2.0.0",
+    "centrifuge-python>=0.4.2",
 ]
 
 [project.optional-dependencies]

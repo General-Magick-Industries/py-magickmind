@@ -5,6 +5,7 @@ from typing import Optional
 from magick_mind.auth import AuthProvider, EmailPasswordAuth
 from magick_mind.config import SDKConfig
 from magick_mind.http import HTTPClient
+from magick_mind.realtime import RealtimeClient
 
 
 class MagickMind:
@@ -16,6 +17,7 @@ class MagickMind:
     Currently provides:
     - Authentication (email/password with JWT, automatic refresh)
     - HTTP client for making authenticated requests
+    - Realtime client for WebSocket connections (async)
 
     Example:
         # Initialize client
@@ -38,6 +40,14 @@ class MagickMind:
 
         # See docs/contributing/resource_implementation_guide/ for how to add
         # typed resources like client.v1.chat.send(...)
+        response = client.http.post("/v1/magickmind/chat", ...)
+
+        # Use Realtime client (in async context)
+        async def main():
+            # Pass handler to connect() to receive server-side publications
+            await client.realtime.connect(events=MyHandler())
+            # Subscribe via RPC
+            await client.realtime.subscribe(target_user_id="user-456")
     """
 
     def __init__(
@@ -47,6 +57,7 @@ class MagickMind:
         password: str,
         timeout: float = 30.0,
         verify_ssl: bool = True,
+        ws_endpoint: Optional[str] = None,
     ):
         """
         Initialize the Magick Mind client.
@@ -57,16 +68,17 @@ class MagickMind:
             password: User password for authentication
             timeout: Request timeout in seconds
             verify_ssl: Whether to verify SSL certificates
-
-        Raises:
-            ValueError: If authentication parameters are invalid
+            ws_endpoint: WebSocket URL (Required for .realtime usage)
         """
         if not email or not password:
             raise ValueError("Email and password are required for authentication")
 
         # Create configuration
         self.config = SDKConfig(
-            base_url=base_url, timeout=timeout, verify_ssl=verify_ssl
+            base_url=base_url,
+            timeout=timeout,
+            verify_ssl=verify_ssl,
+            ws_endpoint=ws_endpoint,
         )
 
         # Create authentication provider (email/password with JWT)
@@ -76,6 +88,9 @@ class MagickMind:
 
         # Create HTTP client (private, accessed via property)
         self._http = HTTPClient(config=self.config, auth=self.auth)
+
+        # Create Realtime client (private, accessed via property)
+        self._realtime = RealtimeClient(auth=self.auth, ws_url=ws_endpoint)
 
     @property
     def http(self) -> HTTPClient:
@@ -108,16 +123,27 @@ class MagickMind:
         """
         return self._http
 
-    def test_connection(self) -> bool:
+    @property
+    def realtime(self) -> RealtimeClient:
         """
-        Test the connection to the API.
+        Realtime WebSocket client.
+
+        Note: This client is ASYNC. You must use it within an async context.
+
+        Features:
+        - Authenticated WebSocket connection
+        - RPC subscriptions (Bifrost specific)
+        - Handling disconnects/reconnects (via centrifuge-python)
 
         Returns:
-            True if connection is successful, False otherwise
+            RealtimeClient: Configured async realtime client
         """
+        return self._realtime
+
+    def test_connection(self) -> bool:
+        """Test the connection to the API."""
         try:
             # This assumes there's a health check or similar endpoint
-            # Update the endpoint based on what's actually available
             response = self.http.get("/health")
             return response.get("success", False)
         except Exception:
@@ -130,11 +156,15 @@ class MagickMind:
         Returns:
             True if authenticated, False otherwise
         """
+        """Check if the client is authenticated."""
         return self.auth.is_authenticated()
 
     def close(self) -> None:
         """Close the client and cleanup resources."""
         self._http.close()
+        # Realtime client might need async close?
+        # But close() here is typically sync.
+        # User should probably manage realtime lifecycle themselves if async.
 
     def __enter__(self):
         """Context manager entry."""
