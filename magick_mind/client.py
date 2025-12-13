@@ -14,9 +14,10 @@ class MagickMind:
 
     This is the primary interface for interacting with the Bifrost Magick Mind API.
 
-    Currently provides:
+    Provides:
     - Authentication (email/password with JWT, automatic refresh)
-    - HTTP client for making authenticated requests
+    - Typed resources (v1.chat, etc.) with Pydantic validation
+    - HTTP client for direct API access
     - Realtime client for WebSocket connections (async)
 
     Example:
@@ -27,26 +28,24 @@ class MagickMind:
             base_url="https://bifrost.example.com"
         )
 
-        # Use HTTP client directly
-        response = client.http.post(
-            "/v1/magickmind/chat",
-            json={
-                "api_key": "sk-...",
-                "message": "Hello!",
-                "chat_id": "123",
-                "sender_id": "user-456"
-            }
+        # Use typed resources (recommended)
+        response = client.v1.chat.send(
+            api_key="sk-...",
+            mindspace_id="mind-123",
+            message="Hello!",
+            sender_id="user-456"
         )
+        print(response.content.content)  # AI response
 
-        # See docs/contributing/resource_implementation_guide/ for how to add
-        # typed resources like client.v1.chat.send(...)
-        response = client.http.post("/v1/magickmind/chat", ...)
+        # Or use convenience alias
+        response = client.chat.send(...)
+
+        # Use HTTP client directly for experimental endpoints
+        response = client.http.post("/experimental/endpoint", json={...})
 
         # Use Realtime client (in async context)
         async def main():
-            # Pass handler to connect() to receive server-side publications
             await client.realtime.connect(events=MyHandler())
-            # Subscribe via RPC
             await client.realtime.subscribe(target_user_id="user-456")
     """
 
@@ -91,6 +90,14 @@ class MagickMind:
 
         # Create Realtime client (private, accessed via property)
         self._realtime = RealtimeClient(auth=self.auth, ws_url=ws_endpoint)
+
+        # Initialize typed resources
+        from magick_mind.resources import V1Resources
+
+        self.v1 = V1Resources(self._http)
+
+        # Convenience alias for default version
+        self.chat = self.v1.chat
 
     @property
     def http(self) -> HTTPClient:

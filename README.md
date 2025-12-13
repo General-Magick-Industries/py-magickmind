@@ -2,6 +2,22 @@
 
 Python SDK for the Bifrost Magick Mind AI platform. Simple, powerful authentication and API interaction.
 
+## Who Is This SDK For?
+
+**Primary use case: Backend Services** - Most users integrate this SDK into their backend services (FastAPI, Django, Flask) to connect their applications to Bifrost.
+
+**Also works great for:**
+- Desktop applications (PyQt, Tkinter, wxPython)
+- CLI tools and automation scripts
+- Server-side scripts
+
+**For web/mobile frontends:** If you're building browser-based apps or native mobile apps, you would need JavaScript, Swift, or Kotlin SDKs (not yet available). This Python SDK is for your backend.
+
+**Common architecture:**
+```
+[Your Frontend/App] ←→ [Your Backend + This SDK] ←→ [Bifrost SaaS]
+```
+
 ## Installation
 
 Using `uv` (recommended):
@@ -141,6 +157,8 @@ client = MagickMind(email="...", password="...", base_url="...")
 See the `examples/` directory for complete working examples:
 
 - `examples/email_password_auth.py` - Email/password with auto-refresh
+- `examples/backend_service.py` - Production-ready backend service pattern
+- `examples/chat_example.py` - Using the typed chat resource
 
 Run example:
 
@@ -152,6 +170,57 @@ export BIFROST_PASSWORD="your_password"
 
 # Run example
 uv run python examples/email_password_auth.py
+```
+
+## Backend Integration
+
+If you're building a **backend service** that uses this SDK as middleware (e.g., your backend receives data from Bifrost and manages state for your own frontend), see:
+
+📖 **[Backend Integration Guide](docs/guides/backend_integration.md)**
+
+Covers production patterns for:
+- Message deduplication
+- Hybrid realtime + HTTP sync
+- Recovery from disconnects
+- Reliable message processing
+
+Example backend service:
+```python
+from magick_mind import MagickMind
+from examples.backend_service import ChatBackendService
+
+client = MagickMind(email="...", password="...", base_url="...")
+service = ChatBackendService(client)
+
+# Handles realtime events + periodic sync for reliability
+await service.start(mindspace_id="mind-123", user_id="service-user")
+```
+
+## Event-Driven Architecture
+
+The SDK supports event-driven patterns with both realtime WebSocket events and HTTP APIs.
+
+📖 **[Event-Driven Patterns Guide](docs/architecture/event_driven_patterns.md)**
+
+Learn about:
+- Events as source of truth (current Bifrost)
+- Events as notifications (industry standard)
+- Hybrid approaches for production
+- Migration paths
+
+## Realtime WebSocket Client
+
+For realtime updates via WebSocket:
+
+📖 **[Realtime Guide](docs/realtime_guide.md)**
+
+```python
+# Async realtime client
+await client.realtime.connect()
+await client.realtime.subscribe(
+    target_user_id="user-123",
+    on_publication=handle_event
+)
 ```
 
 ## Extending the SDK
