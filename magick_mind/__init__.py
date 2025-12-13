@@ -10,18 +10,27 @@ from magick_mind.exceptions import (
     AuthenticationError,
     MagickMindError,
     TokenExpiredError,
+    RateLimitError,
 )
-from magick_mind.models.v1.chat import ChatPayload, ChatSendRequest, ChatSendResponse
+from magick_mind.models.v1 import (
+    ChatPayload,
+    ChatSendRequest,
+    ChatSendResponse,
+    ChatHistoryMessage,
+    HistoryResponse,
+)
 
 __version__ = "0.0.1"
 
 __all__ = [
     "MagickMind",
-    "MagickMindError",
-    "AuthenticationError",
     "APIError",
+    "AuthenticationError",
+    "RateLimitError",
     "TokenExpiredError",
     "ChatSendRequest",
-    "ChatSendResponse",
     "ChatPayload",
+    "ChatSendResponse",
+    "ChatHistoryMessage",
+    "HistoryResponse",
 ]
