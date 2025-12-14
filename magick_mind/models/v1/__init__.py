@@ -1,5 +1,16 @@
 """V1 API models."""
 
+from magick_mind.models.v1.artifact import (
+    Artifact,
+    ArtifactWebhookPayload,
+    DeleteArtifactResponse,
+    FinalizeArtifactRequest,
+    FinalizeArtifactResponse,
+    GetArtifactResponse,
+    ListArtifactsResponse,
+    PresignArtifactRequest,
+    PresignArtifactResponse,
+)
 from magick_mind.models.v1.chat import ChatPayload, ChatSendRequest, ChatSendResponse
 from magick_mind.models.v1.end_user import (
     CreateEndUserRequest,
@@ -42,4 +53,13 @@ __all__ = [
     "QueryEndUserResponse",
     "UpdateEndUserRequest",
     "UpdateEndUserResponse",
+    "Artifact",
+    "PresignArtifactRequest",
+    "PresignArtifactResponse",
+    "GetArtifactResponse",
+    "ListArtifactsResponse",
+    "DeleteArtifactResponse",
+    "FinalizeArtifactRequest",
+    "FinalizeArtifactResponse",
+    "ArtifactWebhookPayload",
 ]

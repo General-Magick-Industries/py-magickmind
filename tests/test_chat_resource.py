@@ -45,7 +45,7 @@ class TestChatResourceV1:
             api_key="sk-test",
             mindspace_id="mind-123",
             message="Hello!",
-            sender_id="user-456",
+            enduser_id="user-456",
         )
 
         # Verify HTTP call
@@ -58,7 +58,7 @@ class TestChatResourceV1:
         assert request_body["api_key"] == "sk-test"
         assert request_body["mindspace_id"] == "mind-123"
         assert request_body["message"] == "Hello!"
-        assert request_body["sender_id"] == "user-456"
+        assert request_body["enduser_id"] == "user-456"
 
         # Verify response
         assert isinstance(response, ChatSendResponse)
@@ -85,7 +85,7 @@ class TestChatResourceV1:
             api_key="sk-test",
             mindspace_id="mind-123",
             message="This is a reply",
-            sender_id="user-456",
+            enduser_id="user-456",
             reply_to_message_id="msg-789",
             fast_brain_model_id="openrouter/meta-llama/llama-4-maverick",
             model_ids=["model-1", "model-2"],
@@ -124,7 +124,7 @@ class TestChatResourceV1:
             api_key="sk-test",
             mindspace_id="mind-123",
             message="Hello",
-            sender_id="user-456",
+            enduser_id="user-456",
         )
 
         # Verify request body doesn't include None values
@@ -192,7 +192,7 @@ class TestChatResourceIntegration:
             api_key="sk-test",
             mindspace_id="mind-123",
             message="Hello AI!",
-            sender_id="user-456",
+            enduser_id="user-456",
         )
 
         # Verify response
@@ -205,6 +205,6 @@ class TestChatResourceIntegration:
             api_key="sk-test",
             mindspace_id="mind-123",
             message="Hello again!",
-            sender_id="user-456",
+            enduser_id="user-456",
         )
         assert response2.success is True

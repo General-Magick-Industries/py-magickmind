@@ -19,14 +19,15 @@ class ChatSendRequest(BaseModel):
             api_key="sk-...",
             mindspace_id="mind-123",
             message="Hello!",
-            sender_id="user-456"
+            enduser_id="user-456",
+            artifact_ids=["art-123", "art-456"]
         )
     """
 
     api_key: str = Field(..., description="API key for LLM access")
     mindspace_id: str = Field(..., description="Mindspace/chat conversation ID")
     message: str = Field(..., description="User message text to send")
-    sender_id: str = Field(..., description="End-user identifier")
+    enduser_id: str = Field(..., description="End-user identifier")
     reply_to_message_id: Optional[str] = Field(
         default=None, description="ID of message being replied to"
     )
@@ -36,6 +37,9 @@ class ChatSendRequest(BaseModel):
     )
     model_ids: Optional[list[str]] = Field(
         default=None, description="Alternative model IDs"
+    )
+    artifact_ids: Optional[list[str]] = Field(
+        default=None, description="List of artifact IDs to attach to message"
     )
     compute_power: Optional[int] = Field(
         default=None, description="Compute power setting"
