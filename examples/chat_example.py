@@ -27,7 +27,7 @@ response = client.v1.chat.send(
 
 # Access response with type safety - IDE knows the structure
 if response.success:
-    print(f"✓ Chat sent successfully")
+    print("✓ Chat sent successfully")
     print(f"Message ID: {response.content.message_id}")
     print(f"Task ID: {response.content.task_id}")
     print(f"\nAI Response:\n{response.content.content}")
