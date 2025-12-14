@@ -2,11 +2,14 @@ import asyncio
 import sys
 from unittest.mock import MagicMock, AsyncMock, patch
 
+import pytest
+
 # Mock dependencies before importing the client if they are not installed or to ensure isolation
 sys.modules["centrifuge"] = MagicMock()
 sys.modules["centrifuge.exceptions"] = MagicMock()
 
 
+@pytest.mark.asyncio
 async def test_realtime_client_logic():
     print("🧪 Testing RealtimeClient logic with mocks...")
 

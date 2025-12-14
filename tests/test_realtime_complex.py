@@ -2,7 +2,10 @@ import asyncio
 import sys
 from unittest.mock import MagicMock, AsyncMock
 
+import pytest
 
+
+@pytest.mark.asyncio
 async def test_complex_realtime_scenarios():
     print("🧪 Testing Realtime Scalability & Resilience...")
 
