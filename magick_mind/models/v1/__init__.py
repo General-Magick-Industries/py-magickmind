@@ -1,6 +1,15 @@
 """V1 API models."""
 
 from magick_mind.models.v1.chat import ChatPayload, ChatSendRequest, ChatSendResponse
+from magick_mind.models.v1.end_user import (
+    CreateEndUserRequest,
+    CreateEndUserResponse,
+    EndUser,
+    GetEndUserResponse,
+    QueryEndUserResponse,
+    UpdateEndUserRequest,
+    UpdateEndUserResponse,
+)
 from magick_mind.models.v1.history import ChatHistoryMessage, HistoryResponse
 from magick_mind.models.v1.project import (
     CreateProjectRequest,
@@ -11,6 +20,7 @@ from magick_mind.models.v1.project import (
     UpdateProjectRequest,
     UpdateProjectResponse,
 )
+
 
 __all__ = [
     "ChatSendRequest",
@@ -25,4 +35,11 @@ __all__ = [
     "GetProjectListResponse",
     "UpdateProjectRequest",
     "UpdateProjectResponse",
+    "EndUser",
+    "CreateEndUserRequest",
+    "CreateEndUserResponse",
+    "GetEndUserResponse",
+    "QueryEndUserResponse",
+    "UpdateEndUserRequest",
+    "UpdateEndUserResponse",
 ]
