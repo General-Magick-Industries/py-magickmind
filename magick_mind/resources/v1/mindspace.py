@@ -25,7 +25,7 @@ class MindspaceResourceV1(BaseResource):
     Mindspace resource client for V1 API.
 
     Provides typed interface for managing mindspaces (organizational containers
-    for chat conversations, corpora, and users).
+    for chat conversations, corpus, and users).
 
     Example:
         # Create a private mindspace
@@ -119,7 +119,7 @@ class MindspaceResourceV1(BaseResource):
             response = client.v1.mindspace.get("mind-123")
             print(f"Mindspace: {response.mindspace.name}")
             print(f"Type: {response.mindspace.type}")
-            print(f"Corpora: {response.mindspace.corpus_ids}")
+            print(f"Corpus: {response.mindspace.corpus_ids}")
         """
         response = self._http.get(f"/v1/mindspaces/{mindspace_id}")
         return GetMindSpaceResponse.model_validate(response.json())
@@ -178,7 +178,7 @@ class MindspaceResourceV1(BaseResource):
             ValidationError: If parameters are invalid
 
         Example:
-            # Update mindspace to add more corpora
+            # Update mindspace to add more corpus
             response = client.v1.mindspace.update(
                 mindspace_id="mind-123",
                 name="Engineering Team",

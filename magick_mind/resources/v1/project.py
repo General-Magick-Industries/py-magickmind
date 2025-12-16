@@ -25,7 +25,7 @@ class ProjectResourceV1(BaseResource):
     """
     Project resource for managing agentic SaaS projects.
 
-    Projects organize corpora and other resources for multi-tenant backends.
+    Projects organize corpus and other resources for multi-tenant backends.
     """
 
     def create(

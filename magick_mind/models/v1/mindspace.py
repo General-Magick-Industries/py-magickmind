@@ -22,7 +22,7 @@ class MindSpace(BaseModel):
     Mindspace schema model.
 
     Represents a mindspace container that can be private (single user)
-    or group (multiple users), with attached corpora for knowledge.
+    or group (multiple users), with attached corpus for knowledge.
 
     Example:
         {
