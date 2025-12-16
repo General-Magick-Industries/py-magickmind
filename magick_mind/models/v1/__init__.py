@@ -32,6 +32,16 @@ from magick_mind.models.v1.end_user import (
     UpdateEndUserResponse,
 )
 from magick_mind.models.v1.history import ChatHistoryMessage, HistoryResponse
+from magick_mind.models.v1.api_keys import (
+    ApiKey,
+    CreateApiKeyRequest,
+    CreateApiKeyResponse,
+    DeleteApiKeyResponse,
+    KeyResponse,
+    ListApiKeysResponse,
+    UpdateApiKeyRequest,
+    UpdateApiKeyResponse,
+)
 from magick_mind.models.v1.project import (
     CreateProjectRequest,
     CreateProjectResponse,
@@ -80,4 +90,12 @@ __all__ = [
     "UpdateCorpusRequest",
     "UpdateCorpusResponse",
     "DeleteCorpusResponse",
+    "ApiKey",
+    "KeyResponse",
+    "CreateApiKeyRequest",
+    "CreateApiKeyResponse",
+    "ListApiKeysResponse",
+    "UpdateApiKeyRequest",
+    "UpdateApiKeyResponse",
+    "DeleteApiKeyResponse",
 ]
