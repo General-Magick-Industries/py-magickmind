@@ -41,14 +41,14 @@ pip install -e .
 **Mindspace is the central organizing concept in Bifrost** - it's where conversations, knowledge, and collaboration converge. When designing your application architecture, start by thinking about mindspaces:
 
 - **All chat conversations happen within a mindspace**
-- **Knowledge (corpora) attaches to mindspaces** to provide context for AI responses  
+- **Knowledge (corpus) attaches to mindspaces** to provide context for AI responses  
 - **Users collaborate through mindspaces** (private for individuals, group for teams)
 - **Everything connects through mindspaces** - projects, messages, artifacts
 
 ```mermaid
 graph LR
     U[Users] --> MS[Mindspace]
-    C[Corpora/Knowledge] --> MS
+    C[Corpus/Knowledge] --> MS
     MS --> Chat[Conversations]
     MS --> History[Message History]
     P[Projects] -.organize.-> MS

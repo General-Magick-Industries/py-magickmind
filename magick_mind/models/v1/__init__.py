@@ -12,6 +12,16 @@ from magick_mind.models.v1.artifact import (
     PresignArtifactResponse,
 )
 from magick_mind.models.v1.chat import ChatPayload, ChatSendRequest, ChatSendResponse
+from magick_mind.models.v1.corpus import (
+    Corpus,
+    CreateCorpusRequest,
+    CreateCorpusResponse,
+    DeleteCorpusResponse,
+    GetCorpusResponse,
+    ListCorpusResponse,
+    UpdateCorpusRequest,
+    UpdateCorpusResponse,
+)
 from magick_mind.models.v1.end_user import (
     CreateEndUserRequest,
     CreateEndUserResponse,
@@ -62,4 +72,12 @@ __all__ = [
     "FinalizeArtifactRequest",
     "FinalizeArtifactResponse",
     "ArtifactWebhookPayload",
+    "Corpus",
+    "CreateCorpusRequest",
+    "CreateCorpusResponse",
+    "GetCorpusResponse",
+    "ListCorpusResponse",
+    "UpdateCorpusRequest",
+    "UpdateCorpusResponse",
+    "DeleteCorpusResponse",
 ]

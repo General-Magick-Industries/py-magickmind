@@ -2,7 +2,7 @@
 Example: Project Resource Usage
 
 Demonstrates CRUD operations on projects using the Magick Mind SDK.
-Projects organize corpora and resources for agentic SaaS backends.
+Projects organize corpus and resources for agentic SaaS backends.
 """
 
 import os
