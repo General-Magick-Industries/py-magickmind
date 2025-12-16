@@ -31,7 +31,7 @@ if private_space.success:
     print(f"✓ Created mindspace: {private_space.mindspace.id}")
     print(f"  Name: {private_space.mindspace.name}")
     print(f"  Type: {private_space.mindspace.type}")
-    print(f"  Corpora: {private_space.mindspace.corpus_ids}")
+    print(f"  Corpus: {private_space.mindspace.corpus_ids}")
     mindspace_id = private_space.mindspace.id
 else:
     print(f"✗ Failed: {private_space.message}")
@@ -95,8 +95,8 @@ updated = client.v1.mindspace.update(
 
 if updated.success:
     print(f"✓ Updated mindspace: {updated.mindspace.name}")
-    print(f"  New corpora count: {len(updated.mindspace.corpus_ids)}")
-    print(f"  Corpora: {updated.mindspace.corpus_ids}")
+    print(f"  New corpus count: {len(updated.mindspace.corpus_ids)}")
+    print(f"  Corpus: {updated.mindspace.corpus_ids}")
 else:
     print(f"✗ Failed: {updated.message}")
 

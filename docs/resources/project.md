@@ -4,7 +4,7 @@ The Project Resource provides a complete CRUD interface for managing projects in
 
 ## Overview
 
-Projects organize corpora and other resources for multi-tenant backends. Each project can be associated with multiple corpus IDs and is owned by a specific user.
+Projects organize corpus and other resources for multi-tenant backends. Each project can be associated with multiple corpus IDs and is owned by a specific user.
 
 ## Installation
 

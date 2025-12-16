@@ -8,7 +8,7 @@ A comprehensive guide to using the Mindspace resource in the Magick Mind SDK for
 
 **Mindspaces** are organizational containers that group together:
 - **Chat conversations** - Message history and interactions
-- **Knowledge bases** - Attached corpora for contextual AI responses
+- **Knowledge bases** - Attached corpus for contextual AI responses
 - **Users** - Members with access to the space
 - **Projects** - Optional organizational grouping
 
@@ -21,7 +21,7 @@ A comprehensive guide to using the Mindspace resource in the Magick Mind SDK for
 **Asymmetric access pattern** - designed for privacy while maximizing utility:
 
 - ✅ **Private → Group**: Private mindspaces **can access** group knowledge
-  - Personal AI benefits from team corpora, company docs, shared resources
+  - Personal AI benefits from team corpus, company docs, shared resources
   - Individual gets collective knowledge without exposing personal context
   
 - ❌ **Group → Private**: Group mindspaces **cannot access** private conversations
@@ -34,7 +34,7 @@ A comprehensive guide to using the Mindspace resource in the Magick Mind SDK for
 alice_personal = client.mindspace.create(
     name="Alice's Personal Assistant",
     type="private",
-    corpus_ids=["team-handbook", "company-docs"]  # ✅ Can access group corpora
+    corpus_ids=["team-handbook", "company-docs"]  # ✅ Can access group corpus
 )
 
 # Team space cannot see Alice's personal conversations
@@ -454,17 +454,17 @@ client.mindspace.create(
 
 ### 3. Manage Corpus Attachments Carefully
 
-Corpora provide context to LLM conversations. Keep them relevant:
+Corpus provide context to LLM conversations. Keep them relevant:
 
 ```python
-# Good: Focused corpora for specific domain
+# Good: Focused corpus for specific domain
 client.mindspace.create(
     name="Customer Support",
     type="group",
     corpus_ids=["corp-help-docs", "corp-faq", "corp-policies"]
 )
 
-# Avoid: Too many unrelated corpora
+# Avoid: Too many unrelated corpus
 ```
 
 ### 4. Pagination Strategy
