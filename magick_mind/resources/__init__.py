@@ -19,6 +19,7 @@ class V1Resources:
             http_client: HTTP client for making API requests
         """
         from magick_mind.resources.v1.artifact import ArtifactResourceV1
+        from magick_mind.resources.v1.api_keys import ApiKeysResourceV1
         from magick_mind.resources.v1.chat import ChatResourceV1
         from magick_mind.resources.v1.corpus import CorpusResourceV1
         from magick_mind.resources.v1.end_user import EndUserResourceV1
@@ -27,6 +28,7 @@ class V1Resources:
         from magick_mind.resources.v1.project import ProjectResourceV1
 
         self.artifact = ArtifactResourceV1(http_client)
+        self.api_keys = ApiKeysResourceV1(http_client)
         self.chat = ChatResourceV1(http_client)
         self.corpus = CorpusResourceV1(http_client)
         self.end_user = EndUserResourceV1(http_client)
