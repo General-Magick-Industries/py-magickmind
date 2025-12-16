@@ -34,6 +34,32 @@ cd AGD_Magick_Mind_SDK
 pip install -e .
 ```
 
+## Core Concepts
+
+### Mindspaces: The Central Hub
+
+**Mindspace is the central organizing concept in Bifrost** - it's where conversations, knowledge, and collaboration converge. When designing your application architecture, start by thinking about mindspaces:
+
+- **All chat conversations happen within a mindspace**
+- **Knowledge (corpora) attaches to mindspaces** to provide context for AI responses  
+- **Users collaborate through mindspaces** (private for individuals, group for teams)
+- **Everything connects through mindspaces** - projects, messages, artifacts
+
+```mermaid
+graph LR
+    U[Users] --> MS[Mindspace]
+    C[Corpora/Knowledge] --> MS
+    MS --> Chat[Conversations]
+    MS --> History[Message History]
+    P[Projects] -.organize.-> MS
+    
+    style MS fill:#4CAF50,stroke:#2E7D32,stroke-width:2px,color:#fff
+```
+
+**Architectural Implication**: When building with Bifrost, most operations reference a `mindspace_id`. This is by design - mindspaces provide the context and scope for AI interactions.
+
+📖 **Learn more:** [Mindspace Resource Guide](docs/resources/mindspace.md)
+
 ## Quick Start
 
 ### Authentication
