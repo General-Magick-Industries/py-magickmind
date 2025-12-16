@@ -98,6 +98,7 @@ class MagickMind:
 
         # Convenience alias for default version
         self.chat = self.v1.chat
+        self.mindspace = self.v1.mindspace
 
     @property
     def http(self) -> HTTPClient:
