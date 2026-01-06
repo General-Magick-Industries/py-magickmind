@@ -15,13 +15,13 @@ class TestChatSendRequest:
             api_key="sk-test-key",
             mindspace_id="mind-123",
             message="Hello, world!",
-            sender_id="user-456",
+            enduser_id="user-456",
         )
 
         assert request.api_key == "sk-test-key"
         assert request.mindspace_id == "mind-123"
         assert request.message == "Hello, world!"
-        assert request.sender_id == "user-456"
+        assert request.enduser_id == "user-456"
         assert request.reply_to_message_id is None
         assert request.fast_brain_model_id is None
         assert request.model_ids is None
@@ -33,7 +33,7 @@ class TestChatSendRequest:
             api_key="sk-test-key",
             mindspace_id="mind-123",
             message="Hello!",
-            sender_id="user-456",
+            enduser_id="user-456",
             reply_to_message_id="msg-789",
             fast_brain_model_id="openrouter/meta-llama/llama-4-maverick",
             model_ids=["model-1", "model-2"],
@@ -54,7 +54,7 @@ class TestChatSendRequest:
         error_fields = {error["loc"][0] for error in errors}
         assert "mindspace_id" in error_fields
         assert "message" in error_fields
-        assert "sender_id" in error_fields
+        assert "enduser_id" in error_fields
 
     def test_model_dump_excludes_none(self):
         """Test model_dump excludes None values when exclude_none=True."""
@@ -62,7 +62,7 @@ class TestChatSendRequest:
             api_key="sk-test",
             mindspace_id="mind-123",
             message="Hello",
-            sender_id="user-456",
+            enduser_id="user-456",
         )
 
         dumped = request.model_dump(exclude_none=True)
