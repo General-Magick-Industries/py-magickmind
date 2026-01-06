@@ -5,7 +5,7 @@ These models mirror the bifrost API types for /v1/magickmind/chat endpoint.
 
 from typing import Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_serializer
 
 from magick_mind.models.common import BaseResponse
 
@@ -20,7 +20,9 @@ class ChatSendRequest(BaseModel):
             mindspace_id="mind-123",
             message="Hello!",
             enduser_id="user-456",
-            artifact_ids=["art-123", "art-456"]
+            fast_brain_model_id="openrouter/meta-llama/llama-4-maverick",
+            model_ids=["model-1"],
+            artifact_ids=["art-123", "art-456"],
         )
     """
 
@@ -31,19 +33,32 @@ class ChatSendRequest(BaseModel):
     reply_to_message_id: Optional[str] = Field(
         default=None, description="ID of message being replied to"
     )
-    fast_brain_model_id: Optional[str] = Field(
-        default=None,
-        description="Model override (e.g., 'openrouter/meta-llama/llama-4-maverick')",
+    fast_brain_model_id: str = Field(
+        ...,
+        description="Model ID for fast brain (e.g., 'openrouter/meta-llama/llama-4-maverick')",
     )
-    model_ids: Optional[list[str]] = Field(
-        default=None, description="Alternative model IDs"
-    )
+    model_ids: list[str] = Field(..., description="List of model IDs to use")
     artifact_ids: Optional[list[str]] = Field(
         default=None, description="List of artifact IDs to attach to message"
     )
     compute_power: Optional[int] = Field(
         default=None, description="Compute power setting"
     )
+
+    # =========================================================================
+    # Serializers: Transform None → default values for API contract compliance
+    # SDK users can omit these fields, but API expects them in the payload
+    # =========================================================================
+
+    @field_serializer("artifact_ids")
+    def serialize_artifact_ids(self, v: list[str] | None) -> list[str]:
+        """API requires this field; default to empty list if not provided."""
+        return v or []
+
+    @field_serializer("compute_power")
+    def serialize_compute_power(self, v: int | None) -> int:
+        """API requires this field; default to 0 if not provided."""
+        return v or 0
 
 
 class ChatPayload(BaseModel):
