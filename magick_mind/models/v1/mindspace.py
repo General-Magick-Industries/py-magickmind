@@ -13,8 +13,8 @@ from magick_mind.models.common import BaseResponse
 from magick_mind.models.v1.history import HistoryResponse
 
 
-# Type alias for mindspace type enum
-MindSpaceType = Literal["private", "group"]
+# Type alias for mindspace type enum (uppercase to match apidog)
+MindSpaceType = Literal["PRIVATE", "GROUP"]
 
 
 class MindSpace(BaseModel):
@@ -32,7 +32,7 @@ class MindSpace(BaseModel):
             "project_id": "proj-456",
             "corpus_ids": ["corp-1", "corp-2"],
             "user_ids": ["user-1", "user-2"],
-            "type": "group",
+            "type": "GROUP",
             "created_by": "user-1",
             "updated_by": "user-1",
             "created_at": "2025-12-16T09:00:00Z",
@@ -52,7 +52,7 @@ class MindSpace(BaseModel):
         default_factory=list,
         description="List of user IDs with access to this mindspace",
     )
-    type: MindSpaceType = Field(..., description="Mindspace type: 'private' or 'group'")
+    type: MindSpaceType = Field(..., description="Mindspace type: 'PRIVATE' or 'GROUP'")
     created_by: str = Field(..., description="User ID who created the mindspace")
     updated_by: str = Field(..., description="User ID who last updated the mindspace")
     created_at: str = Field(..., description="Creation timestamp (RFC3339)")
@@ -66,7 +66,7 @@ class CreateMindSpaceRequest(BaseModel):
     Example:
         request = CreateMindSpaceRequest(
             name="My Private Space",
-            type="private",
+            type="PRIVATE",
             description="Personal workspace",
             corpus_ids=["corp-123"]
         )

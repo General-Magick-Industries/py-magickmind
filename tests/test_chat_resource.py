@@ -51,7 +51,7 @@ class TestChatResourceV1:
         # Verify HTTP call
         mock_http_client.post.assert_called_once()
         call_args = mock_http_client.post.call_args
-        assert call_args[0][0] == "/v1/magickmind/chat"
+        assert call_args[0][0] == "/v1/chat/magickmind"
 
         # Verify request body
         request_body = call_args[1]["json"]
