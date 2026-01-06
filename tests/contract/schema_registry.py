@@ -9,6 +9,41 @@ from typing import Type, Optional, Callable, Any
 
 # SDK Models
 from magick_mind.models.v1.chat import ChatSendResponse, ChatSendRequest
+from magick_mind.models.v1.artifact import (
+    FinalizeArtifactResponse,
+    PresignArtifactResponse,
+)
+from magick_mind.models.v1.project import (
+    CreateProjectResponse,
+    UpdateProjectResponse,
+    GetProjectResponse,
+    GetProjectListResponse,
+)
+from magick_mind.models.v1.api_keys import (
+    UpdateApiKeyResponse,
+    CreateApiKeyResponse,
+    ListApiKeysResponse,
+    DeleteApiKeyResponse,
+)
+from magick_mind.models.v1.corpus import (
+    CreateCorpusResponse,
+    GetCorpusResponse,
+    ListCorpusResponse,
+    UpdateCorpusResponse,
+)
+from magick_mind.models.v1.end_user import (
+    CreateEndUserResponse,
+    GetEndUserResponse,
+    QueryEndUserResponse,
+    UpdateEndUserResponse,
+)
+from magick_mind.models.v1.mindspace import (
+    CreateMindSpaceResponse,
+    GetMindSpaceListResponse,
+    UpdateMindSpaceResponse,
+)
+from magick_mind.models.v1.history import HistoryResponse
+from magick_mind.models.auth import TokenResponse
 
 
 class SchemaStatus(Enum):
@@ -53,13 +88,41 @@ def _chat_request_factory() -> ChatSendRequest:
 # =============================================================================
 RESPONSES = [
     # --- TESTED (The "Green" List) ---
-    ContractDef("ChatResp", ChatSendResponse),  # Example: working response model
-    # --- SPEC BUGS (To be fixed in backend) ---
-    ContractDef(
-        "CreateMindSpaceResp",
-        status=SchemaStatus.SKIPPED,
-        reason="Spec mismatch (will fix in PR 2)",
-    ),
+    # Chat
+    ContractDef("ChatResp", ChatSendResponse),
+    # Artifact
+    ContractDef("ClientFinalizeArtifactUploadResp", FinalizeArtifactResponse),
+    ContractDef("GenericPresignResp", PresignArtifactResponse),
+    ContractDef("PresignArtifactUploadResp", PresignArtifactResponse),
+    # Project
+    ContractDef("CreateProjectResp", CreateProjectResponse),
+    ContractDef("UpdateProjectResp", UpdateProjectResponse),
+    ContractDef("GetProjectByIdResp", GetProjectResponse),
+    ContractDef("GetProjectListResp", GetProjectListResponse),
+    # API Keys
+    ContractDef("UpdateApiKeyResp", UpdateApiKeyResponse),
+    ContractDef("CreateApiKeyResp", CreateApiKeyResponse),
+    ContractDef("GetApiKeyListResp", ListApiKeysResponse),
+    ContractDef("DeleteApiKeyResp", DeleteApiKeyResponse),
+    # Corpus
+    ContractDef("CreateCorpusRes", CreateCorpusResponse),
+    ContractDef("GetCorpusByIdRes", GetCorpusResponse),
+    ContractDef("GetCorpusListRes", ListCorpusResponse),
+    ContractDef("UpdateCorpusRes", UpdateCorpusResponse),
+    # End User
+    ContractDef("CreateEndUserResp", CreateEndUserResponse),
+    ContractDef("GetEndUserByIdResp", GetEndUserResponse),
+    ContractDef("QueryEndUserResp", QueryEndUserResponse),
+    ContractDef("UpdateEndUserResp", UpdateEndUserResponse),
+    # History
+    ContractDef("MindspaceMessagesResp", HistoryResponse),
+    # MindSpace (spec mismatches - tests will fail and expose bugs)
+    ContractDef("CreateMindSpaceResp", CreateMindSpaceResponse),
+    ContractDef("GetMindSpaceListResp", GetMindSpaceListResponse),
+    ContractDef("UpdateMindSpaceResp", UpdateMindSpaceResponse),
+    # Auth
+    ContractDef("LoginResp", TokenResponse),
+    ContractDef("RefreshResp", TokenResponse),
     # --- INTENTIONAL SKIPS (Internal/Irrelevant) ---
     ContractDef("BaseResponse", status=SchemaStatus.SKIPPED, reason="Generic Base"),
     ContractDef(
