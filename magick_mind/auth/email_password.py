@@ -6,7 +6,7 @@ import httpx
 
 from magick_mind.auth.base import AuthProvider
 from magick_mind.exceptions import AuthenticationError, TokenExpiredError
-from magick_mind.models.auth import LoginRequest, TokenResponse
+from magick_mind.models.auth import LoginRequest, RefreshRequest, TokenResponse
 
 
 class EmailPasswordAuth(AuthProvider):
@@ -147,10 +147,9 @@ class EmailPasswordAuth(AuthProvider):
             raise TokenExpiredError("No refresh token available")
 
         try:
+            refresh_req = RefreshRequest(refresh_token=self._refresh_token)
             with httpx.Client(timeout=self.timeout) as client:
-                response = client.post(
-                    refresh_url, json={"refresh_token": self._refresh_token}
-                )
+                response = client.post(refresh_url, json=refresh_req.model_dump())
                 response.raise_for_status()
 
                 # Parse and validate response
