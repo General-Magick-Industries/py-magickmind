@@ -335,7 +335,33 @@ REQUESTS = [
 # SHARED MODELS (Components)
 # =============================================================================
 SHARED_MODELS = [
+    # Entity Schemas (internal representations)
     ContractDef("ApiKeySchema", status=SchemaStatus.SKIPPED, reason="Component"),
+    ContractDef("CorpusSchema", status=SchemaStatus.SKIPPED, reason="Component"),
+    ContractDef("EndUserSchema", status=SchemaStatus.SKIPPED, reason="Component"),
+    ContractDef("MindSpaceSchema", status=SchemaStatus.SKIPPED, reason="Component"),
+    ContractDef("Mindspace", status=SchemaStatus.SKIPPED, reason="Component"),
+    ContractDef("PersonaSchema", status=SchemaStatus.SKIPPED, reason="Component"),
+    ContractDef("ProjectSchema", status=SchemaStatus.SKIPPED, reason="Component"),
+    ContractDef("ContainerRef", status=SchemaStatus.SKIPPED, reason="Component"),
+    # Chat Components
+    ContractDef("ChatHistoryItem", status=SchemaStatus.SKIPPED, reason="Component"),
+    ContractDef("ChatSchema", status=SchemaStatus.SKIPPED, reason="Component"),
+    # OpenAI Compat Components
+    ContractDef(
+        "Choice", status=SchemaStatus.SKIPPED, reason="OpenAI Compat Component"
+    ),
+    ContractDef(
+        "Message", status=SchemaStatus.SKIPPED, reason="OpenAI Compat Component"
+    ),
+    ContractDef("Model", status=SchemaStatus.SKIPPED, reason="OpenAI Compat Component"),
+    # Internal RPC
+    ContractDef(
+        "CentrifugoRpcError", status=SchemaStatus.SKIPPED, reason="Internal RPC"
+    ),
+    ContractDef(
+        "CentrifugoRpcResult", status=SchemaStatus.SKIPPED, reason="Internal RPC"
+    ),
 ]
 
 
