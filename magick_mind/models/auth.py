@@ -12,6 +12,12 @@ class LoginRequest(BaseModel):
     password: str
 
 
+class RefreshRequest(BaseModel):
+    """Request model for /v1/auth/refresh."""
+
+    refresh_token: str
+
+
 class TokenResponse(BaseResponse):
     """Response model from /v1/auth/login."""
 
