@@ -12,38 +12,51 @@ from magick_mind.models.v1.chat import ChatSendResponse, ChatSendRequest
 from magick_mind.models.v1.artifact import (
     FinalizeArtifactResponse,
     PresignArtifactResponse,
+    PresignArtifactRequest,
+    FinalizeArtifactRequest,
 )
 from magick_mind.models.v1.project import (
     CreateProjectResponse,
     UpdateProjectResponse,
     GetProjectResponse,
     GetProjectListResponse,
+    CreateProjectRequest,
+    UpdateProjectRequest,
 )
 from magick_mind.models.v1.api_keys import (
     UpdateApiKeyResponse,
     CreateApiKeyResponse,
     ListApiKeysResponse,
     DeleteApiKeyResponse,
+    CreateApiKeyRequest,
+    UpdateApiKeyRequest,
+    DeleteApiKeyRequest,
 )
 from magick_mind.models.v1.corpus import (
     CreateCorpusResponse,
     GetCorpusResponse,
     ListCorpusResponse,
     UpdateCorpusResponse,
+    CreateCorpusRequest,
+    UpdateCorpusRequest,
 )
 from magick_mind.models.v1.end_user import (
     CreateEndUserResponse,
     GetEndUserResponse,
     QueryEndUserResponse,
     UpdateEndUserResponse,
+    CreateEndUserRequest,
+    UpdateEndUserRequest,
 )
 from magick_mind.models.v1.mindspace import (
     CreateMindSpaceResponse,
     GetMindSpaceListResponse,
     UpdateMindSpaceResponse,
+    CreateMindSpaceRequest,
+    UpdateMindSpaceRequest,
 )
 from magick_mind.models.v1.history import HistoryResponse
-from magick_mind.models.auth import TokenResponse
+from magick_mind.models.auth import TokenResponse, LoginRequest, RefreshRequest
 
 
 class SchemaStatus(Enum):
@@ -81,6 +94,77 @@ def _chat_request_factory() -> ChatSendRequest:
         fast_brain_model_id="gpt-4",
         model_ids=["gpt-4"],
     )
+
+
+def _create_project_factory() -> CreateProjectRequest:
+    return CreateProjectRequest(name="Test Project", api_key="sk-test")
+
+
+def _update_project_factory() -> UpdateProjectRequest:
+    return UpdateProjectRequest(name="Updated Project")
+
+
+def _create_corpus_factory() -> CreateCorpusRequest:
+    return CreateCorpusRequest(name="Test Corpus", project_id="proj-1")
+
+
+def _update_corpus_factory() -> UpdateCorpusRequest:
+    return UpdateCorpusRequest(name="Updated Corpus")
+
+
+def _create_end_user_factory() -> CreateEndUserRequest:
+    return CreateEndUserRequest(external_id="ext-123", name="Test User")
+
+
+def _update_end_user_factory() -> UpdateEndUserRequest:
+    return UpdateEndUserRequest(name="Updated User")
+
+
+def _create_mindspace_factory() -> CreateMindSpaceRequest:
+    return CreateMindSpaceRequest(
+        project_id="proj-1",
+        name="Test MindSpace",
+        type="PRIVATE",
+    )
+
+
+def _update_mindspace_factory() -> UpdateMindSpaceRequest:
+    return UpdateMindSpaceRequest(name="Updated MindSpace")
+
+
+def _create_api_key_factory() -> CreateApiKeyRequest:
+    return CreateApiKeyRequest(project_id="proj-1", key_alias="Test Key")
+
+
+def _update_api_key_factory() -> UpdateApiKeyRequest:
+    return UpdateApiKeyRequest(key_alias="Updated Key")
+
+
+def _delete_api_key_factory() -> DeleteApiKeyRequest:
+    return DeleteApiKeyRequest(key_id="key-1")
+
+
+def _presign_artifact_factory() -> PresignArtifactRequest:
+    return PresignArtifactRequest(
+        filename="test.pdf",
+        content_type="application/pdf",
+        project_id="proj-1",
+    )
+
+
+def _finalize_artifact_factory() -> FinalizeArtifactRequest:
+    return FinalizeArtifactRequest(
+        artifact_id="art-1",
+        s3_key="uploads/test.pdf",
+    )
+
+
+def _login_request_factory() -> LoginRequest:
+    return LoginRequest(email="test@example.com", password="password123")
+
+
+def _refresh_request_factory() -> RefreshRequest:
+    return RefreshRequest(refresh_token="eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...")
 
 
 # =============================================================================
@@ -135,10 +219,115 @@ RESPONSES = [
 # =============================================================================
 REQUESTS = [
     # --- TESTED ---
-    # (Will add in PR 2)
+    # Chat
+    ContractDef("ChatReq", ChatSendRequest, factory=_chat_request_factory),
+    # Project
+    ContractDef(
+        "CreateProjectReq", CreateProjectRequest, factory=_create_project_factory
+    ),
+    ContractDef(
+        "UpdateProjectReq", UpdateProjectRequest, factory=_update_project_factory
+    ),
+    # Corpus
+    ContractDef("CreateCorpusReq", CreateCorpusRequest, factory=_create_corpus_factory),
+    ContractDef("UpdateCorpusReq", UpdateCorpusRequest, factory=_update_corpus_factory),
+    # End User
+    ContractDef(
+        "CreateEndUserReq", CreateEndUserRequest, factory=_create_end_user_factory
+    ),
+    ContractDef(
+        "UpdateEndUserReq", UpdateEndUserRequest, factory=_update_end_user_factory
+    ),
+    # MindSpace
+    ContractDef(
+        "CreateMindSpaceReq", CreateMindSpaceRequest, factory=_create_mindspace_factory
+    ),
+    ContractDef(
+        "UpdateMindSpaceReq", UpdateMindSpaceRequest, factory=_update_mindspace_factory
+    ),
+    # API Keys
+    ContractDef(
+        "CreateApiKeyReq", CreateApiKeyRequest, factory=_create_api_key_factory
+    ),
+    ContractDef(
+        "UpdateApiKeyReq", UpdateApiKeyRequest, factory=_update_api_key_factory
+    ),
+    ContractDef(
+        "DeleteApiKeyReq", DeleteApiKeyRequest, factory=_delete_api_key_factory
+    ),
+    # Artifact
+    ContractDef(
+        "GenericPresignReq", PresignArtifactRequest, factory=_presign_artifact_factory
+    ),
+    ContractDef(
+        "PresignArtifactUploadReq",
+        PresignArtifactRequest,
+        factory=_presign_artifact_factory,
+    ),
+    ContractDef(
+        "ClientFinalizeArtifactUploadReq",
+        FinalizeArtifactRequest,
+        factory=_finalize_artifact_factory,
+    ),
+    # Auth
+    ContractDef("LoginReq", LoginRequest, factory=_login_request_factory),
+    ContractDef("RefreshReq", RefreshRequest, factory=_refresh_request_factory),
     # --- INTENTIONAL SKIPS ---
+    # Internal/RPC
     ContractDef(
         "ArtifactWebhookReq", status=SchemaStatus.SKIPPED, reason="Internal Webhook"
+    ),
+    ContractDef(
+        "CentrifugoRpcRequest", status=SchemaStatus.SKIPPED, reason="Internal RPC"
+    ),
+    ContractDef(
+        "CustomSubscribeRequest", status=SchemaStatus.SKIPPED, reason="Internal RPC"
+    ),
+    ContractDef(
+        "CustomUnsubscribeRequest", status=SchemaStatus.SKIPPED, reason="Internal RPC"
+    ),
+    ContractDef(
+        "ChatCompletionsReq", status=SchemaStatus.SKIPPED, reason="OpenAI Compat Layer"
+    ),
+    # Path Param Only (no JSON body)
+    ContractDef(
+        "GetCorpusByIdReq", status=SchemaStatus.SKIPPED, reason="Path Param Only"
+    ),
+    ContractDef(
+        "DeleteCorpusReq", status=SchemaStatus.SKIPPED, reason="Path Param Only"
+    ),
+    ContractDef(
+        "GetEndUserByIdReq", status=SchemaStatus.SKIPPED, reason="Path Param Only"
+    ),
+    ContractDef(
+        "DeleteEndUserReq", status=SchemaStatus.SKIPPED, reason="Path Param Only"
+    ),
+    ContractDef(
+        "GetMindSpaceByIdReq", status=SchemaStatus.SKIPPED, reason="Path Param Only"
+    ),
+    ContractDef(
+        "GetMindSpaceListReq", status=SchemaStatus.SKIPPED, reason="Path Param Only"
+    ),
+    ContractDef(
+        "DeleteMindSpaceReq", status=SchemaStatus.SKIPPED, reason="Path Param Only"
+    ),
+    ContractDef(
+        "GetProjectByIdReq", status=SchemaStatus.SKIPPED, reason="Path Param Only"
+    ),
+    ContractDef(
+        "GetProjectListReq", status=SchemaStatus.SKIPPED, reason="Path Param Only"
+    ),
+    ContractDef(
+        "DeleteProjectReq", status=SchemaStatus.SKIPPED, reason="Path Param Only"
+    ),
+    ContractDef(
+        "GetApiKeyListReq", status=SchemaStatus.SKIPPED, reason="Path Param Only"
+    ),
+    ContractDef(
+        "MindspaceMessagesReq", status=SchemaStatus.SKIPPED, reason="Path Param Only"
+    ),
+    ContractDef(
+        "QueryEndUserReq", status=SchemaStatus.SKIPPED, reason="Path Param Only"
     ),
 ]
 
