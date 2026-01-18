@@ -20,6 +20,7 @@ from magick_mind.models.v1.artifact import (
     PresignArtifactResponse,
 )
 from magick_mind.resources.base import BaseResource
+from magick_mind.routes import Routes
 
 if TYPE_CHECKING:
     from httpx import Response
@@ -87,7 +88,7 @@ class ArtifactResourceV1(BaseResource):
 
         # Use generic presign endpoint
         response = self._http.post(
-            "/v1/artifacts/presign", json=request.model_dump(exclude_none=True)
+            Routes.ARTIFACTS_PRESIGN, json=request.model_dump(exclude_none=True)
         )
         return PresignArtifactResponse(**response.json())
 
@@ -166,7 +167,7 @@ class ArtifactResourceV1(BaseResource):
             print(f"Status: {artifact.status}")
             print(f"S3 URL: {artifact.s3_url}")
         """
-        response = self._http.get(f"/v1/artifacts/{artifact_id}")
+        response = self._http.get(Routes.artifact(artifact_id))
         get_response = GetArtifactResponse(**response.json())
         return get_response.artifact
 
@@ -204,7 +205,7 @@ class ArtifactResourceV1(BaseResource):
         if status is not None:
             params["status"] = status
 
-        response = self._http.get("/v1/artifacts", params=params)
+        response = self._http.get(Routes.ARTIFACTS, params=params)
         list_response = ListArtifactsResponse(**response.json())
         return list_response.artifacts
 
@@ -219,7 +220,7 @@ class ArtifactResourceV1(BaseResource):
             client.v1.artifact.delete(artifact_id="art-123")
             print("Artifact deleted successfully")
         """
-        self._http.delete(f"/v1/artifacts/{artifact_id}")
+        self._http.delete(Routes.artifact(artifact_id))
 
     def finalize(
         self,
@@ -277,10 +278,10 @@ class ArtifactResourceV1(BaseResource):
 
         # Route to corpus-scoped finalize if corpus_id provided
         if corpus_id:
-            endpoint = f"/v1/corpus/{corpus_id}/artifacts/finalize"
+            endpoint = Routes.corpus_artifacts_finalize(corpus_id)
         else:
             # Generic finalize endpoint (if available)
-            endpoint = "/v1/artifacts/finalize"
+            endpoint = Routes.ARTIFACTS_FINALIZE
 
         response = self._http.post(endpoint, json=request.model_dump(exclude_none=True))
         return FinalizeArtifactResponse(**response.json())

@@ -7,6 +7,7 @@ import httpx
 from magick_mind.auth.base import AuthProvider
 from magick_mind.exceptions import AuthenticationError, TokenExpiredError
 from magick_mind.models.auth import LoginRequest, RefreshRequest, TokenResponse
+from magick_mind.routes import Routes
 
 
 class EmailPasswordAuth(AuthProvider):
@@ -110,7 +111,7 @@ class EmailPasswordAuth(AuthProvider):
 
     def _login(self) -> None:
         """Perform login to get initial tokens."""
-        login_url = f"{self.base_url}/v1/auth/login"
+        login_url = f"{self.base_url}{Routes.AUTH_LOGIN}"
 
         payload = LoginRequest(email=self.email, password=self.password)
 
@@ -141,7 +142,7 @@ class EmailPasswordAuth(AuthProvider):
         """Refresh the access token using the refresh token."""
         # Note: Bifrost might have a refresh endpoint, but if not,
         # we'll just re-login. This can be updated when the endpoint is available.
-        refresh_url = f"{self.base_url}/v1/auth/refresh"
+        refresh_url = f"{self.base_url}{Routes.AUTH_REFRESH}"
 
         if not self._refresh_token:
             raise TokenExpiredError("No refresh token available")

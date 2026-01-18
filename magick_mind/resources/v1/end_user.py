@@ -19,6 +19,7 @@ from magick_mind.models.v1.end_user import (
     UpdateEndUserResponse,
 )
 from magick_mind.resources.base import BaseResource
+from magick_mind.routes import Routes
 
 
 class EndUserResourceV1(BaseResource):
@@ -64,7 +65,7 @@ class EndUserResourceV1(BaseResource):
             external_id=external_id,
         )
 
-        response = self._http.post("/v1/end-users", json=request.model_dump())
+        response = self._http.post(Routes.END_USERS, json=request.model_dump())
         create_response = CreateEndUserResponse(**response.json())
         return create_response.end_user
 
@@ -82,7 +83,7 @@ class EndUserResourceV1(BaseResource):
             end_user = client.v1.end_user.get(end_user_id="user-123")
             print(f"End user name: {end_user.name}")
         """
-        response = self._http.get(f"/v1/end-users/{end_user_id}")
+        response = self._http.get(Routes.end_user(end_user_id))
         get_response = GetEndUserResponse(**response.json())
         return get_response.end_user
 
@@ -127,7 +128,7 @@ class EndUserResourceV1(BaseResource):
         if actor_id is not None:
             params["actor_id"] = actor_id
 
-        response = self._http.get("/v1/end-users", params=params)
+        response = self._http.get(Routes.END_USERS, params=params)
         query_response = QueryEndUserResponse(**response.json())
         return query_response.end_users
 
@@ -167,7 +168,7 @@ class EndUserResourceV1(BaseResource):
         )
 
         response = self._http.put(
-            f"/v1/end-users/{end_user_id}", json=request.model_dump(exclude_none=True)
+            Routes.end_user(end_user_id), json=request.model_dump(exclude_none=True)
         )
         update_response = UpdateEndUserResponse(**response.json())
         return update_response.end_user
@@ -183,4 +184,4 @@ class EndUserResourceV1(BaseResource):
             client.v1.end_user.delete(end_user_id="user-123")
             print("End user deleted successfully")
         """
-        self._http.delete(f"/v1/end-users/{end_user_id}")
+        self._http.delete(Routes.end_user(end_user_id))

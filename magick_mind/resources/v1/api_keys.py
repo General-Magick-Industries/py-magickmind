@@ -16,6 +16,7 @@ from magick_mind.models.v1.api_keys import (
     UpdateApiKeyRequest,
     UpdateApiKeyResponse,
 )
+from magick_mind.routes import Routes
 
 if TYPE_CHECKING:
     import httpx
@@ -82,7 +83,7 @@ class ApiKeysResourceV1:
             max_budget=max_budget,
         )
 
-        resp = self.http.post("/v1/keys", json=payload.model_dump(exclude_none=True))
+        resp = self.http.post(Routes.KEYS, json=payload.model_dump(exclude_none=True))
         resp.raise_for_status()
 
         return CreateApiKeyResponse(**resp.json())
@@ -105,7 +106,7 @@ class ApiKeysResourceV1:
             >>> for key in response.keys:
             ...     print(f"{key.key_alias}: {key.key_id}")
         """
-        resp = self.http.get("/v1/keys", params={"user_id": user_id})
+        resp = self.http.get(Routes.KEYS, params={"user_id": user_id})
         resp.raise_for_status()
 
         return ListApiKeysResponse(**resp.json())
@@ -150,7 +151,7 @@ class ApiKeysResourceV1:
             max_budget=max_budget,
         )
 
-        resp = self.http.put("/v1/keys", json=payload.model_dump(exclude_none=True))
+        resp = self.http.put(Routes.KEYS, json=payload.model_dump(exclude_none=True))
         resp.raise_for_status()
 
         return UpdateApiKeyResponse(**resp.json())
@@ -174,7 +175,7 @@ class ApiKeysResourceV1:
         """
         payload = {"key_id": key_id}
 
-        resp = self.http.delete("/v1/keys", json=payload)
+        resp = self.http.delete(Routes.KEYS, json=payload)
         resp.raise_for_status()
 
         return DeleteApiKeyResponse(**resp.json())

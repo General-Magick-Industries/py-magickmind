@@ -17,6 +17,7 @@ from magick_mind.models.v1.corpus import (
     UpdateCorpusRequest,
     UpdateCorpusResponse,
 )
+from magick_mind.routes import Routes
 
 if TYPE_CHECKING:
     import httpx
@@ -60,7 +61,7 @@ class CorpusResourceV1:
             artifact_ids=artifact_ids or [],
         )
 
-        resp = self.http.post("/v1/corpus", json=payload.model_dump())
+        resp = self.http.post(Routes.CORPUS, json=payload.model_dump())
         resp.raise_for_status()
 
         return CreateCorpusResponse(**resp.json())
@@ -78,7 +79,7 @@ class CorpusResourceV1:
         Raises:
             httpx.HTTPStatusError: If the request fails
         """
-        resp = self.http.get(f"/v1/corpus/{corpus_id}")
+        resp = self.http.get(Routes.corpus(corpus_id))
         resp.raise_for_status()
 
         return GetCorpusResponse(**resp.json())
@@ -100,7 +101,7 @@ class CorpusResourceV1:
         if user_id:
             params["user_id"] = user_id
 
-        resp = self.http.get("/v1/corpus", params=params)
+        resp = self.http.get(Routes.CORPUS, params=params)
         resp.raise_for_status()
 
         return ListCorpusResponse(**resp.json())
@@ -133,7 +134,7 @@ class CorpusResourceV1:
             artifact_ids=artifact_ids,
         )
 
-        resp = self.http.put(f"/v1/corpus/{corpus_id}", json=payload.model_dump())
+        resp = self.http.put(Routes.corpus(corpus_id), json=payload.model_dump())
         resp.raise_for_status()
 
         return UpdateCorpusResponse(**resp.json())
@@ -151,7 +152,7 @@ class CorpusResourceV1:
         Raises:
             httpx.HTTPStatusError: If the request fails
         """
-        resp = self.http.delete(f"/v1/corpus/{corpus_id}")
+        resp = self.http.delete(Routes.corpus(corpus_id))
         resp.raise_for_status()
 
         return DeleteCorpusResponse(**resp.json())
