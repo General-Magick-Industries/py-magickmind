@@ -15,6 +15,7 @@ from magick_mind.models.v1.mindspace import (
     UpdateMindSpaceResponse,
 )
 from magick_mind.resources.base import BaseResource
+from magick_mind.routes import Routes
 
 if TYPE_CHECKING:
     from magick_mind.http import HTTPClient
@@ -96,7 +97,7 @@ class MindspaceResourceV1(BaseResource):
 
         # Make API call
         response = self._http.post(
-            "/v1/mindspaces", json=request.model_dump(exclude_none=True)
+            Routes.MINDSPACES, json=request.model_dump(exclude_none=True)
         )
 
         # Parse and validate response
@@ -121,7 +122,7 @@ class MindspaceResourceV1(BaseResource):
             print(f"Type: {response.mindspace.type}")
             print(f"Corpus: {response.mindspace.corpus_ids}")
         """
-        response = self._http.get(f"/v1/mindspaces/{mindspace_id}")
+        response = self._http.get(Routes.mindspace(mindspace_id))
         return GetMindSpaceResponse.model_validate(response.json())
 
     def list(self, user_id: Optional[str] = None) -> GetMindSpaceListResponse:
@@ -147,7 +148,7 @@ class MindspaceResourceV1(BaseResource):
         if user_id:
             params["user_id"] = user_id
 
-        response = self._http.get("/v1/mindspaces", params=params)
+        response = self._http.get(Routes.MINDSPACES, params=params)
         return GetMindSpaceListResponse.model_validate(response.json())
 
     def update(
@@ -197,7 +198,7 @@ class MindspaceResourceV1(BaseResource):
 
         # Make API call
         response = self._http.put(
-            f"/v1/mindspaces/{mindspace_id}",
+            Routes.mindspace(mindspace_id),
             json=request.model_dump(exclude_none=True),
         )
 
@@ -218,7 +219,7 @@ class MindspaceResourceV1(BaseResource):
             client.v1.mindspace.delete("mind-123")
             print("Mindspace deleted successfully")
         """
-        self._http.delete(f"/v1/mindspaces/{mindspace_id}")
+        self._http.delete(Routes.mindspace(mindspace_id))
 
     def get_messages(
         self,
@@ -288,7 +289,7 @@ class MindspaceResourceV1(BaseResource):
             params["before_id"] = before_id
 
         # Make request
-        response = self._http.get("/v1/mindspaces/messages", params=params)
+        response = self._http.get(Routes.MINDSPACE_MESSAGES, params=params)
 
         # Parse and return
         return MindspaceMessagesResponse(**response.json())

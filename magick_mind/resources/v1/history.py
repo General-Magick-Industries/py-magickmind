@@ -8,6 +8,7 @@ from typing import Optional
 
 from magick_mind.models.v1.history import HistoryResponse
 from magick_mind.resources.base import BaseResource
+from magick_mind.routes import Routes
 
 
 class HistoryResourceV1(BaseResource):
@@ -81,7 +82,7 @@ class HistoryResourceV1(BaseResource):
             params["before_id"] = before_id
 
         # Make request
-        response = self._http.get("/v1/mindspaces/messages", params=params)
+        response = self._http.get(Routes.HISTORY_MESSAGES, params=params)
 
         # Parse and return
         return HistoryResponse(**response.json())
