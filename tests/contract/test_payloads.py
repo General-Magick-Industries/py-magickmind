@@ -28,8 +28,8 @@ class TestPayloads:
 
         instance = contract_def.factory()
 
-        # 2. Serialize
-        payload = instance.model_dump(by_alias=True, mode="json")
+        # 2. Serialize (exclude_none prevents sending null for non-nullable optional fields)
+        payload = instance.model_dump(by_alias=True, mode="json", exclude_none=True)
 
         # 3. Validate against Spec
         try:

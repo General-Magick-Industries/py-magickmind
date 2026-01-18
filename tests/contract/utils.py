@@ -4,16 +4,16 @@ Handles schema extraction and JSON pointer resolution.
 """
 
 import json
-import pytest
-from jsonschema import Draft7Validator
+from jsonschema import Draft202012Validator
 from referencing import Registry, Resource
-from referencing.jsonschema import DRAFT7
+from referencing.jsonschema import DRAFT202012
 
 
-def get_schema_from_spec(spec: dict, schema_name: str) -> dict:
+def get_schema_from_spec(spec: dict, schema_name: str) -> dict | None:
     """
     Robustly finds a schema in the OpenAPI spec.
     Searches: components/schemas, components/requestBodies, components/responses
+    Returns the schema dict.
     """
     components = spec.get("components", {})
 
@@ -28,6 +28,30 @@ def get_schema_from_spec(spec: dict, schema_name: str) -> dict:
     # 3. Responses (goctl/apidog style)
     if resp := components.get("responses", {}).get(schema_name):
         return resp.get("content", {}).get("application/json", {}).get("schema")
+
+    return None
+
+
+def get_schema_pointer(spec: dict, schema_name: str) -> str | None:
+    """
+    Returns the JSON Pointer to the schema definition.
+    Uses 'urn:root' as the base URI to force registry lookup.
+    """
+    components = spec.get("components", {})
+
+    base_uri = "urn:root"
+
+    # 1. Standard Schemas
+    if schema_name in components.get("schemas", {}):
+        return f"{base_uri}#/components/schemas/{schema_name}"
+
+    # 2. Request Bodies
+    if schema_name in components.get("requestBodies", {}):
+        return f"{base_uri}#/components/requestBodies/{schema_name}/content/application/json/schema"
+
+    # 3. Responses
+    if schema_name in components.get("responses", {}):
+        return f"{base_uri}#/components/responses/{schema_name}/content/application/json/schema"
 
     return None
 
@@ -54,13 +78,17 @@ def validate_payload(payload: dict, schema_name: str, full_spec: dict):
     """
     Validates a payload using jsonschema and referencing for $ref support.
     """
-    schema = get_schema_from_spec(full_spec, schema_name)
-    if not schema:
+    pointer = get_schema_pointer(full_spec, schema_name)
+    if not pointer:
         raise LookupError(f"Schema '{schema_name}' not found in spec")
 
     # Create Registry for $ref resolution
-    resource = Resource.from_contents(full_spec, default_specification=DRAFT7)
-    registry = Registry().with_resource("", resource)
+    # We add the full spec as the root resource (URI "urn:root")
+    resource = Resource.from_contents(full_spec, default_specification=DRAFT202012)
+    registry = Registry().with_resource("urn:root", resource)
 
-    validator = Draft7Validator(schema, registry=registry)
+    # We validate against a wrapper schema that points to the definition inside the full spec.
+    wrapper_schema = {"$ref": pointer}
+
+    validator = Draft202012Validator(wrapper_schema, registry=registry)
     validator.validate(payload)
