@@ -6,6 +6,8 @@ Corpus represents a collection of artifacts that can be used for
 RAG (Retrieval Augmented Generation) workflows.
 """
 
+from typing import Optional
+
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -23,23 +25,28 @@ class Corpus(BaseModel):
 
     id: str = Field(..., description="Unique corpus identifier")
     name: str = Field(..., description="Corpus name")
-    description: str = Field(..., description="Corpus description")
-    artifact_ids: list[str] = Field(
-        default_factory=list, description="List of artifact IDs in this corpus"
+    description: Optional[str] = Field(None, description="Corpus description")
+    artifact_ids: Optional[list[str]] = Field(
+        None, description="List of artifact IDs in this corpus"
     )
-    created_by: str = Field(..., description="Account ID that created the corpus")
-    created_at: str = Field(..., description="Creation timestamp (ISO format)")
-    updated_at: str = Field(..., description="Last update timestamp (ISO format)")
+    created_by: Optional[str] = Field(
+        None, description="Account ID that created the corpus"
+    )
+    created_at: Optional[str] = Field(
+        None, description="Creation timestamp (ISO format)"
+    )
+    updated_at: Optional[str] = Field(
+        None, description="Last update timestamp (ISO format)"
+    )
 
 
 class CreateCorpusRequest(BaseModel):
     """Request for creating a new corpus."""
 
-    name: str = Field(..., description="Corpus name")
-    description: str = Field(..., description="Corpus description")
-    artifact_ids: list[str] = Field(
-        default_factory=list,
-        description="Optional list of artifact IDs to include initially",
+    name: Optional[str] = Field(None, description="Corpus name (Relaxed)")
+    description: Optional[str] = Field(None, description="Corpus description (Relaxed)")
+    artifact_ids: Optional[list[str]] = Field(
+        None, description="Optional list of artifact IDs (Relaxed)"
     )
 
 
@@ -48,15 +55,17 @@ class CreateCorpusResponse(BaseModel):
 
     success: bool = Field(..., description="Request success status")
     message: str = Field(..., description="Response message")
-    corpus: Corpus = Field(..., description="The created corpus")
+    corpus: Optional[Corpus] = Field(None, description="The created corpus (Relaxed)")
 
 
 class GetCorpusResponse(BaseModel):
-    """Response for getting a single corpus by ID."""
+    """Response for getting corpus (single or list per spec variant)."""
 
-    success: bool = Field(..., description="Request success status")
-    message: str = Field(..., description="Response message")
-    corpus: Corpus = Field(..., description="The corpus data")
+    success: Optional[bool] = Field(None, description="Request success status")
+    message: Optional[str] = Field(None, description="Response message")
+    corpus: Optional[Corpus | list[Corpus]] = Field(
+        None, description="Corpus data - single or array depending on endpoint"
+    )
 
 
 class ListCorpusResponse(BaseModel):
@@ -70,10 +79,10 @@ class ListCorpusResponse(BaseModel):
 class UpdateCorpusRequest(BaseModel):
     """Request for updating an existing corpus."""
 
-    name: str = Field(..., description="Corpus name")
-    description: str = Field(..., description="Corpus description")
-    artifact_ids: list[str] = Field(
-        default_factory=list, description="List of artifact IDs in this corpus"
+    name: Optional[str] = Field(None, description="Corpus name (Relaxed)")
+    description: Optional[str] = Field(None, description="Corpus description (Relaxed)")
+    artifact_ids: Optional[list[str]] = Field(
+        None, description="List of artifact IDs (Relaxed)"
     )
 
 
@@ -82,7 +91,7 @@ class UpdateCorpusResponse(BaseModel):
 
     success: bool = Field(..., description="Request success status")
     message: str = Field(..., description="Response message")
-    corpus: Corpus = Field(..., description="The updated corpus")
+    corpus: Optional[Corpus] = Field(None, description="The updated corpus (Relaxed)")
 
 
 class DeleteCorpusResponse(BaseModel):
