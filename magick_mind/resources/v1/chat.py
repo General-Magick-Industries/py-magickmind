@@ -2,7 +2,11 @@
 
 from typing import TYPE_CHECKING, Optional
 
-from magick_mind.models.v1.chat import ChatSendRequest, ChatSendResponse
+from magick_mind.models.v1.chat import (
+    ChatSendRequest,
+    ChatSendResponse,
+    ConfigSchema,
+)
 from magick_mind.resources.base import BaseResource
 
 if TYPE_CHECKING:
@@ -20,7 +24,12 @@ class ChatResourceV1(BaseResource):
             api_key="sk-...",
             mindspace_id="mind-123",
             message="Hello!",
-            sender_id="user-456"
+            enduser_id="user-456",
+            config=ConfigSchema(
+                fast_model_id="gpt-4",
+                smart_model_ids=["gpt-4"],
+                compute_power=50,
+            ),
         )
         print(response.content.content)  # AI response text
     """
@@ -31,11 +40,10 @@ class ChatResourceV1(BaseResource):
         mindspace_id: str,
         message: str,
         enduser_id: str,
+        config: ConfigSchema,
         reply_to_message_id: Optional[str] = None,
-        fast_brain_model_id: Optional[str] = None,
-        model_ids: Optional[list[str]] = None,
+        additional_context: Optional[str] = None,
         artifact_ids: Optional[list[str]] = None,
-        compute_power: Optional[int] = None,
     ) -> ChatSendResponse:
         """
         Send a chat message to a mindspace and get AI response.
@@ -45,11 +53,10 @@ class ChatResourceV1(BaseResource):
             mindspace_id: Mindspace/chat conversation ID
             message: User message text to send
             enduser_id: End-user identifier
+            config: Model configuration (fast_model_id, smart_model_ids, compute_power)
             reply_to_message_id: Optional ID of message being replied to
-            fast_brain_model_id: Optional model override
-            model_ids: Optional alternative model IDs
+            additional_context: Optional additional context for the message
             artifact_ids: Optional list of artifact IDs to attach to message
-            compute_power: Optional compute power setting
 
         Returns:
             ChatSendResponse with AI-generated response
@@ -59,12 +66,16 @@ class ChatResourceV1(BaseResource):
             ValidationError: If response doesn't match expected schema
 
         Example:
-            # Basic chat
+            # Basic chat with config
             response = chat.send(
                 api_key="sk-test",
                 mindspace_id="mind-123",
                 message="What's the weather?",
-                enduser_id="user-456"
+                enduser_id="user-456",
+                config=ConfigSchema(
+                    fast_model_id="gpt-4",
+                    smart_model_ids=["gpt-4"],
+                ),
             )
 
             # Chat with attached artifacts
@@ -73,7 +84,12 @@ class ChatResourceV1(BaseResource):
                 mindspace_id="mind-123",
                 message="Analyze these documents",
                 enduser_id="user-456",
-                artifact_ids=["art-123", "art-456"]
+                config=ConfigSchema(
+                    fast_model_id="gpt-4",
+                    smart_model_ids=["gpt-4"],
+                    compute_power=80,
+                ),
+                artifact_ids=["art-123", "art-456"],
             )
 
             print(f"AI: {response.content.content}")
@@ -85,11 +101,10 @@ class ChatResourceV1(BaseResource):
             mindspace_id=mindspace_id,
             message=message,
             enduser_id=enduser_id,
+            config=config,
             reply_to_message_id=reply_to_message_id,
-            fast_brain_model_id=fast_brain_model_id,
-            model_ids=model_ids,
+            additional_context=additional_context,
             artifact_ids=artifact_ids,
-            compute_power=compute_power,
         )
 
         # Make API call
