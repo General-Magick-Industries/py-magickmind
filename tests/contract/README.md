@@ -67,3 +67,31 @@ cp ../bifrost/api/openapi.json specs/openapi.dev.json
        return v or []  # Default value for API
    ```
 
+## Schema Status Concepts
+
+The test runner categorizes schemas into three buckets:
+
+| Status | Meaning | Action |
+|--------|---------|--------|
+| **TESTED** | SDK model exists and is validated against spec | ✅ Green |
+| **SKIPPED** | Intentionally excluded (internal, OpenAI compat, path params, components) | ⏭️ Ignored |
+| **NOT REGISTERED** | Schema exists in spec but no SDK model. **Technical Debt.** | ❌ Warning |
+
+### When to use each:
+
+- **TESTED**: Default. SDK model serializes to spec-compliant JSON.
+- **SKIPPED**: Use for:
+  - Internal schemas (`CentrifugoRpcRequest`, `ArtifactWebhookReq`)
+  - OpenAI compatibility layer (`ChatCompletionsReq`, `ModelsListResp`)
+  - Path-parameter-only requests (`GetProjectByIdReq`)
+  - Shared components (`BaseSchema`, `MindspaceType`, `TokenSchema`)
+- **NOT REGISTERED**: Leave out of registry entirely. Test runner warns about these as debt.
+
+```python
+# Example: Skipped schema
+ContractDef("BaseSchema", status=SchemaStatus.SKIPPED, reason="Component")
+
+# Example: Unimplemented (just don't add it - shows as warning)
+# SignUpRequest - not in registry, test runner will flag it
+```
+

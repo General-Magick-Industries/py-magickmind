@@ -64,10 +64,30 @@ def spec_goctl() -> dict | None:
     return _load_json(GOCTL_SPEC_PATH)
 
 
+def pytest_addoption(parser):
+    """Add CLI option to select spec."""
+    parser.addoption(
+        "--spec",
+        action="store",
+        default="goctl",
+        choices=["goctl", "dev", "main"],
+        help="Which OpenAPI spec to test against: goctl, dev, or main",
+    )
+
+
 @pytest.fixture(scope="session")
-def contract(spec_goctl) -> dict:
-    """Primary contract spec for testing (switched to goctl)."""
-    return spec_goctl
+def contract(request, spec_goctl, spec_dev, spec_main) -> dict:
+    """Primary contract spec for testing (configurable via --spec)."""
+    spec_choice = request.config.getoption("--spec")
+
+    if spec_choice == "dev":
+        return spec_dev
+    elif spec_choice == "main":
+        if not spec_main:
+            pytest.fail("Main spec not found")
+        return spec_main
+    else:  # goctl (default)
+        return spec_goctl
 
 
 def get_schema_from_spec(spec: dict, schema_name: str) -> dict | None:

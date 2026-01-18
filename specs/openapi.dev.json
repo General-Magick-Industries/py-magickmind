@@ -1,41 +1,12 @@
 {
-  "openapi": "3.0.1",
+  "openapi": "3.1.0",
   "info": {
-    "title": "Magick Mind API Documentation",
+    "title": "API Reference",
     "description": "",
-    "version": "1.0.0"
+    "version": "0.0.1",
+    "summary": ""
   },
   "tags": [
-    {
-      "name": "v1"
-    },
-    {
-      "name": "v1/Auth"
-    },
-    {
-      "name": "v1/Keys"
-    },
-    {
-      "name": "v1/End-Users"
-    },
-    {
-      "name": "v1/Corpus"
-    },
-    {
-      "name": "v1/Project"
-    },
-    {
-      "name": "v1/Mindspaces"
-    },
-    {
-      "name": "v1/Persona"
-    },
-    {
-      "name": "v1/Chat"
-    },
-    {
-      "name": "v1/OpenAI Compatible"
-    },
     {
       "name": "Auth"
     },
@@ -68,7 +39,6 @@
         "deprecated": false,
         "description": "",
         "tags": [
-          "v1/Auth",
           "Auth"
         ],
         "parameters": [],
@@ -115,7 +85,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Base%20Schema"
+                  "$ref": "#/components/schemas/BaseSchema"
                 },
                 "examples": {
                   "2": {
@@ -142,7 +112,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Base%20Schema"
+                  "$ref": "#/components/schemas/BaseSchema"
                 },
                 "example": {
                   "success": false,
@@ -166,7 +136,6 @@
         "deprecated": false,
         "description": "",
         "tags": [
-          "v1/Auth",
           "Auth"
         ],
         "parameters": [],
@@ -174,7 +143,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/RefreshRequestSchema"
+                "$ref": "#/components/schemas/RefreshRequest"
               },
               "examples": {}
             }
@@ -219,7 +188,6 @@
         "deprecated": false,
         "description": "",
         "tags": [
-          "v1/Auth",
           "Auth"
         ],
         "parameters": [],
@@ -264,7 +232,6 @@
         "deprecated": false,
         "description": "",
         "tags": [
-          "v1/Auth",
           "Auth"
         ],
         "parameters": [],
@@ -293,7 +260,6 @@
         "deprecated": false,
         "description": "",
         "tags": [
-          "v1/Auth",
           "Auth"
         ],
         "parameters": [
@@ -333,9 +299,7 @@
         "summary": "Create API Key",
         "deprecated": false,
         "description": "",
-        "tags": [
-          "v1/Keys"
-        ],
+        "tags": [],
         "parameters": [],
         "requestBody": {
           "content": {
@@ -396,9 +360,7 @@
         "summary": "Get API Key by User",
         "deprecated": false,
         "description": "",
-        "tags": [
-          "v1/Keys"
-        ],
+        "tags": [],
         "parameters": [],
         "requestBody": {
           "content": {
@@ -434,9 +396,7 @@
         "summary": "Delete API Key",
         "deprecated": false,
         "description": "",
-        "tags": [
-          "v1/Keys"
-        ],
+        "tags": [],
         "parameters": [],
         "requestBody": {
           "content": {
@@ -452,7 +412,7 @@
                   "key_id"
                 ]
               },
-              "example": null
+              "example": ""
             }
           }
         },
@@ -481,17 +441,13 @@
         "deprecated": false,
         "description": "Update an existing API key",
         "tags": [
-          "v1/Keys",
           "Keys"
         ],
         "parameters": [],
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {}
-              },
+              "schema": {},
               "examples": {}
             }
           }
@@ -501,16 +457,17 @@
             "description": "Successful response",
             "content": {
               "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {}
-                }
+                "schema": {}
               }
             },
             "headers": {}
           }
         },
-        "security": []
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
       }
     },
     "/v1/end-users": {
@@ -518,15 +475,13 @@
         "summary": "Create End-User",
         "deprecated": false,
         "description": "",
-        "tags": [
-          "v1/End-Users"
-        ],
+        "tags": [],
         "parameters": [],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/End%20User%20Create%20Req"
+                "$ref": "#/components/schemas/CreateEndUserRequest"
               },
               "examples": {
                 "1": {
@@ -552,7 +507,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/End%20User%20Res"
+                  "$ref": "#/components/schemas/CreateEndUserResponse"
                 }
               }
             },
@@ -569,15 +524,14 @@
         "summary": "Query End-Users",
         "deprecated": false,
         "description": "",
-        "tags": [
-          "v1/End-Users"
-        ],
+        "tags": [],
         "parameters": [
           {
             "name": "name",
             "in": "query",
-            "description": "name",
+            "description": "Name",
             "required": false,
+            "example": "{{$person.fullName}}",
             "schema": {
               "type": "string"
             }
@@ -585,42 +539,14 @@
           {
             "name": "external_id",
             "in": "query",
-            "description": "",
+            "description": "External ID of the user in other system.",
             "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "tenant_id",
-            "in": "query",
-            "description": "",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "actor_id",
-            "in": "query",
-            "description": "",
-            "required": false,
+            "example": "{{$database.mongodbObjectId}}",
             "schema": {
               "type": "string"
             }
           }
         ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {}
-              },
-              "examples": {}
-            }
-          }
-        },
         "responses": {
           "200": {
             "description": "",
@@ -644,18 +570,17 @@
     },
     "/v1/end-users/{id}": {
       "get": {
-        "summary": "Get End-User",
+        "summary": "Get End-User by ID",
         "deprecated": false,
         "description": "",
-        "tags": [
-          "v1/End-Users"
-        ],
+        "tags": [],
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "description": "",
             "required": true,
+            "example": "",
             "schema": {
               "type": "string"
             }
@@ -667,8 +592,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {}
+                  "$ref": "#/components/schemas/GetEndUserByIdResponse"
                 }
               }
             },
@@ -685,9 +609,7 @@
         "summary": "Update End-User",
         "deprecated": false,
         "description": "",
-        "tags": [
-          "v1/End-Users"
-        ],
+        "tags": [],
         "parameters": [
           {
             "name": "id",
@@ -703,13 +625,11 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {}
+                "$ref": "#/components/schemas/UpdateEndUserRequest"
               },
               "example": {
-                "name": "John Updated",
-                "external_id": "ext_user_99999",
-                "tenant_id": "tenant_new123"
+                "name": "Mrs. Sheila Nicolas I",
+                "external_id": "b3331569-28c1-4071-9cf5-cb594380a755"
               }
             }
           }
@@ -738,9 +658,7 @@
         "summary": "Delete End-User",
         "deprecated": false,
         "description": "",
-        "tags": [
-          "v1/End-Users"
-        ],
+        "tags": [],
         "parameters": [
           {
             "name": "id",
@@ -753,7 +671,7 @@
           }
         ],
         "responses": {
-          "200": {
+          "204": {
             "description": "",
             "headers": {}
           }
@@ -770,15 +688,13 @@
         "summary": "Create Corpus",
         "deprecated": false,
         "description": "",
-        "tags": [
-          "v1/Corpus"
-        ],
+        "tags": [],
         "parameters": [],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Corpus%20Create%20Req"
+                "$ref": "#/components/schemas/CreateCorpusRequest"
               },
               "examples": {}
             }
@@ -790,7 +706,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Corpus%20Res"
+                  "$ref": "#/components/schemas/CreateCorpusResponse"
                 }
               }
             },
@@ -807,9 +723,7 @@
         "summary": "Get Corpus List",
         "deprecated": false,
         "description": "",
-        "tags": [
-          "v1/Corpus"
-        ],
+        "tags": [],
         "parameters": [
           {
             "name": "user_id",
@@ -827,7 +741,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Corpus%20List%20Res"
+                  "$ref": "#/components/schemas/GetCorpusResponse"
                 }
               }
             },
@@ -846,9 +760,7 @@
         "summary": "Get Corpus by ID",
         "deprecated": false,
         "description": "",
-        "tags": [
-          "v1/Corpus"
-        ],
+        "tags": [],
         "parameters": [
           {
             "name": "id",
@@ -866,7 +778,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Corpus%20Res"
+                  "$ref": "#/components/schemas/GetCorpusByIdResponse"
                 }
               }
             },
@@ -883,9 +795,7 @@
         "summary": "Update Corpus",
         "deprecated": false,
         "description": "",
-        "tags": [
-          "v1/Corpus"
-        ],
+        "tags": [],
         "parameters": [
           {
             "name": "id",
@@ -901,7 +811,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Corpus%20%20Update%20Req"
+                "$ref": "#/components/schemas/UpdateCorpusRequest"
               },
               "examples": {}
             }
@@ -913,7 +823,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Corpus%20Res"
+                  "$ref": "#/components/schemas/UpdateCorpusResponse"
                 }
               }
             },
@@ -930,9 +840,7 @@
         "summary": "Delete Corpus",
         "deprecated": false,
         "description": "",
-        "tags": [
-          "v1/Corpus"
-        ],
+        "tags": [],
         "parameters": [
           {
             "name": "id",
@@ -971,7 +879,6 @@
         "deprecated": false,
         "description": "Client-driven finalize for artifact upload (fallback when webhook is unavailable)",
         "tags": [
-          "v1/Corpus",
           "Corpus",
           "Artifacts"
         ],
@@ -990,28 +897,27 @@
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {}
-              }
+              "schema": {}
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
             "description": "Successful response",
             "content": {
               "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {}
-                }
+                "schema": {}
               }
             },
             "headers": {}
           }
         },
-        "security": []
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
       }
     },
     "/v1/projects": {
@@ -1020,7 +926,6 @@
         "deprecated": false,
         "description": "",
         "tags": [
-          "v1/Project",
           "Projects"
         ],
         "parameters": [],
@@ -1028,7 +933,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Create%20Project%20Request"
+                "$ref": "#/components/schemas/CreateProjectRequest"
               },
               "examples": {}
             }
@@ -1040,7 +945,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Create%20Project%20Response"
+                  "$ref": "#/components/schemas/CreateProjectResponse"
                 }
               }
             },
@@ -1058,7 +963,6 @@
         "deprecated": false,
         "description": "",
         "tags": [
-          "v1/Project",
           "Projects"
         ],
         "parameters": [
@@ -1099,7 +1003,6 @@
         "deprecated": false,
         "description": "",
         "tags": [
-          "v1/Project",
           "Projects"
         ],
         "parameters": [
@@ -1138,7 +1041,6 @@
         "deprecated": false,
         "description": "Update an existing project",
         "tags": [
-          "v1/Project",
           "Projects"
         ],
         "parameters": [
@@ -1157,7 +1059,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Update%20Project%20Request"
+                "$ref": "#/components/schemas/UpdateProjectRequest"
               },
               "examples": {}
             }
@@ -1169,21 +1071,24 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Update%20Project%20Response"
+                  "$ref": "#/components/schemas/UpdateProjectResponse"
                 }
               }
             },
             "headers": {}
           }
         },
-        "security": []
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
       },
       "delete": {
         "summary": "Delete Project",
         "deprecated": false,
         "description": "Delete a project by ID",
         "tags": [
-          "v1/Project",
           "Projects"
         ],
         "parameters": [
@@ -1204,7 +1109,11 @@
             "headers": {}
           }
         },
-        "security": []
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
       }
     },
     "/v1/mindspaces": {
@@ -1212,9 +1121,7 @@
         "summary": "Create Mindspace",
         "deprecated": false,
         "description": "",
-        "tags": [
-          "v1/Mindspaces"
-        ],
+        "tags": [],
         "parameters": [],
         "requestBody": {
           "content": {
@@ -1223,18 +1130,19 @@
                 "$ref": "#/components/schemas/CreateMindspaceRequest"
               },
               "example": {
-                "name": "Jeffrey Schowalter",
-                "description": "Accusamus odit benigne tenetur templum custodia temptatio defetiscor cursim abeo. Volutabrum tracto bonus vado accedo tredecim acervus aequus tenuis depulso. Causa conventus decerno. Alienus theologus cometes. Vaco turpis absconditus appello conspergo. Deprecator solio dedecor eum tredecim natus cohibeo ab dolores decumbo.",
+                "name": "Recycled Concrete Tuna",
+                "description": "The automobile layout consists of a front-engine design, with transaxle-type transmissions mounted at the rear of the engine and four wheel drive",
+                "project_id": "47cc766ec1aa7b4c5bdb4d6b",
                 "corpus_ids": [
-                  "esse labore",
-                  "velit sunt nisi exercitation"
+                  "456b650b-f0aa-4468-8094-4bfb30826c4c",
+                  "47d6140b-cd73-4e14-bb83-de380b1e00f2",
+                  "f71bd0df-d154-4787-aabc-9ea40e8d773c"
                 ],
                 "user_ids": [
-                  "amet esse qui",
-                  "culpa nulla sunt officia nisi",
-                  "nisi pariatur magna ad non"
+                  "274a50bd-4a6f-4b49-b73f-405251f50a02",
+                  "21da5b23-fb48-4e09-917c-9a30687e56dc"
                 ],
-                "type": "group"
+                "type": "GROUP"
               }
             }
           }
@@ -1285,7 +1193,6 @@
         "deprecated": false,
         "description": "Retrieve list of mindspaces for a user",
         "tags": [
-          "v1/Mindspaces",
           "Mindspaces"
         ],
         "parameters": [
@@ -1305,14 +1212,18 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GetMindSpaceListResp"
+                  "$ref": "#/components/schemas/GetMindSpaceListResponse"
                 }
               }
             },
             "headers": {}
           }
         },
-        "security": []
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
       }
     },
     "/v1/workspaces/{id}": {
@@ -1321,7 +1232,6 @@
         "deprecated": false,
         "description": "",
         "tags": [
-          "v1/Mindspaces",
           "Mindspaces"
         ],
         "parameters": [
@@ -1387,9 +1297,7 @@
         "summary": "Delete Mindspace",
         "deprecated": false,
         "description": "",
-        "tags": [
-          "v1/Mindspaces"
-        ],
+        "tags": [],
         "parameters": [
           {
             "name": "id",
@@ -1442,9 +1350,7 @@
         "summary": "Get Mindspace by ID",
         "deprecated": false,
         "description": "",
-        "tags": [
-          "v1/Mindspaces"
-        ],
+        "tags": [],
         "parameters": [
           {
             "name": "id",
@@ -1482,7 +1388,6 @@
         "deprecated": false,
         "description": "Update an existing mindspace",
         "tags": [
-          "v1/Mindspaces",
           "Mindspaces"
         ],
         "parameters": [
@@ -1500,35 +1405,33 @@
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {}
-              }
+              "schema": {}
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
             "description": "Successful response",
             "content": {
               "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {}
-                }
+                "schema": {}
               }
             },
             "headers": {}
           }
         },
-        "security": []
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
       },
       "delete": {
         "summary": "Delete Mindspace",
         "deprecated": false,
         "description": "Delete a mindspace by ID",
         "tags": [
-          "v1/Mindspaces",
           "Mindspaces"
         ],
         "parameters": [
@@ -1548,16 +1451,17 @@
             "description": "Successful response",
             "content": {
               "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {}
-                }
+                "schema": {}
               }
             },
             "headers": {}
           }
         },
-        "security": []
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
       }
     },
     "/v1/mindspaces/messages": {
@@ -1566,7 +1470,6 @@
         "deprecated": false,
         "description": "Retrieve chat messages for a mindspace with pagination",
         "tags": [
-          "v1/Mindspaces",
           "Mindspaces"
         ],
         "parameters": [
@@ -1613,16 +1516,17 @@
             "description": "Successful response",
             "content": {
               "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {}
-                }
+                "schema": {}
               }
             },
             "headers": {}
           }
         },
-        "security": []
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
       }
     },
     "/v1/persona": {
@@ -1630,9 +1534,7 @@
         "summary": "Create Persona",
         "deprecated": false,
         "description": "",
-        "tags": [
-          "v1/Persona"
-        ],
+        "tags": [],
         "parameters": [],
         "requestBody": {
           "content": {
@@ -1672,7 +1574,6 @@
         "deprecated": false,
         "description": "Retrieve a persona by ID",
         "tags": [
-          "v1/Persona",
           "Persona"
         ],
         "parameters": [
@@ -1692,23 +1593,23 @@
             "description": "Successful response",
             "content": {
               "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {}
-                }
+                "schema": {}
               }
             },
             "headers": {}
           }
         },
-        "security": []
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
       },
       "put": {
         "summary": "Update Persona",
         "deprecated": false,
         "description": "Update an existing persona",
         "tags": [
-          "v1/Persona",
           "Persona"
         ],
         "parameters": [
@@ -1726,35 +1627,33 @@
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {}
-              }
+              "schema": {}
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
             "description": "Successful response",
             "content": {
               "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {}
-                }
+                "schema": {}
               }
             },
             "headers": {}
           }
         },
-        "security": []
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
       },
       "delete": {
         "summary": "Delete Persona",
         "deprecated": false,
         "description": "Delete a persona by ID",
         "tags": [
-          "v1/Persona",
           "Persona"
         ],
         "parameters": [
@@ -1774,16 +1673,17 @@
             "description": "Successful response",
             "content": {
               "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {}
-                }
+                "schema": {}
               }
             },
             "headers": {}
           }
         },
-        "security": []
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
       }
     },
     "/v1/chat/magickmind": {
@@ -1791,18 +1691,31 @@
         "summary": "Magick Mind Chat",
         "deprecated": false,
         "description": "",
-        "tags": [
-          "v1/Chat"
-        ],
+        "tags": [],
         "parameters": [],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {}
+                "$ref": "#/components/schemas/ChatRequest"
               },
-              "examples": {}
+              "example": {
+                "api_key": "sk2-fdaD92BIjiq",
+                "mindspace_id": "28",
+                "message": "Adstringo traho cena tempore. Commodi deduco animus. Viridis comes ubi acerbitas tergiversatio tyrannus agnitio.",
+                "reply_to_message_id": "73",
+                "enduser_id": "78",
+                "additional_context": "Curiositas defungo volaticus cultura benigne. Corrupti dicta sublime vis custodia. Ullus strues acerbitas conscendo tempore.",
+                "artifact_ids": [],
+                "config": {
+                  "fast_model_id": "72",
+                  "smart_model_ids": [
+                    "dolor mollit ipsum adipisicing deserunt",
+                    "pariatur"
+                  ],
+                  "compute_power": 1
+                }
+              }
             }
           }
         },
@@ -1812,8 +1725,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {}
+                  "$ref": "#/components/schemas/ChatResponse"
                 }
               }
             },
@@ -1833,35 +1745,33 @@
         "deprecated": false,
         "description": "OpenAI-compatible chat completions endpoint",
         "tags": [
-          "v1/OpenAI Compatible",
           "OpenAI Compatible"
         ],
         "parameters": [],
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {}
-              }
+              "schema": {}
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
             "description": "Successful response",
             "content": {
               "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {}
-                }
+                "schema": {}
               }
             },
             "headers": {}
           }
         },
-        "security": []
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
       }
     },
     "/v1/models": {
@@ -1870,7 +1780,6 @@
         "deprecated": false,
         "description": "OpenAI-compatible models list endpoint",
         "tags": [
-          "v1/OpenAI Compatible",
           "OpenAI Compatible"
         ],
         "parameters": [],
@@ -1879,21 +1788,66 @@
             "description": "Successful response",
             "content": {
               "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {}
-                }
+                "schema": {}
               }
             },
             "headers": {}
           }
         },
-        "security": []
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
       }
     }
   },
+  "webhooks": {},
   "components": {
     "schemas": {
+      "TokenSchema": {
+        "type": "object",
+        "properties": {
+          "access_token": {
+            "type": "string"
+          },
+          "expires_in": {
+            "type": "integer"
+          },
+          "refresh_expires_in": {
+            "type": "integer"
+          },
+          "refresh_token": {
+            "type": "string"
+          },
+          "token_type": {
+            "type": "string"
+          },
+          "id_token": {
+            "type": "string"
+          },
+          "not-before-policy": {
+            "type": "integer"
+          },
+          "session_state": {
+            "type": "string"
+          },
+          "scope": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "access_token",
+          "expires_in",
+          "refresh_expires_in",
+          "refresh_token",
+          "token_type",
+          "id_token",
+          "not-before-policy",
+          "session_state",
+          "scope"
+        ]
+      },
       "SignUpRequest": {
         "type": "object",
         "properties": {
@@ -1917,21 +1871,13 @@
         ]
       },
       "SignUpResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "message": {
-            "type": "string"
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseSchema"
           }
-        },
-        "required": [
-          "success",
-          "message"
         ]
       },
-      "RefreshRequestSchema": {
+      "RefreshRequest": {
         "type": "object",
         "properties": {
           "refresh_token": {
@@ -1943,54 +1889,13 @@
         ]
       },
       "RefreshResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseSchema"
           },
-          "message": {
-            "type": "string"
-          },
-          "access_token": {
-            "type": "string"
-          },
-          "expires_in": {
-            "type": "integer"
-          },
-          "refresh_expires_in": {
-            "type": "integer"
-          },
-          "refresh_token": {
-            "type": "string"
-          },
-          "token_type": {
-            "type": "string"
-          },
-          "id_token": {
-            "type": "string"
-          },
-          "not-before-policy": {
-            "type": "integer"
-          },
-          "session_state": {
-            "type": "string"
-          },
-          "scope": {
-            "type": "string"
+          {
+            "$ref": "#/components/schemas/TokenSchema"
           }
-        },
-        "required": [
-          "access_token",
-          "expires_in",
-          "refresh_expires_in",
-          "refresh_token",
-          "token_type",
-          "id_token",
-          "not-before-policy",
-          "session_state",
-          "scope",
-          "success",
-          "message"
         ]
       },
       "LoginRequest": {
@@ -2009,54 +1914,20 @@
         ]
       },
       "LoginResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseSchema"
           },
-          "message": {
-            "type": "string"
-          },
-          "access_token": {
-            "type": "string"
-          },
-          "expires_in": {
-            "type": "integer"
-          },
-          "refresh_expires_in": {
-            "type": "integer"
-          },
-          "refresh_token": {
-            "type": "string"
-          },
-          "token_type": {
-            "type": "string"
-          },
-          "id_token": {
-            "type": "string"
-          },
-          "not-before-policy": {
-            "type": "integer"
-          },
-          "session_state": {
-            "type": "string"
-          },
-          "scope": {
-            "type": "string"
+          {
+            "$ref": "#/components/schemas/TokenSchema"
           }
-        },
-        "required": [
-          "access_token",
-          "expires_in",
-          "refresh_expires_in",
-          "refresh_token",
-          "token_type",
-          "id_token",
-          "not-before-policy",
-          "session_state",
-          "scope",
-          "success",
-          "message"
+        ]
+      },
+      "MindspaceType": {
+        "type": "string",
+        "enum": [
+          "PRIVATE",
+          "GROUP"
         ]
       },
       "MindspaceSchema": {
@@ -2075,11 +1946,13 @@
             "type": "string"
           },
           "corpus_ids": {
-            "type": "array",
+            "type": [
+              "array",
+              "null"
+            ],
             "items": {
               "type": "string"
-            },
-            "nullable": true
+            }
           },
           "user_ids": {
             "type": "array",
@@ -2088,11 +1961,7 @@
             }
           },
           "type": {
-            "type": "string",
-            "enum": [
-              "PRIVATE",
-              "GROUP"
-            ]
+            "$ref": "#/components/schemas/MindspaceType"
           },
           "created_by": {
             "type": "string"
@@ -2146,11 +2015,7 @@
             }
           },
           "type": {
-            "type": "string",
-            "enum": [
-              "private",
-              "group"
-            ]
+            "$ref": "#/components/schemas/MindspaceType"
           }
         },
         "required": [
@@ -2162,25 +2027,24 @@
         ]
       },
       "CreateMindspaceResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseSchema"
           },
-          "message": {
-            "type": "string"
-          },
-          "mindspace": {
-            "$ref": "#/components/schemas/MindspaceSchema"
+          {
+            "type": "object",
+            "properties": {
+              "mindspace": {
+                "$ref": "#/components/schemas/MindspaceSchema"
+              }
+            },
+            "required": [
+              "mindspace"
+            ]
           }
-        },
-        "required": [
-          "mindspace",
-          "success",
-          "message"
         ]
       },
-      "UpdateMindSpaceReq": {
+      "UpdateMindSpaceRequest": {
         "type": "object",
         "properties": {
           "name": {
@@ -2188,9 +2052,11 @@
             "maxLength": 100
           },
           "description": {
-            "type": "string",
-            "maxLength": 256,
-            "nullable": true
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 256
           },
           "project_id": {
             "type": "string"
@@ -2215,20 +2081,28 @@
           "user_ids"
         ]
       },
-      "UpdateMindSpaceResp": {
+      "UpdateMindSpaceResponse": {
         "allOf": [
           {
-            "$ref": "#/components/schemas/Base%20Schema"
+            "$ref": "#/components/schemas/BaseSchema"
           },
           {
-            "$ref": "#/components/schemas/MindspaceSchema"
+            "type": "object",
+            "properties": {
+              "mindspace": {
+                "$ref": "#/components/schemas/MindspaceSchema"
+              }
+            },
+            "required": [
+              "mindspace"
+            ]
           }
         ]
       },
-      "GetMindSpaceListResp": {
+      "GetMindSpaceListResponse": {
         "allOf": [
           {
-            "$ref": "#/components/schemas/Base%20Schema"
+            "$ref": "#/components/schemas/BaseSchema"
           },
           {
             "type": "object",
@@ -2243,7 +2117,7 @@
           }
         ]
       },
-      "MindspaceMessagesResp": {
+      "MindspaceMessagesResponse": {
         "type": "object",
         "properties": {
           "chat_histories": {
@@ -2269,7 +2143,7 @@
           }
         }
       },
-      "End User": {
+      "EndUser": {
         "type": "object",
         "properties": {
           "id": {
@@ -2279,7 +2153,10 @@
             "type": "string"
           },
           "external_id": {
-            "type": "string"
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "tenant_id": {
             "type": "string"
@@ -2301,47 +2178,69 @@
           "id",
           "name",
           "external_id",
-          "tenant_id",
           "created_by",
           "updated_by",
           "created_at",
-          "updated_at"
+          "updated_at",
+          "tenant_id"
         ]
       },
-      "End User Create Req": {
+      "CreateEndUserRequest": {
         "type": "object",
         "properties": {
           "name": {
             "type": "string"
           },
           "external_id": {
-            "type": "string"
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 1,
+            "maxLength": 255
           }
         },
         "required": [
           "name"
         ]
       },
-      "End User Res": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
+      "CreateEndUserResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseSchema"
           },
-          "message": {
-            "type": "string"
-          },
-          "end_user": {
-            "$ref": "#/components/schemas/End%20User"
+          {
+            "type": "object",
+            "properties": {
+              "end_user": {
+                "$ref": "#/components/schemas/EndUser"
+              }
+            },
+            "required": [
+              "end_user"
+            ]
           }
-        },
-        "required": [
-          "success",
-          "message",
-          "end_user"
         ]
       },
-      "End User List Res": {
+      "GetEndUserByIdResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseSchema"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "end_user": {
+                "$ref": "#/components/schemas/EndUser"
+              }
+            },
+            "required": [
+              "end_user"
+            ]
+          }
+        ]
+      },
+      "GetEndUserListResponse": {
         "type": "object",
         "properties": {
           "success": {
@@ -2353,7 +2252,7 @@
           "end_users": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/End%20User"
+              "$ref": "#/components/schemas/EndUser"
             }
           }
         },
@@ -2363,16 +2262,13 @@
           "message"
         ]
       },
-      "End User Update Req": {
+      "UpdateEndUserRequest": {
         "type": "object",
         "properties": {
           "name": {
             "type": "string"
           },
           "external_id": {
-            "type": "string"
-          },
-          "tenant_id": {
             "type": "string"
           }
         }
@@ -2394,7 +2290,7 @@
           }
         }
       },
-      "Corpus Schema": {
+      "CorpusSchema": {
         "type": "object",
         "properties": {
           "id": {
@@ -2431,7 +2327,7 @@
           "updated_at"
         ]
       },
-      "Corpus Create Req": {
+      "CreateCorpusRequest": {
         "type": "object",
         "properties": {
           "name": {
@@ -2453,48 +2349,25 @@
           "artifact_ids"
         ]
       },
-      "Corpus Res": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
+      "CreateCorpusResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseSchema"
           },
-          "message": {
-            "type": "string"
-          },
-          "corpus": {
-            "$ref": "#/components/schemas/Corpus%20Schema"
+          {
+            "type": "object",
+            "properties": {
+              "corpus": {
+                "$ref": "#/components/schemas/CorpusSchema"
+              }
+            },
+            "required": [
+              "corpus"
+            ]
           }
-        },
-        "required": [
-          "corpus",
-          "success",
-          "message"
         ]
       },
-      "Corpus List Res": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "message": {
-            "type": "string"
-          },
-          "corpus": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Corpus%20Schema"
-            }
-          }
-        },
-        "required": [
-          "corpus",
-          "success",
-          "message"
-        ]
-      },
-      "Corpus  Update Req": {
+      "UpdateCorpusRequest": {
         "type": "object",
         "properties": {
           "name": {
@@ -2511,7 +2384,64 @@
           }
         }
       },
-      "Project Schema": {
+      "UpdateCorpusResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseSchema"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "corpus": {
+                "$ref": "#/components/schemas/CorpusSchema"
+              }
+            },
+            "required": [
+              "corpus"
+            ]
+          }
+        ]
+      },
+      "GetCorpusByIdResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseSchema"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "corpus": {
+                "$ref": "#/components/schemas/CorpusSchema"
+              }
+            },
+            "required": [
+              "corpus"
+            ]
+          }
+        ]
+      },
+      "GetCorpusResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseSchema"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "corpus": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/CorpusSchema"
+                }
+              }
+            },
+            "required": [
+              "corpus"
+            ]
+          }
+        ]
+      },
+      "ProjectSchema": {
         "type": "object",
         "properties": {
           "id": {
@@ -2524,11 +2454,13 @@
             "type": "string"
           },
           "corpus_ids": {
-            "type": "array",
+            "type": [
+              "array",
+              "null"
+            ],
             "items": {
               "type": "string"
-            },
-            "nullable": true
+            }
           },
           "created_by": {
             "type": "string"
@@ -2549,7 +2481,7 @@
           "updated_at"
         ]
       },
-      "Create Project Request": {
+      "CreateProjectRequest": {
         "type": "object",
         "properties": {
           "name": {
@@ -2571,16 +2503,16 @@
           "corpus_ids"
         ]
       },
-      "Create Project Response": {
+      "CreateProjectResponse": {
         "allOf": [
           {
-            "$ref": "#/components/schemas/Base%20Schema"
+            "$ref": "#/components/schemas/BaseSchema"
           },
           {
             "type": "object",
             "properties": {
               "project": {
-                "$ref": "#/components/schemas/Project%20Schema"
+                "$ref": "#/components/schemas/ProjectSchema"
               }
             },
             "required": [
@@ -2589,7 +2521,7 @@
           }
         ]
       },
-      "Update Project Request": {
+      "UpdateProjectRequest": {
         "type": "object",
         "properties": {
           "name": {
@@ -2611,16 +2543,16 @@
           "corpus_ids"
         ]
       },
-      "Update Project Response": {
+      "UpdateProjectResponse": {
         "allOf": [
           {
-            "$ref": "#/components/schemas/Base%20Schema"
+            "$ref": "#/components/schemas/BaseSchema"
           },
           {
             "type": "object",
             "properties": {
               "project": {
-                "$ref": "#/components/schemas/Project%20Schema"
+                "$ref": "#/components/schemas/ProjectSchema"
               }
             },
             "required": [
@@ -2629,30 +2561,51 @@
           }
         ]
       },
-      "Chat Schema": {
+      "ChatSchema": {
         "type": "object",
         "properties": {
           "message_id": {
-            "type": "string"
-          },
-          "task_id": {
             "type": "string"
           },
           "content": {
             "type": "string"
           },
           "reply_to": {
-            "type": "string",
-            "nullable": true
+            "type": [
+              "string",
+              "null"
+            ]
           }
         },
         "required": [
           "message_id",
-          "task_id",
           "content"
         ]
       },
-      "Magick Mind Chat Request": {
+      "ConfigSchema": {
+        "type": "object",
+        "properties": {
+          "fast_model_id": {
+            "type": "string"
+          },
+          "smart_model_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "compute_power": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        },
+        "required": [
+          "fast_model_id",
+          "smart_model_ids",
+          "compute_power"
+        ]
+      },
+      "ChatRequest": {
         "type": "object",
         "properties": {
           "api_key": {
@@ -2665,19 +2618,19 @@
             "type": "string"
           },
           "reply_to_message_id": {
-            "type": "string"
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "enduser_id": {
             "type": "string"
           },
-          "fast_brain_model_id": {
-            "type": "string"
-          },
-          "model_ids": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+          "additional_context": {
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "artifact_ids": {
             "type": "array",
@@ -2685,18 +2638,19 @@
               "type": "string"
             }
           },
-          "compute_power": {
-            "type": "integer"
+          "config": {
+            "$ref": "#/components/schemas/ConfigSchema"
           }
         },
         "required": [
           "api_key",
           "mindspace_id",
           "message",
-          "enduser_id"
+          "enduser_id",
+          "config"
         ]
       },
-      "Chat Response": {
+      "ChatResponse": {
         "type": "object",
         "properties": {
           "success": {
@@ -2706,7 +2660,7 @@
             "type": "string"
           },
           "content": {
-            "$ref": "#/components/schemas/Chat%20Schema"
+            "$ref": "#/components/schemas/ChatSchema"
           }
         },
         "required": [
@@ -2722,8 +2676,10 @@
             "type": "string"
           },
           "artifact_id": {
-            "type": "string",
-            "nullable": true
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "name": {
             "type": "string"
@@ -2757,7 +2713,7 @@
       "GetPersonaByIdRes": {
         "allOf": [
           {
-            "$ref": "#/components/schemas/Base%20Schema"
+            "$ref": "#/components/schemas/BaseSchema"
           },
           {
             "$ref": "#/components/schemas/PersonaSchema"
@@ -2768,8 +2724,10 @@
         "type": "object",
         "properties": {
           "artifact_id": {
-            "type": "string",
-            "nullable": true
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "name": {
             "type": "string"
@@ -2833,8 +2791,10 @@
             "type": "string"
           },
           "reply_to_message_id": {
-            "type": "string",
-            "nullable": true
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "status": {
             "type": "string"
@@ -3220,7 +3180,7 @@
           }
         }
       },
-      "Base Schema": {
+      "BaseSchema": {
         "type": "object",
         "properties": {
           "success": {
@@ -3236,6 +3196,7 @@
         ]
       }
     },
+    "responses": {},
     "securitySchemes": {
       "bearer": {
         "type": "http",
@@ -3243,5 +3204,10 @@
       }
     }
   },
-  "servers": []
+  "servers": [],
+  "security": [
+    {
+      "bearer": []
+    }
+  ]
 }
