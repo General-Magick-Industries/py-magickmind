@@ -44,7 +44,7 @@ class TestMindspaceResourceV1:
                 "project_id": "proj-456",
                 "corpus_ids": ["corp-1"],
                 "user_ids": ["user-1"],
-                "type": "private",
+                "type": "PRIVATE",
                 "created_by": "user-1",
                 "updated_by": "user-1",
                 "created_at": "2025-12-16T09:00:00Z",
@@ -56,7 +56,7 @@ class TestMindspaceResourceV1:
         # Make request
         response = mindspace_resource.create(
             name="My Workspace",
-            type="private",
+            type="PRIVATE",
             description="Test workspace",
             corpus_ids=["corp-1"],
         )
@@ -69,7 +69,7 @@ class TestMindspaceResourceV1:
         # Verify request body
         request_body = call_args[1]["json"]
         assert request_body["name"] == "My Workspace"
-        assert request_body["type"] == "private"
+        assert request_body["type"] == "PRIVATE"
         assert request_body["description"] == "Test workspace"
         assert request_body["corpus_ids"] == ["corp-1"]
 
@@ -77,7 +77,7 @@ class TestMindspaceResourceV1:
         assert isinstance(response, CreateMindSpaceResponse)
         assert response.success is True
         assert response.mindspace.id == "mind-123"
-        assert response.mindspace.type == "private"
+        assert response.mindspace.type == "PRIVATE"
 
     def test_create_group_mindspace(self, mindspace_resource, mock_http_client):
         """Test create() with group mindspace type."""
@@ -92,7 +92,7 @@ class TestMindspaceResourceV1:
                 "project_id": "proj-123",
                 "corpus_ids": ["corp-1", "corp-2"],
                 "user_ids": ["user-1", "user-2"],
-                "type": "group",
+                "type": "GROUP",
                 "created_by": "user-1",
                 "updated_by": "user-1",
                 "created_at": "2025-12-16T09:00:00Z",
@@ -103,11 +103,11 @@ class TestMindspaceResourceV1:
 
         response = mindspace_resource.create(
             name="Team Space",
-            type="group",
+            type="GROUP",
             user_ids=["user-1", "user-2"],
         )
 
-        assert response.mindspace.type == "group"
+        assert response.mindspace.type == "GROUP"
         assert len(response.mindspace.user_ids) == 2
 
     def test_get_makes_correct_api_call(self, mindspace_resource, mock_http_client):
@@ -123,7 +123,7 @@ class TestMindspaceResourceV1:
                 "project_id": "proj-123",
                 "corpus_ids": ["corp-1"],
                 "user_ids": ["user-1"],
-                "type": "private",
+                "type": "PRIVATE",
                 "created_by": "user-1",
                 "updated_by": "user-1",
                 "created_at": "2025-12-16T09:00:00Z",
@@ -156,7 +156,7 @@ class TestMindspaceResourceV1:
                     "project_id": "proj-1",
                     "corpus_ids": [],
                     "user_ids": ["user-1"],
-                    "type": "private",
+                    "type": "PRIVATE",
                     "created_by": "user-1",
                     "updated_by": "user-1",
                     "created_at": "2025-12-16T09:00:00Z",
@@ -169,7 +169,7 @@ class TestMindspaceResourceV1:
                     "project_id": "proj-2",
                     "corpus_ids": ["corp-1"],
                     "user_ids": ["user-1"],
-                    "type": "group",
+                    "type": "GROUP",
                     "created_by": "user-1",
                     "updated_by": "user-1",
                     "created_at": "2025-12-16T09:00:00Z",
@@ -218,7 +218,7 @@ class TestMindspaceResourceV1:
                 "project_id": "proj-456",
                 "corpus_ids": ["corp-1", "corp-2"],
                 "user_ids": ["user-1"],
-                "type": "private",
+                "type": "PRIVATE",
                 "created_by": "user-1",
                 "updated_by": "user-2",
                 "created_at": "2025-12-16T08:00:00Z",
@@ -388,7 +388,7 @@ class TestMindspaceResourceIntegration:
                 "project_id": "proj-1",
                 "corpus_ids": [],
                 "user_ids": ["user-1"],
-                "type": "private",
+                "type": "PRIVATE",
                 "created_by": "user-1",
                 "updated_by": "user-1",
                 "created_at": "2025-12-16T09:00:00Z",
@@ -408,11 +408,11 @@ class TestMindspaceResourceIntegration:
         client.auth._token_expires_at = time.time() + 3600
 
         # Create mindspace via v1 resource
-        response = client.v1.mindspace.create(name="Test Space", type="private")
+        response = client.v1.mindspace.create(name="Test Space", type="PRIVATE")
 
         assert response.success is True
         assert response.mindspace.id == "mind-new"
 
         # Verify the same works via alias
-        response2 = client.mindspace.create(name="Test Space 2", type="group")
+        response2 = client.mindspace.create(name="Test Space 2", type="GROUP")
         assert response2.success is True
