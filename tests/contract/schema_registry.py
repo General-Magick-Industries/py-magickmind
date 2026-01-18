@@ -8,7 +8,7 @@ from enum import Enum
 from typing import Type, Optional, Callable, Any
 
 # SDK Models
-from magick_mind.models.v1.chat import ChatSendResponse, ChatSendRequest
+from magick_mind.models.v1.chat import ChatSendResponse, ChatSendRequest, ConfigSchema
 from magick_mind.models.v1.artifact import (
     FinalizeArtifactResponse,
     PresignArtifactResponse,
@@ -18,8 +18,6 @@ from magick_mind.models.v1.artifact import (
 from magick_mind.models.v1.project import (
     CreateProjectResponse,
     UpdateProjectResponse,
-    GetProjectResponse,
-    GetProjectListResponse,
     CreateProjectRequest,
     UpdateProjectRequest,
 )
@@ -35,7 +33,6 @@ from magick_mind.models.v1.api_keys import (
 from magick_mind.models.v1.corpus import (
     CreateCorpusResponse,
     GetCorpusResponse,
-    ListCorpusResponse,
     UpdateCorpusResponse,
     CreateCorpusRequest,
     UpdateCorpusRequest,
@@ -44,7 +41,6 @@ from magick_mind.models.v1.end_user import (
     CreateEndUserResponse,
     GetEndUserResponse,
     QueryEndUserResponse,
-    UpdateEndUserResponse,
     CreateEndUserRequest,
     UpdateEndUserRequest,
 )
@@ -91,33 +87,54 @@ def _chat_request_factory() -> ChatSendRequest:
         mindspace_id="ms-1",
         message="hello",
         enduser_id="u-1",
-        fast_brain_model_id="gpt-4",
-        model_ids=["gpt-4"],
+        config=ConfigSchema(
+            fast_model_id="gpt-4",
+            smart_model_ids=["gpt-4"],
+            compute_power=50,
+        ),
     )
 
 
 def _create_project_factory() -> CreateProjectRequest:
-    return CreateProjectRequest(name="Test Project", api_key="sk-test")
+    return CreateProjectRequest(
+        name="Test Project",
+        api_key="sk-test",
+        description="Project Desc",
+        corpus_ids=[],
+    )
 
 
 def _update_project_factory() -> UpdateProjectRequest:
-    return UpdateProjectRequest(name="Updated Project")
+    return UpdateProjectRequest(
+        name="Updated Project", description="Updated Desc", corpus_ids=[]
+    )
 
 
 def _create_corpus_factory() -> CreateCorpusRequest:
-    return CreateCorpusRequest(name="Test Corpus", project_id="proj-1")
+    return CreateCorpusRequest(
+        name="Test Corpus",
+        project_id="proj-1",
+        description="Corpus Desc",
+        artifact_ids=[],
+    )
 
 
 def _update_corpus_factory() -> UpdateCorpusRequest:
-    return UpdateCorpusRequest(name="Updated Corpus")
+    return UpdateCorpusRequest(
+        name="Updated Corpus", description="Updated Desc", artifact_ids=[]
+    )
 
 
 def _create_end_user_factory() -> CreateEndUserRequest:
-    return CreateEndUserRequest(external_id="ext-123", name="Test User")
+    return CreateEndUserRequest(
+        external_id="ext-123", name="Test User", tenant_id="t-1", actor_id="a-1"
+    )
 
 
 def _update_end_user_factory() -> UpdateEndUserRequest:
-    return UpdateEndUserRequest(name="Updated User")
+    return UpdateEndUserRequest(
+        name="Updated User", external_id="ext-456", tenant_id="t-1"
+    )
 
 
 def _create_mindspace_factory() -> CreateMindSpaceRequest:
@@ -125,19 +142,27 @@ def _create_mindspace_factory() -> CreateMindSpaceRequest:
         project_id="proj-1",
         name="Test MindSpace",
         type="PRIVATE",
+        description="Mindspace Desc",
     )
 
 
 def _update_mindspace_factory() -> UpdateMindSpaceRequest:
-    return UpdateMindSpaceRequest(name="Updated MindSpace")
+    return UpdateMindSpaceRequest(
+        name="Updated MindSpace", description="Updated Desc", project_id="proj-1"
+    )
 
 
 def _create_api_key_factory() -> CreateApiKeyRequest:
-    return CreateApiKeyRequest(project_id="proj-1", key_alias="Test Key")
+    return CreateApiKeyRequest(
+        project_id="proj-1",
+        key_alias="Test Key",
+        models=["gpt-4"],
+        user_id="u-1",
+    )
 
 
 def _update_api_key_factory() -> UpdateApiKeyRequest:
-    return UpdateApiKeyRequest(key_alias="Updated Key")
+    return UpdateApiKeyRequest(key_alias="Updated Key", models=["gpt-4"], key="key-1")
 
 
 def _delete_api_key_factory() -> DeleteApiKeyRequest:
@@ -146,8 +171,9 @@ def _delete_api_key_factory() -> DeleteApiKeyRequest:
 
 def _presign_artifact_factory() -> PresignArtifactRequest:
     return PresignArtifactRequest(
-        filename="test.pdf",
+        file_name="test.pdf",
         content_type="application/pdf",
+        size_bytes=1024,
         project_id="proj-1",
     )
 
@@ -155,7 +181,8 @@ def _presign_artifact_factory() -> PresignArtifactRequest:
 def _finalize_artifact_factory() -> FinalizeArtifactRequest:
     return FinalizeArtifactRequest(
         artifact_id="art-1",
-        s3_key="uploads/test.pdf",
+        bucket="test-bucket",
+        key="uploads/test.pdf",
     )
 
 
@@ -173,45 +200,55 @@ def _refresh_request_factory() -> RefreshRequest:
 RESPONSES = [
     # --- TESTED (The "Green" List) ---
     # Chat
-    ContractDef("ChatResp", ChatSendResponse),
-    # Artifact
+    ContractDef("ChatResponse", ChatSendResponse),
     ContractDef("ClientFinalizeArtifactUploadResp", FinalizeArtifactResponse),
     ContractDef("GenericPresignResp", PresignArtifactResponse),
-    ContractDef("PresignArtifactUploadResp", PresignArtifactResponse),
+    # Note: PresignArtifactUploadResp removed - duplicate of GenericPresignResp
     # Project
-    ContractDef("CreateProjectResp", CreateProjectResponse),
-    ContractDef("UpdateProjectResp", UpdateProjectResponse),
-    ContractDef("GetProjectByIdResp", GetProjectResponse),
-    ContractDef("GetProjectListResp", GetProjectListResponse),
+    ContractDef("CreateProjectResponse", CreateProjectResponse),
+    ContractDef("UpdateProjectResponse", UpdateProjectResponse),
     # API Keys
     ContractDef("UpdateApiKeyResp", UpdateApiKeyResponse),
-    ContractDef("CreateApiKeyResp", CreateApiKeyResponse),
-    ContractDef("GetApiKeyListResp", ListApiKeysResponse),
-    ContractDef("DeleteApiKeyResp", DeleteApiKeyResponse),
+    ContractDef("CreateApiKeyResponse", CreateApiKeyResponse),
+    ContractDef("ListApiKeysResponse", ListApiKeysResponse),
+    ContractDef("DeleteApiKeyResponse", DeleteApiKeyResponse),
     # Corpus
-    ContractDef("CreateCorpusRes", CreateCorpusResponse),
-    ContractDef("GetCorpusByIdRes", GetCorpusResponse),
-    ContractDef("GetCorpusListRes", ListCorpusResponse),
-    ContractDef("UpdateCorpusRes", UpdateCorpusResponse),
+    ContractDef("CreateCorpusResponse", CreateCorpusResponse),
+    ContractDef("GetCorpusResponse", GetCorpusResponse),
+    ContractDef("UpdateCorpusResponse", UpdateCorpusResponse),
     # End User
-    ContractDef("CreateEndUserResp", CreateEndUserResponse),
-    ContractDef("GetEndUserByIdResp", GetEndUserResponse),
-    ContractDef("QueryEndUserResp", QueryEndUserResponse),
-    ContractDef("UpdateEndUserResp", UpdateEndUserResponse),
+    ContractDef("CreateEndUserResponse", CreateEndUserResponse),
+    ContractDef(
+        "GetEndUserByIdResponse", GetEndUserResponse
+    ),  # lowercase Id per Apidog
+    # Note: QueryEndUserResponse and UpdateEndUserResponse don't exist in Apidog spec
     # History
-    ContractDef("MindspaceMessagesResp", HistoryResponse),
+    ContractDef("MindspaceMessagesResponse", HistoryResponse),
     # MindSpace (spec mismatches - tests will fail and expose bugs)
-    ContractDef("CreateMindSpaceResp", CreateMindSpaceResponse),
-    ContractDef("GetMindSpaceListResp", GetMindSpaceListResponse),
-    ContractDef("UpdateMindSpaceResp", UpdateMindSpaceResponse),
+    ContractDef("CreateMindspaceResponse", CreateMindSpaceResponse),  # Lowercase s
+    ContractDef("GetMindSpaceListResponse", GetMindSpaceListResponse),
+    ContractDef("UpdateMindSpaceResponse", UpdateMindSpaceResponse),
     # Auth
-    ContractDef("LoginResp", TokenResponse),
-    ContractDef("RefreshResp", TokenResponse),
+    ContractDef("LoginResponse", TokenResponse),
+    ContractDef("RefreshResponse", TokenResponse),
     # --- INTENTIONAL SKIPS (Internal/Irrelevant) ---
-    ContractDef("BaseResponse", status=SchemaStatus.SKIPPED, reason="Generic Base"),
     ContractDef(
         "ArtifactWebhookResp", status=SchemaStatus.SKIPPED, reason="Internal Webhook"
     ),
+    # --- UNIMPLEMENTED / OpenAI Compat ---
+    ContractDef(
+        "ChatCompletionsResp", status=SchemaStatus.SKIPPED, reason="OpenAI Compat"
+    ),
+    ContractDef(
+        "GetCorpusByIdResponse", GetCorpusResponse
+    ),  # Alias to existing GetCorpusResponse
+    # Note: GetEndUserByIdResponse already mapped above
+    ContractDef(
+        "GetEndUserListResponse",
+        QueryEndUserResponse,
+    ),  # Alias to existing QueryEndUserResponse
+    ContractDef("KeyResponseSchema", status=SchemaStatus.SKIPPED, reason="Component"),
+    ContractDef("ModelsListResp", status=SchemaStatus.SKIPPED, reason="OpenAI Compat"),
 ]
 
 # =============================================================================
@@ -220,30 +257,37 @@ RESPONSES = [
 REQUESTS = [
     # --- TESTED ---
     # Chat
-    ContractDef("ChatReq", ChatSendRequest, factory=_chat_request_factory),
-    # Project
+    ContractDef("ChatRequest", ChatSendRequest, factory=_chat_request_factory),
     ContractDef(
-        "CreateProjectReq", CreateProjectRequest, factory=_create_project_factory
+        "CreateProjectRequest", CreateProjectRequest, factory=_create_project_factory
     ),
     ContractDef(
-        "UpdateProjectReq", UpdateProjectRequest, factory=_update_project_factory
+        "UpdateProjectRequest", UpdateProjectRequest, factory=_update_project_factory
     ),
     # Corpus
-    ContractDef("CreateCorpusReq", CreateCorpusRequest, factory=_create_corpus_factory),
-    ContractDef("UpdateCorpusReq", UpdateCorpusRequest, factory=_update_corpus_factory),
-    # End User
     ContractDef(
-        "CreateEndUserReq", CreateEndUserRequest, factory=_create_end_user_factory
+        "CreateCorpusRequest", CreateCorpusRequest, factory=_create_corpus_factory
     ),
     ContractDef(
-        "UpdateEndUserReq", UpdateEndUserRequest, factory=_update_end_user_factory
+        "UpdateCorpusRequest", UpdateCorpusRequest, factory=_update_corpus_factory
+    ),
+    # End User
+    ContractDef(
+        "CreateEndUserRequest", CreateEndUserRequest, factory=_create_end_user_factory
+    ),
+    ContractDef(
+        "UpdateEndUserRequest", UpdateEndUserRequest, factory=_update_end_user_factory
     ),
     # MindSpace
     ContractDef(
-        "CreateMindSpaceReq", CreateMindSpaceRequest, factory=_create_mindspace_factory
+        "CreateMindspaceRequest",
+        CreateMindSpaceRequest,
+        factory=_create_mindspace_factory,
     ),
     ContractDef(
-        "UpdateMindSpaceReq", UpdateMindSpaceRequest, factory=_update_mindspace_factory
+        "UpdateMindSpaceRequest",
+        UpdateMindSpaceRequest,
+        factory=_update_mindspace_factory,
     ),
     # API Keys
     ContractDef(
@@ -270,8 +314,8 @@ REQUESTS = [
         factory=_finalize_artifact_factory,
     ),
     # Auth
-    ContractDef("LoginReq", LoginRequest, factory=_login_request_factory),
-    ContractDef("RefreshReq", RefreshRequest, factory=_refresh_request_factory),
+    ContractDef("LoginRequest", LoginRequest, factory=_login_request_factory),
+    ContractDef("RefreshRequest", RefreshRequest, factory=_refresh_request_factory),
     # --- INTENTIONAL SKIPS ---
     # Internal/RPC
     ContractDef(
@@ -339,7 +383,7 @@ SHARED_MODELS = [
     ContractDef("ApiKeySchema", status=SchemaStatus.SKIPPED, reason="Component"),
     ContractDef("CorpusSchema", status=SchemaStatus.SKIPPED, reason="Component"),
     ContractDef("EndUserSchema", status=SchemaStatus.SKIPPED, reason="Component"),
-    ContractDef("MindSpaceSchema", status=SchemaStatus.SKIPPED, reason="Component"),
+    ContractDef("MindspaceSchema", status=SchemaStatus.SKIPPED, reason="Component"),
     ContractDef("Mindspace", status=SchemaStatus.SKIPPED, reason="Component"),
     ContractDef("PersonaSchema", status=SchemaStatus.SKIPPED, reason="Component"),
     ContractDef("ProjectSchema", status=SchemaStatus.SKIPPED, reason="Component"),
@@ -362,6 +406,12 @@ SHARED_MODELS = [
     ContractDef(
         "CentrifugoRpcResult", status=SchemaStatus.SKIPPED, reason="Internal RPC"
     ),
+    # Base/Token Schemas
+    ContractDef("BaseSchema", status=SchemaStatus.SKIPPED, reason="Component"),
+    ContractDef("ConfigSchema", status=SchemaStatus.SKIPPED, reason="Component"),
+    ContractDef("EndUser", status=SchemaStatus.SKIPPED, reason="Component"),
+    ContractDef("MindspaceType", status=SchemaStatus.SKIPPED, reason="Component"),
+    ContractDef("TokenSchema", status=SchemaStatus.SKIPPED, reason="Component"),
 ]
 
 
