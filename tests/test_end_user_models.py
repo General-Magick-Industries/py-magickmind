@@ -88,9 +88,12 @@ class TestCreateEndUserRequest:
         assert request.external_id is None
 
     def test_create_request_missing_required_fields(self):
-        """Test CreateEndUserRequest raises error for missing required fields."""
-        with pytest.raises(Exception):  # Pydantic ValidationError
-            CreateEndUserRequest(name="John")
+        """Test CreateEndUserRequest with relaxed optional fields."""
+        # With relaxed spec, only name is functionally required
+        request = CreateEndUserRequest(name="John")
+        assert request.name == "John"
+        assert request.tenant_id is None  # Now Optional
+        assert request.actor_id is None  # Now Optional
 
 
 class TestCreateEndUserResponse:

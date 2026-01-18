@@ -26,7 +26,7 @@ class TestMindSpace:
             project_id="proj-456",
             corpus_ids=["corp-1", "corp-2"],
             user_ids=["user-1", "user-2"],
-            type="group",
+            type="GROUP",
             created_by="user-1",
             updated_by="user-1",
             created_at="2025-12-16T09:00:00Z",
@@ -35,39 +35,39 @@ class TestMindSpace:
 
         assert mindspace.id == "mind-123"
         assert mindspace.name == "Engineering Team"
-        assert mindspace.type == "group"
+        assert mindspace.type == "GROUP"
         assert len(mindspace.corpus_ids) == 2
         assert len(mindspace.user_ids) == 2
 
     def test_mindspace_type_validation_accepts_private(self):
-        """Test MindSpace accepts 'private' type."""
+        """Test MindSpace accepts 'PRIVATE' type."""
         mindspace = MindSpace(
             id="mind-456",
             name="My Space",
             description="Private space",
             project_id="proj-123",
-            type="private",
+            type="PRIVATE",
             created_by="user-1",
             updated_by="user-1",
             created_at="2025-12-16T09:00:00Z",
             updated_at="2025-12-16T09:00:00Z",
         )
-        assert mindspace.type == "private"
+        assert mindspace.type == "PRIVATE"
 
     def test_mindspace_type_validation_accepts_group(self):
-        """Test MindSpace accepts 'group' type."""
+        """Test MindSpace accepts 'GROUP' type."""
         mindspace = MindSpace(
             id="mind-789",
             name="Team Space",
             description="Group space",
             project_id="proj-123",
-            type="group",
+            type="GROUP",
             created_by="user-1",
             updated_by="user-1",
             created_at="2025-12-16T09:00:00Z",
             updated_at="2025-12-16T09:00:00Z",
         )
-        assert mindspace.type == "group"
+        assert mindspace.type == "GROUP"
 
     def test_mindspace_type_validation_rejects_invalid(self):
         """Test MindSpace rejects invalid type values."""
@@ -87,16 +87,29 @@ class TestMindSpace:
         errors = exc_info.value.errors()
         assert any("type" in str(error["loc"]) for error in errors)
 
+    def test_mindspace_with_optional_fields_as_none(self):
+        """Test MindSpace with relaxed/optional fields."""
+        mindspace = MindSpace(
+            id="mind-123",
+            name="Minimal",
+            project_id="proj-123",
+            type="PRIVATE",
+        )
+        assert mindspace.description is None
+        assert mindspace.corpus_ids is None
+        assert mindspace.user_ids is None
+        assert mindspace.created_by is None
+
 
 class TestCreateMindSpaceRequest:
     """Tests for CreateMindSpaceRequest model."""
 
-    def test_valid_request_with_required_fields(self):
-        """Test CreateMindSpaceRequest validates with required fields only."""
-        request = CreateMindSpaceRequest(name="My Workspace", type="private")
+    def test_valid_request_with_name_and_type(self):
+        """Test CreateMindSpaceRequest validates with name and type."""
+        request = CreateMindSpaceRequest(name="My Workspace", type="PRIVATE")
 
         assert request.name == "My Workspace"
-        assert request.type == "private"
+        assert request.type == "PRIVATE"
         assert request.description is None
         assert request.project_id is None
         assert request.corpus_ids == []
@@ -106,7 +119,7 @@ class TestCreateMindSpaceRequest:
         """Test CreateMindSpaceRequest validates with all fields."""
         request = CreateMindSpaceRequest(
             name="Engineering Team",
-            type="group",
+            type="GROUP",
             description="Team collaboration space",
             project_id="proj-123",
             corpus_ids=["corp-1", "corp-2"],
@@ -114,31 +127,32 @@ class TestCreateMindSpaceRequest:
         )
 
         assert request.name == "Engineering Team"
-        assert request.type == "group"
+        assert request.type == "GROUP"
         assert request.description == "Team collaboration space"
         assert request.project_id == "proj-123"
         assert len(request.corpus_ids) == 2
         assert len(request.user_ids) == 3
 
-    def test_missing_required_fields_raises_validation_error(self):
-        """Test CreateMindSpaceRequest raises ValidationError when required fields missing."""
-        with pytest.raises(ValidationError) as exc_info:
-            CreateMindSpaceRequest()
-
-        errors = exc_info.value.errors()
-        error_fields = {error["loc"][0] for error in errors}
-        assert "name" in error_fields
-        assert "type" in error_fields
+    def test_request_with_relaxed_fields(self):
+        """Test CreateMindSpaceRequest allows optional name/type (relaxed for spec)."""
+        # Relaxed fields allow creation without name/type (spec-driven)
+        request = CreateMindSpaceRequest()
+        assert request.name is None
+        assert request.type is None
 
     def test_type_enum_validation(self):
         """Test type field validates enum values."""
-        # Valid: private
-        request1 = CreateMindSpaceRequest(name="Space 1", type="private")
-        assert request1.type == "private"
+        # Valid: PRIVATE
+        request1 = CreateMindSpaceRequest(name="Space 1", type="PRIVATE")
+        assert request1.type == "PRIVATE"
 
-        # Valid: group
-        request2 = CreateMindSpaceRequest(name="Space 2", type="group")
-        assert request2.type == "group"
+        # Valid: GROUP
+        request2 = CreateMindSpaceRequest(name="Space 2", type="GROUP")
+        assert request2.type == "GROUP"
+
+        # Invalid: lowercase (not matching spec)
+        with pytest.raises(ValidationError):
+            CreateMindSpaceRequest(name="Space 3", type="private")
 
         # Invalid: other value
         with pytest.raises(ValidationError):
@@ -146,7 +160,7 @@ class TestCreateMindSpaceRequest:
 
     def test_model_dump_excludes_none(self):
         """Test model_dump excludes None values when exclude_none=True."""
-        request = CreateMindSpaceRequest(name="Test", type="private")
+        request = CreateMindSpaceRequest(name="Test", type="PRIVATE")
 
         dumped = request.model_dump(exclude_none=True)
         assert "name" in dumped
@@ -170,7 +184,7 @@ class TestCreateMindSpaceResponse:
                 "project_id": "proj-456",
                 "corpus_ids": ["corp-1"],
                 "user_ids": ["user-1"],
-                "type": "private",
+                "type": "PRIVATE",
                 "created_by": "user-1",
                 "updated_by": "user-1",
                 "created_at": "2025-12-16T09:00:00Z",
@@ -184,7 +198,7 @@ class TestCreateMindSpaceResponse:
         assert response.message == "Mindspace created successfully"
         assert response.mindspace.id == "mind-123"
         assert response.mindspace.name == "My Workspace"
-        assert response.mindspace.type == "private"
+        assert response.mindspace.type == "PRIVATE"
 
 
 class TestGetMindSpaceResponse:
@@ -202,7 +216,7 @@ class TestGetMindSpaceResponse:
                 "project_id": "proj-123",
                 "corpus_ids": ["corp-1", "corp-2"],
                 "user_ids": ["user-1", "user-2"],
-                "type": "group",
+                "type": "GROUP",
                 "created_by": "user-1",
                 "updated_by": "user-2",
                 "created_at": "2025-12-16T08:00:00Z",
@@ -214,7 +228,7 @@ class TestGetMindSpaceResponse:
 
         assert response.success is True
         assert response.mindspace.id == "mind-789"
-        assert response.mindspace.type == "group"
+        assert response.mindspace.type == "GROUP"
         assert len(response.mindspace.corpus_ids) == 2
 
 
@@ -234,7 +248,7 @@ class TestGetMindSpaceListResponse:
                     "project_id": "proj-1",
                     "corpus_ids": [],
                     "user_ids": ["user-1"],
-                    "type": "private",
+                    "type": "PRIVATE",
                     "created_by": "user-1",
                     "updated_by": "user-1",
                     "created_at": "2025-12-16T09:00:00Z",
@@ -247,7 +261,7 @@ class TestGetMindSpaceListResponse:
                     "project_id": "proj-2",
                     "corpus_ids": ["corp-1"],
                     "user_ids": ["user-1", "user-2"],
-                    "type": "group",
+                    "type": "GROUP",
                     "created_by": "user-1",
                     "updated_by": "user-1",
                     "created_at": "2025-12-16T09:00:00Z",
@@ -260,8 +274,8 @@ class TestGetMindSpaceListResponse:
 
         assert response.success is True
         assert len(response.mindspaces) == 2
-        assert response.mindspaces[0].type == "private"
-        assert response.mindspaces[1].type == "group"
+        assert response.mindspaces[0].type == "PRIVATE"
+        assert response.mindspaces[1].type == "GROUP"
 
     def test_empty_list_response(self):
         """Test GetMindSpaceListResponse handles empty list."""
@@ -317,7 +331,7 @@ class TestUpdateMindSpaceResponse:
                 "project_id": "proj-456",
                 "corpus_ids": ["corp-1", "corp-2"],
                 "user_ids": ["user-1", "user-2"],
-                "type": "group",
+                "type": "GROUP",
                 "created_by": "user-1",
                 "updated_by": "user-2",
                 "created_at": "2025-12-16T08:00:00Z",
