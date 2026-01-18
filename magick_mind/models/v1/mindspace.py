@@ -42,38 +42,38 @@ class MindSpace(BaseModel):
 
     id: str = Field(..., description="Mindspace ID")
     name: str = Field(..., description="Mindspace name")
-    description: str = Field(..., description="Mindspace description")
+    description: Optional[str] = Field(None, description="Mindspace description")
     project_id: str = Field(..., description="Associated project ID")
-    corpus_ids: list[str] = Field(
-        default_factory=list,
+    corpus_ids: Optional[list[str]] = Field(
+        None,
         description="List of corpus IDs attached to this mindspace",
     )
-    user_ids: list[str] = Field(
-        default_factory=list,
+    user_ids: Optional[list[str]] = Field(
+        None,
         description="List of user IDs with access to this mindspace",
     )
     type: MindSpaceType = Field(..., description="Mindspace type: 'PRIVATE' or 'GROUP'")
-    created_by: str = Field(..., description="User ID who created the mindspace")
-    updated_by: str = Field(..., description="User ID who last updated the mindspace")
-    created_at: str = Field(..., description="Creation timestamp (RFC3339)")
-    updated_at: str = Field(..., description="Last update timestamp (RFC3339)")
+    created_by: Optional[str] = Field(
+        None, description="User ID who created the mindspace"
+    )
+    updated_by: Optional[str] = Field(
+        None, description="User ID who last updated the mindspace"
+    )
+    created_at: Optional[str] = Field(None, description="Creation timestamp (RFC3339)")
+    updated_at: Optional[str] = Field(
+        None, description="Last update timestamp (RFC3339)"
+    )
 
 
 class CreateMindSpaceRequest(BaseModel):
     """
     Request to create a new mindspace.
-
-    Example:
-        request = CreateMindSpaceRequest(
-            name="My Private Space",
-            type="PRIVATE",
-            description="Personal workspace",
-            corpus_ids=["corp-123"]
-        )
     """
 
-    name: str = Field(..., description="Mindspace name", max_length=100)
-    type: MindSpaceType = Field(..., description="Mindspace type: 'private' or 'group'")
+    name: Optional[str] = Field(
+        None, description="Mindspace name (Relaxed)", max_length=100
+    )
+    type: Optional[MindSpaceType] = Field(None, description="Mindspace type (Relaxed)")
     description: Optional[str] = Field(
         default=None, description="Mindspace description", max_length=256
     )
@@ -89,13 +89,6 @@ class CreateMindSpaceRequest(BaseModel):
 class CreateMindSpaceResponse(BaseResponse):
     """
     Response from creating a mindspace.
-
-    Example:
-        {
-            "success": true,
-            "message": "Mindspace created successfully",
-            "mindspace": { ... }
-        }
     """
 
     mindspace: MindSpace = Field(..., description="Created mindspace")
@@ -104,13 +97,6 @@ class CreateMindSpaceResponse(BaseResponse):
 class GetMindSpaceResponse(BaseResponse):
     """
     Response from getting a mindspace by ID.
-
-    Example:
-        {
-            "success": true,
-            "message": "Mindspace retrieved successfully",
-            "mindspace": { ... }
-        }
     """
 
     mindspace: MindSpace = Field(..., description="Retrieved mindspace")
@@ -119,13 +105,6 @@ class GetMindSpaceResponse(BaseResponse):
 class GetMindSpaceListResponse(BaseResponse):
     """
     Response from listing mindspaces.
-
-    Example:
-        {
-            "success": true,
-            "message": "Mindspaces retrieved successfully",
-            "mindspaces": [ ... ]
-        }
     """
 
     mindspaces: list[MindSpace] = Field(
@@ -136,16 +115,11 @@ class GetMindSpaceListResponse(BaseResponse):
 class UpdateMindSpaceRequest(BaseModel):
     """
     Request to update an existing mindspace.
-
-    Example:
-        request = UpdateMindSpaceRequest(
-            name="Updated Name",
-            description="Updated description",
-            corpus_ids=["corp-1", "corp-2"]
-        )
     """
 
-    name: str = Field(..., description="Mindspace name", max_length=100)
+    name: Optional[str] = Field(
+        None, description="Mindspace name (Relaxed)", max_length=100
+    )
     description: Optional[str] = Field(
         default=None, description="Mindspace description", max_length=256
     )

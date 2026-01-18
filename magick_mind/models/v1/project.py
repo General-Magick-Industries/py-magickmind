@@ -4,6 +4,8 @@ Project models for Magick Mind SDK v1 API.
 Mirrors Bifrost's /v1/projects endpoint request/response schemas.
 """
 
+from typing import Optional
+
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -18,9 +20,9 @@ class Project(BaseModel):
 
     id: str = Field(..., description="Project ID")
     name: str = Field(..., description="Project name")
-    description: str = Field(..., description="Project description")
-    corpus_ids: list[str] = Field(
-        default_factory=list,
+    description: Optional[str] = Field(None, description="Project description")
+    corpus_ids: Optional[list[str]] = Field(
+        None,
         description="List of corpus IDs associated with this project",
     )
     created_by: str = Field(..., description="User ID of creator")
@@ -47,7 +49,7 @@ class CreateProjectResponse(BaseModel):
     Response schema for project creation.
     """
 
-    project: Project = Field(..., description="Created project")
+    project: Optional[Project] = Field(None, description="Created project (Relaxed)")
 
 
 class GetProjectResponse(BaseModel):
@@ -55,7 +57,7 @@ class GetProjectResponse(BaseModel):
     Response schema for getting a single project.
     """
 
-    project: Project = Field(..., description="Retrieved project")
+    project: Optional[Project] = Field(None, description="Retrieved project (Relaxed)")
 
 
 class GetProjectListResponse(BaseModel):
@@ -87,4 +89,4 @@ class UpdateProjectResponse(BaseModel):
     Response schema for project update.
     """
 
-    project: Project = Field(..., description="Updated project")
+    project: Optional[Project] = Field(None, description="Updated project (Relaxed)")

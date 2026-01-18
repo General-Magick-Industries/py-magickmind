@@ -18,22 +18,26 @@ class ChatHistoryMessage(BaseModel):
 
     model_config = ConfigDict(populate_by_name=True)
 
-    id: str = Field(..., description="Message ID")
-    mindspace_id: str = Field(..., description="Mindspace this message belongs to")
-    sent_by_user_id: str = Field(..., description="User who sent the message")
-    content: str = Field(..., description="Message content/text")
+    id: Optional[str] = Field(None, description="Message ID")
+    mindspace_id: Optional[str] = Field(
+        None, description="Mindspace this message belongs to"
+    )
+    sent_by_user_id: Optional[str] = Field(
+        None, description="User who sent the message"
+    )
+    content: Optional[str] = Field(None, description="Message content/text")
     reply_to_message_id: Optional[str] = Field(
         default=None, description="ID of message being replied to"
     )
-    status: str = Field(..., description="Message status")
-    artifact_ids: list[str] = Field(
-        default_factory=list, description="Artifact IDs attached to this message"
+    status: Optional[str] = Field(None, description="Message status")
+    artifact_ids: Optional[list[str]] = Field(
+        None, description="Artifact IDs attached to this message"
     )
-    created_at: str = Field(
-        ..., alias="create_at", description="Creation timestamp (RFC3339)"
+    created_at: Optional[str] = Field(
+        None, alias="create_at", description="Creation timestamp (RFC3339)"
     )
-    updated_at: str = Field(
-        ..., alias="update_at", description="Update timestamp (RFC3339)"
+    updated_at: Optional[str] = Field(
+        None, alias="update_at", description="Update timestamp (RFC3339)"
     )
 
 

@@ -36,19 +36,25 @@ class KeyResponse(BaseModel):
 
     model_config = ConfigDict(extra="allow")
 
-    key: str = Field(..., description="The actual API key (only shown once)")
-    key_alias: str = Field(..., description="Key alias/name")
-    key_id: str = Field(..., description="Key identifier")
-    expires: str = Field(..., description="Expiration timestamp")
+    key: Optional[str] = Field(None, description="The actual API key (only shown once)")
+    key_alias: Optional[str] = Field(None, description="Key alias/name")
+    key_id: Optional[str] = Field(None, description="Key identifier")
+    expires: Optional[str] = Field(None, description="Expiration timestamp")
 
 
 class CreateApiKeyRequest(BaseModel):
     """Request for creating a new API key."""
 
-    user_id: str = Field(..., description="User ID that owns this key")
-    project_id: str = Field(..., description="Project ID to associate with")
-    models: list[str] = Field(..., description="List of allowed model names")
-    key_alias: str = Field(..., description="Human-readable key name")
+    user_id: Optional[str] = Field(
+        None, description="User ID that owns this key (Relaxed)"
+    )
+    project_id: Optional[str] = Field(
+        None, description="Project ID to associate with (Relaxed)"
+    )
+    models: Optional[list[str]] = Field(None, description="Allowed models (Relaxed)")
+    key_alias: Optional[str] = Field(
+        None, description="Human-readable key name (Relaxed)"
+    )
     duration: Optional[str] = Field(
         None, description="Key validity duration (e.g., '30d', '1y')"
     )
@@ -75,9 +81,13 @@ class ListApiKeysResponse(BaseModel):
 class UpdateApiKeyRequest(BaseModel):
     """Request for updating an existing API key."""
 
-    key: str = Field(..., description="The API key to update")
-    models: list[str] = Field(..., description="Updated list of allowed models")
-    key_alias: str = Field(..., description="Updated key alias/name")
+    key: Optional[str] = Field(None, description="The API key to update (Relaxed)")
+    models: Optional[list[str]] = Field(
+        None, description="Updated allowed models (Relaxed)"
+    )
+    key_alias: Optional[str] = Field(
+        None, description="Updated key alias/name (Relaxed)"
+    )
     duration: Optional[str] = Field(None, description="Updated validity duration")
     max_budget: Optional[float] = Field(None, description="Updated spending limit")
 
@@ -85,9 +95,11 @@ class UpdateApiKeyRequest(BaseModel):
 class UpdateApiKeyResponse(BaseModel):
     """Response for API key update."""
 
-    success: bool = Field(..., description="Request success status")
-    message: str = Field(..., description="Response message")
-    key: KeyResponse = Field(..., description="The updated API key details")
+    success: Optional[bool] = Field(None, description="Request success status")
+    message: Optional[str] = Field(None, description="Response message")
+    key: Optional[KeyResponse] = Field(
+        None, description="The updated API key details (Optional in Apidog)"
+    )
 
 
 class DeleteApiKeyRequest(BaseModel):

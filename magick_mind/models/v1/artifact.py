@@ -70,21 +70,18 @@ class PresignArtifactRequest(BaseModel):
 class PresignArtifactResponse(BaseModel):
     """
     Response containing presigned upload URL and metadata.
-
-    The client must use the upload_url to PUT the file data to S3,
-    including all headers specified in required_headers.
     """
 
-    success: bool = Field(..., description="Request success status")
-    message: str = Field(..., description="Response message")
-    id: str = Field(..., description="Artifact ID")
-    bucket: str = Field(..., description="S3 bucket")
-    key: str = Field(..., description="S3 object key")
-    s3_url: str = Field(..., description="S3 URL (s3://bucket/key)")
-    upload_url: str = Field(..., description="Presigned PUT URL (use this to upload)")
-    expires_at: int = Field(..., description="URL expiration time (unix seconds)")
-    required_headers: dict[str, str] = Field(
-        ..., description="HTTP headers that MUST be included in the PUT request"
+    success: Optional[bool] = Field(None, description="Request success status")
+    message: Optional[str] = Field(None, description="Response message")
+    id: Optional[str] = Field(None, description="Artifact ID (Relaxed)")
+    bucket: Optional[str] = Field(None, description="S3 bucket (Relaxed)")
+    key: Optional[str] = Field(None, description="S3 object key (Relaxed)")
+    s3_url: Optional[str] = Field(None, description="S3 URL (Relaxed)")
+    upload_url: Optional[str] = Field(None, description="Presigned PUT URL (Relaxed)")
+    expires_at: Optional[int] = Field(None, description="URL expiration time (Relaxed)")
+    required_headers: Optional[dict[str, str]] = Field(
+        None, description="HTTP headers (Relaxed)"
     )
 
 
@@ -114,11 +111,9 @@ class DeleteArtifactResponse(BaseModel):
 class FinalizeArtifactRequest(BaseModel):
     """
     Client-driven finalize request (fallback when webhook is unavailable).
-
-    Used in local development or when S3 Lambda webhook path is not available.
     """
 
-    artifact_id: str = Field(..., description="Artifact ID from presign response")
+    artifact_id: str = Field(..., description="Artifact ID")
     bucket: str = Field(..., description="S3 bucket")
     key: str = Field(..., description="S3 object key")
     version_id: Optional[str] = Field(None, description="S3 version ID")
@@ -131,8 +126,8 @@ class FinalizeArtifactRequest(BaseModel):
 class FinalizeArtifactResponse(BaseModel):
     """Response for finalize operation."""
 
-    success: bool = Field(..., description="Request success status")
-    message: str = Field(..., description="Response message")
+    success: Optional[bool] = Field(None, description="Request success status")
+    message: Optional[str] = Field(None, description="Response message")
 
 
 class ArtifactWebhookPayload(BaseModel):
