@@ -19,6 +19,7 @@ from magick_mind.models.v1.project import (
     UpdateProjectResponse,
 )
 from magick_mind.resources.base import BaseResource
+from magick_mind.routes import Routes
 
 
 class ProjectResourceV1(BaseResource):
@@ -59,7 +60,7 @@ class ProjectResourceV1(BaseResource):
             corpus_ids=corpus_ids or [],
         )
 
-        response = self._http.post("/v1/projects", json=request.model_dump())
+        response = self._http.post(Routes.PROJECTS, json=request.model_dump())
         create_response = CreateProjectResponse(**response.json())
         return create_response.project
 
@@ -77,7 +78,7 @@ class ProjectResourceV1(BaseResource):
             project = client.v1.project.get(project_id="proj-123")
             print(f"Project name: {project.name}")
         """
-        response = self._http.get(f"/v1/projects/{project_id}")
+        response = self._http.get(Routes.project(project_id))
         get_response = GetProjectResponse(**response.json())
         return get_response.project
 
@@ -104,7 +105,7 @@ class ProjectResourceV1(BaseResource):
         if created_by_user_id:
             params["user_id"] = created_by_user_id
 
-        response = self._http.get("/v1/projects", params=params)
+        response = self._http.get(Routes.PROJECTS, params=params)
         list_response = GetProjectListResponse(**response.json())
         return list_response.projects
 
@@ -142,9 +143,7 @@ class ProjectResourceV1(BaseResource):
             corpus_ids=corpus_ids or [],
         )
 
-        response = self._http.put(
-            f"/v1/projects/{project_id}", json=request.model_dump()
-        )
+        response = self._http.put(Routes.project(project_id), json=request.model_dump())
         update_response = UpdateProjectResponse(**response.json())
         return update_response.project
 
@@ -159,4 +158,4 @@ class ProjectResourceV1(BaseResource):
             client.v1.project.delete(project_id="proj-123")
             print("Project deleted successfully")
         """
-        self._http.delete(f"/v1/projects/{project_id}")
+        self._http.delete(Routes.project(project_id))

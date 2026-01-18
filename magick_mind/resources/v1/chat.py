@@ -8,6 +8,7 @@ from magick_mind.models.v1.chat import (
     ConfigSchema,
 )
 from magick_mind.resources.base import BaseResource
+from magick_mind.routes import Routes
 
 if TYPE_CHECKING:
     from magick_mind.http import HTTPClient
@@ -109,7 +110,7 @@ class ChatResourceV1(BaseResource):
 
         # Make API call
         response = self._http.post(
-            "/v1/magickmind/chat", json=request.model_dump(exclude_none=True)
+            Routes.CHAT, json=request.model_dump(exclude_none=True)
         )
 
         # Parse and validate response
