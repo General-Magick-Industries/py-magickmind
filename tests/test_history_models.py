@@ -73,12 +73,12 @@ class TestChatHistoryMessage:
         assert message1.updated_at == message2.updated_at
 
     def test_missing_required_fields(self):
-        """Test that missing required fields raise validation error."""
-        with pytest.raises(ValidationError):
-            ChatHistoryMessage(
-                id="msg-123",
-                # Missing mindspace_id, sent_by_user_id, content, status, timestamps
-            )
+        """Test that ChatHistoryMessage accepts relaxed optional fields."""
+        # With relaxed spec, all fields are Optional
+        message = ChatHistoryMessage(id="msg-123")
+        assert message.id == "msg-123"
+        assert message.mindspace_id is None
+        assert message.content is None
 
 
 class TestHistoryResponse:
