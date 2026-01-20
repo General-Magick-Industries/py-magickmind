@@ -1,8 +1,5 @@
 """Tests for history models."""
 
-import pytest
-from pydantic import ValidationError
-
 from magick_mind.models.v1.history import ChatHistoryMessage, HistoryResponse
 
 

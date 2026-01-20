@@ -26,6 +26,7 @@ class V1Resources:
         from magick_mind.resources.v1.history import HistoryResourceV1
         from magick_mind.resources.v1.mindspace import MindspaceResourceV1
         from magick_mind.resources.v1.project import ProjectResourceV1
+        from magick_mind.resources.v1.model import ModelsResourceV1
 
         self.artifact = ArtifactResourceV1(http_client)
         self.api_keys = ApiKeysResourceV1(http_client)
@@ -35,6 +36,7 @@ class V1Resources:
         self.history = HistoryResourceV1(http_client)
         self.mindspace = MindspaceResourceV1(http_client)
         self.project = ProjectResourceV1(http_client)
+        self.models = ModelsResourceV1(http_client)
 
 
 __all__ = ["BaseResource", "V1Resources"]

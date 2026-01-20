@@ -37,8 +37,7 @@ class TestChatResourceV1:
     ):
         """Test send() makes correct POST request to chat endpoint."""
         # Mock successful response
-        mock_response = Mock()
-        mock_response.json.return_value = {
+        mock_http_client.post.return_value = {
             "success": True,
             "message": "Chat request processed successfully",
             "content": {
@@ -48,7 +47,6 @@ class TestChatResourceV1:
                 "reply_to": None,
             },
         }
-        mock_http_client.post.return_value = mock_response
 
         # Make request
         response = chat_resource.send(
@@ -62,7 +60,7 @@ class TestChatResourceV1:
         # Verify HTTP call
         mock_http_client.post.assert_called_once()
         call_args = mock_http_client.post.call_args
-        assert call_args[0][0] == "/v1/magickmind/chat"
+        assert call_args[0][0] == "/v1/chat/magickmind"
 
         # Verify request body
         request_body = call_args[1]["json"]
@@ -83,8 +81,7 @@ class TestChatResourceV1:
         self, chat_resource, mock_http_client, valid_config
     ):
         """Test send() includes optional parameters in request."""
-        mock_response = Mock()
-        mock_response.json.return_value = {
+        mock_http_client.post.return_value = {
             "success": True,
             "message": "Chat request processed successfully",
             "content": {
@@ -94,7 +91,6 @@ class TestChatResourceV1:
                 "reply_to": "msg-789",
             },
         }
-        mock_http_client.post.return_value = mock_response
 
         response = chat_resource.send(
             api_key="sk-test",
@@ -120,8 +116,7 @@ class TestChatResourceV1:
         self, chat_resource, mock_http_client, valid_config
     ):
         """Test send() excludes None values from request body."""
-        mock_response = Mock()
-        mock_response.json.return_value = {
+        mock_http_client.post.return_value = {
             "success": True,
             "message": "Chat request processed successfully",
             "content": {
@@ -131,7 +126,6 @@ class TestChatResourceV1:
                 "reply_to": None,
             },
         }
-        mock_http_client.post.return_value = mock_response
 
         chat_resource.send(
             api_key="sk-test",
@@ -186,8 +180,7 @@ class TestChatResourceIntegration:
         mock_login.return_value = None
 
         # Mock chat response
-        mock_response = Mock()
-        mock_response.json.return_value = {
+        mock_post.return_value = {
             "success": True,
             "message": "Chat request processed successfully",
             "content": {
@@ -197,7 +190,6 @@ class TestChatResourceIntegration:
                 "reply_to": None,
             },
         }
-        mock_post.return_value = mock_response
 
         # Create client
         client = MagickMind(

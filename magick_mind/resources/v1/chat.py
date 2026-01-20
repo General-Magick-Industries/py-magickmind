@@ -114,4 +114,4 @@ class ChatResourceV1(BaseResource):
         )
 
         # Parse and validate response
-        return ChatSendResponse.model_validate(response.json())
+        return ChatSendResponse.model_validate(response)
