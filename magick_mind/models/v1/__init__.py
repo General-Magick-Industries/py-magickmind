@@ -51,6 +51,7 @@ from magick_mind.models.v1.project import (
     UpdateProjectRequest,
     UpdateProjectResponse,
 )
+from magick_mind.models.v1.model import Model, ModelsListResponse
 
 
 __all__ = [
@@ -98,4 +99,6 @@ __all__ = [
     "UpdateApiKeyRequest",
     "UpdateApiKeyResponse",
     "DeleteApiKeyResponse",
+    "Model",
+    "ModelsListResponse",
 ]

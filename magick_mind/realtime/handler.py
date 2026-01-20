@@ -6,7 +6,14 @@ Abstracts away Centrifugo channel parsing details.
 import logging
 from typing import Any, Optional
 
-from centrifuge import ClientEventHandler, ServerPublicationContext, ConnectedContext
+from centrifuge import (
+    ClientEventHandler,
+    ServerPublicationContext,
+    ServerSubscribedContext,
+    ServerSubscribingContext,
+    ServerUnsubscribedContext,
+    ConnectedContext,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +29,18 @@ class RealtimeEventHandler(ClientEventHandler):
     async def on_connected(self, ctx: ConnectedContext) -> None:
         """Called when connected to the Realtime Gateway."""
         logger.info(f"✅ Connected to Realtime Gateway (Client ID: {ctx.client})")
+
+    async def on_subscribed(self, ctx: ServerSubscribedContext) -> None:
+        """Called when server-side subscription is established."""
+        logger.info(f"✅ Server-side subscribed to channel: {ctx.channel}")
+
+    async def on_subscribing(self, ctx: ServerSubscribingContext) -> None:
+        """Called when server-side subscription is in progress."""
+        logger.debug(f"Subscribing to server-side channel: {ctx.channel}")
+
+    async def on_unsubscribed(self, ctx: ServerUnsubscribedContext) -> None:
+        """Called when unsubscribed from server-side subscription."""
+        logger.info(f"Unsubscribed from server-side channel: {ctx.channel}")
 
     async def on_message(self, user_id: str, payload: Any) -> None:
         """
@@ -44,8 +63,12 @@ class RealtimeEventHandler(ClientEventHandler):
         """
         Internal handler. Parses channel context and dispatches to on_message.
         """
+        logger.info(f"📨 Publication received on channel: {ctx.channel}")
+
         channel = self._extract_channel(ctx)
         data = self._extract_data(ctx)
+
+        logger.debug(f"Channel: {channel}, Data: {data}")
 
         user_id = self._extract_user_id(channel)
 

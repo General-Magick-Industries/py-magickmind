@@ -66,7 +66,7 @@ class EndUserResourceV1(BaseResource):
         )
 
         response = self._http.post(Routes.END_USERS, json=request.model_dump())
-        create_response = CreateEndUserResponse(**response.json())
+        create_response = CreateEndUserResponse(**response)
         return create_response.end_user
 
     def get(self, end_user_id: str) -> EndUser:
@@ -84,7 +84,7 @@ class EndUserResourceV1(BaseResource):
             print(f"End user name: {end_user.name}")
         """
         response = self._http.get(Routes.end_user(end_user_id))
-        get_response = GetEndUserResponse(**response.json())
+        get_response = GetEndUserResponse(**response)
         return get_response.end_user
 
     def query(
@@ -129,7 +129,7 @@ class EndUserResourceV1(BaseResource):
             params["actor_id"] = actor_id
 
         response = self._http.get(Routes.END_USERS, params=params)
-        query_response = QueryEndUserResponse(**response.json())
+        query_response = QueryEndUserResponse(**response)
         return query_response.end_users
 
     def update(
@@ -170,7 +170,7 @@ class EndUserResourceV1(BaseResource):
         response = self._http.put(
             Routes.end_user(end_user_id), json=request.model_dump(exclude_none=True)
         )
-        update_response = UpdateEndUserResponse(**response.json())
+        update_response = UpdateEndUserResponse(**response)
         return update_response.end_user
 
     def delete(self, end_user_id: str) -> None:

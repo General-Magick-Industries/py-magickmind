@@ -13,7 +13,8 @@ class Routes:
     AUTH_REFRESH = "/v1/auth/refresh"
 
     # Chat endpoints
-    CHAT = "/v1/magickmind/chat"
+    CHAT = "/v1/chat/magickmind"
+    MODELS = "/v1/models"
 
     # Mindspace endpoints
     MINDSPACES = "/v1/mindspaces"

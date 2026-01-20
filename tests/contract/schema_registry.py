@@ -51,6 +51,7 @@ from magick_mind.models.v1.mindspace import (
     CreateMindSpaceRequest,
     UpdateMindSpaceRequest,
 )
+from magick_mind.models.v1.model import ModelsListResponse, Model
 from magick_mind.models.v1.history import HistoryResponse
 from magick_mind.models.auth import TokenResponse, LoginRequest, RefreshRequest
 
@@ -248,7 +249,7 @@ RESPONSES = [
         QueryEndUserResponse,
     ),  # Alias to existing QueryEndUserResponse
     ContractDef("KeyResponseSchema", status=SchemaStatus.SKIPPED, reason="Component"),
-    ContractDef("ModelsListResp", status=SchemaStatus.SKIPPED, reason="OpenAI Compat"),
+    ContractDef("ModelsListResp", ModelsListResponse, status=SchemaStatus.TESTED),
 ]
 
 # =============================================================================
@@ -398,7 +399,7 @@ SHARED_MODELS = [
     ContractDef(
         "Message", status=SchemaStatus.SKIPPED, reason="OpenAI Compat Component"
     ),
-    ContractDef("Model", status=SchemaStatus.SKIPPED, reason="OpenAI Compat Component"),
+    ContractDef("Model", Model, status=SchemaStatus.TESTED),
     # Internal RPC
     ContractDef(
         "CentrifugoRpcError", status=SchemaStatus.SKIPPED, reason="Internal RPC"
