@@ -101,7 +101,7 @@ class MindspaceResourceV1(BaseResource):
         )
 
         # Parse and validate response
-        return CreateMindSpaceResponse.model_validate(response.json())
+        return CreateMindSpaceResponse.model_validate(response)
 
     def get(self, mindspace_id: str) -> GetMindSpaceResponse:
         """
@@ -123,7 +123,7 @@ class MindspaceResourceV1(BaseResource):
             print(f"Corpus: {response.mindspace.corpus_ids}")
         """
         response = self._http.get(Routes.mindspace(mindspace_id))
-        return GetMindSpaceResponse.model_validate(response.json())
+        return GetMindSpaceResponse.model_validate(response)
 
     def list(self, user_id: Optional[str] = None) -> GetMindSpaceListResponse:
         """
@@ -149,7 +149,7 @@ class MindspaceResourceV1(BaseResource):
             params["user_id"] = user_id
 
         response = self._http.get(Routes.MINDSPACES, params=params)
-        return GetMindSpaceListResponse.model_validate(response.json())
+        return GetMindSpaceListResponse.model_validate(response)
 
     def update(
         self,
@@ -203,7 +203,7 @@ class MindspaceResourceV1(BaseResource):
         )
 
         # Parse and validate response
-        return UpdateMindSpaceResponse.model_validate(response.json())
+        return UpdateMindSpaceResponse.model_validate(response)
 
     def delete(self, mindspace_id: str) -> None:
         """
@@ -292,4 +292,4 @@ class MindspaceResourceV1(BaseResource):
         response = self._http.get(Routes.MINDSPACE_MESSAGES, params=params)
 
         # Parse and return
-        return MindspaceMessagesResponse(**response.json())
+        return MindspaceMessagesResponse(**response)

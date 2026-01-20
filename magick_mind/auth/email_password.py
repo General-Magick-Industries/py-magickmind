@@ -10,6 +10,11 @@ from magick_mind.models.auth import LoginRequest, RefreshRequest, TokenResponse
 from magick_mind.routes import Routes
 
 
+import logging
+
+logger = logging.getLogger(__name__)
+
+
 class EmailPasswordAuth(AuthProvider):
     """
     Email/password authentication using bifrost's /v1/auth/login endpoint.
@@ -129,6 +134,7 @@ class EmailPasswordAuth(AuthProvider):
                     )
 
                 self._store_tokens(data)
+
         except httpx.HTTPStatusError as e:
             if e.response.status_code == 401:
                 raise AuthenticationError("Invalid email or password", status_code=401)
@@ -187,11 +193,93 @@ class EmailPasswordAuth(AuthProvider):
         refresh_expires_in = token_data.refresh_expires_in - 10
         self._refresh_expires_at = current_time + max(refresh_expires_in, 0)
 
+    async def get_token_async(self) -> str:
+        """Get raw access token asynchronously, refreshing if needed."""
+        await self.refresh_if_needed_async()
+        if not self._access_token:
+            raise AuthenticationError(
+                "Not authenticated. Failed to obtain access token."
+            )
+        return self._access_token
+
+    async def refresh_if_needed_async(self) -> None:
+        """Async version of refresh_if_needed."""
+        current_time = time.time()
+
+        if not self._access_token:
+            await self._login_async()
+            return
+
+        if current_time < self._token_expires_at:
+            return
+
+        if self._refresh_token and current_time < self._refresh_expires_at:
+            try:
+                await self._refresh_async()
+                return
+            except Exception:
+                pass
+
+        await self._login_async()
+
+    async def _login_async(self) -> None:
+        """Async login."""
+        login_url = f"{self.base_url}{Routes.AUTH_LOGIN}"
+        payload = LoginRequest(email=self.email, password=self.password)
+
+        try:
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                response = await client.post(login_url, json=payload.model_dump())
+                response.raise_for_status()
+
+                data = TokenResponse(**response.json())
+                if not data.success:
+                    raise AuthenticationError(
+                        data.message or "Login failed", status_code=response.status_code
+                    )
+
+                self._store_tokens(data)
+                # logger.info(f"debug_auth: Async login successful for {self.email}")
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 401:
+                raise AuthenticationError("Invalid email or password", status_code=401)
+            raise AuthenticationError(
+                f"Login failed: {str(e)}", status_code=e.response.status_code
+            )
+        except httpx.RequestError as e:
+            raise AuthenticationError(f"Network error during login: {str(e)}")
+
+    async def _refresh_async(self) -> None:
+        """Async refresh."""
+        refresh_url = f"{self.base_url}{Routes.AUTH_REFRESH}"
+        if not self._refresh_token:
+            raise TokenExpiredError("No refresh token available")
+
+        try:
+            refresh_req = RefreshRequest(refresh_token=self._refresh_token)
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                response = await client.post(refresh_url, json=refresh_req.model_dump())
+                response.raise_for_status()
+
+                data = TokenResponse(**response.json())
+                if not data.success:
+                    raise TokenExpiredError(data.message or "Token refresh failed")
+
+                self._store_tokens(data)
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 401:
+                raise TokenExpiredError("Refresh token expired or invalid")
+            raise AuthenticationError(
+                f"Token refresh failed: {str(e)}", status_code=e.response.status_code
+            )
+        except httpx.RequestError as e:
+            raise AuthenticationError(f"Network error during token refresh: {str(e)}")
+
     async def get_headers_async(self) -> Dict[str, str]:
         """
-        Async version of get_headers for async applications.
-
-        Note: Currently calls synchronous version. Can be enhanced
-        with async httpx client if needed.
+        Async version of get_headers.
         """
-        return self.get_headers()
+        await self.refresh_if_needed_async()
+        if not self._access_token:
+            raise AuthenticationError("Not authenticated.")
+        return {"Authorization": f"Bearer {self._access_token}"}
