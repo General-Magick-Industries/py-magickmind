@@ -1,15 +1,27 @@
 # Magick Mind SDK
 
-Python SDK for the Bifrost Magick Mind AI platform. Simple, powerful authentication and API interaction.
+Python SDK for seamless integration with the Magick Mind platform (Bifrost). This SDK provides type-safe, validated access to Bifrost's chat, mindspace, and realtime features.
 
-## Who Is This SDK For?
+> [!IMPORTANT]
+> **Backend-Only SDK**  
+> This SDK is designed for **server-side applications only** and requires service-level authentication. It cannot be used directly by end users in browsers or mobile apps.
+> 
+> **Architecture:** End Users → Your Backend (+ SDK) → Bifrost  
+> See [Backend Architecture Guide](docs/architecture/backend_architecture.md) for details.
 
-**Primary use case: Backend Services** - Most users integrate this SDK into their backend services (FastAPI, Django, Flask) to connect their applications to Bifrost.
+## Features
 
-**Also works great for:**
+- 🔐 **Authentication**: Secure login with email/password
+- 💬 **Chat**: Type-safe chat resource with Pydantic validation
+- 🧠 **Mindspaces**: Manage AI reasoning contexts and conversations  
+- 📡 **Realtime**: WebSocket client for live AI responses with deduplication
+- 🔑 **Typed Resources**: Mindspaces, Projects, Corpus, API Keys, Artifacts, End Users, History
+- ✅ **Validation**: Automatic request/response validation with Pydantic
+- 🎯 **Developer Experience**: Clean, intuitive API design
 - Desktop applications (PyQt, Tkinter, wxPython)
 - CLI tools and automation scripts
 - Server-side scripts
+- **Robotics/IoT (Self-Service)**: Single device authenticates and subscribes to its own channel
 
 **For web/mobile frontends:** If you're building browser-based apps or native mobile apps, you would need JavaScript, Swift, or Kotlin SDKs (not yet available). This Python SDK is for your backend.
 
@@ -17,6 +29,13 @@ Python SDK for the Bifrost Magick Mind AI platform. Simple, powerful authenticat
 ```
 [Your Frontend/App] ←→ [Your Backend + This SDK] ←→ [Bifrost SaaS]
 ```
+
+**Robotics/IoT (Self-Service):**
+```
+[Robot/Device with SDK] ←→ [Bifrost SaaS]
+```
+In this pattern, the device authenticates as itself and subscribes to its own channel. See [Event-Driven Patterns](docs/architecture/event_driven_patterns.md#self-service-pattern-roboticsiot) for details.
+
 
 ## Installation
 
@@ -236,18 +255,62 @@ Learn about:
 
 ## Realtime WebSocket Client
 
-For realtime updates via WebSocket:
+The SDK provides a powerful realtime client for receiving live updates via WebSocket. This is essential for building reactive applications that need instant notifications.
 
-📖 **[Realtime Guide](docs/realtime_guide.md)**
+### Quick Example
 
 ```python
-# Async realtime client
-await client.realtime.connect()
-await client.realtime.subscribe(
-    target_user_id="user-123",
-    on_publication=handle_event
-)
+import asyncio
+from magick_mind import MagickMind
+from magick_mind.realtime.handler import RealtimeEventHandler
+
+class MyHandler(RealtimeEventHandler):
+    async def on_message(self, user_id: str, payload):
+        # Automatically receives parsed messages
+        print(f"Update for {user_id}: {payload}")
+
+async def main():
+    client = MagickMind(
+        email="user@example.com",
+        password="password", 
+        base_url="https://bifrost.example.com",
+        ws_endpoint="wss://bifrost.example.com/connection/websocket"
+    )
+    
+    # Connect with handler
+    await client.realtime.connect(events=MyHandler())
+    
+    # Subscribe to users (creates per-user channels)
+    await client.realtime.subscribe_many(["user-1", "user-2", "user-3"])
+    
+    # Keep listening...
+    await asyncio.sleep(60)
+
+asyncio.run(main())
 ```
+
+### Key Features
+
+- **Per-User Subscriptions** - Each user gets their own secure channel
+- **Bulk Operations** - `subscribe_many()` for handling 100s of users efficiently  
+- **Auto-Reconnect** - Centrifugo handles connection recovery automatically
+- **Type-Safe Handlers** - `RealtimeEventHandler` provides clean callback interface
+
+### Architecture: Per-User Pattern
+
+When building relay services or multi-user applications, the SDK uses a **per-user subscription model**:
+
+- **500 users = 500 subscriptions** (not 1 room channel)
+- Each user has an isolated subscription
+- Ensures privacy, security, and efficient server-side filtering
+- Single WebSocket connection multiplexes all subscriptions
+
+**Why 500 subscriptions is correct:**
+- 🔒 Security: Users can't see each other's data
+- 📊 Efficiency: Server only sends relevant messages
+- 📈 Scalable: Centrifugo handles millions of channels
+
+📖 **[Complete Realtime Guide](docs/realtime_guide.md)** - Covers subscription patterns, bulk operations, error handling, and relay service architecture.
 
 ## Extending the SDK
 
