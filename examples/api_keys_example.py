@@ -87,8 +87,8 @@ team_key_resp = client.v1.api_keys.create(
 team_key = team_key_resp.key.key
 team_key_id = team_key_resp.key.key_id
 print(f"Team key created: {team_key_id}")
-print(f"  For team: team-eng-001")
-print(f"  Budget: $500 (shared across team)")
+print("  For team: team-eng-001")
+print("  Budget: $500 (shared across team)")
 print()
 
 # 6. Delete the API keys

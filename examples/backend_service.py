@@ -19,12 +19,26 @@ from datetime import datetime
 from typing import Optional, Set
 
 from magick_mind import MagickMind, ChatPayload
+from magick_mind.realtime.handler import RealtimeEventHandler
 
 # Configure logging
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
+
+
+class ServiceEventHandler(RealtimeEventHandler):
+    """Bridge between SDK events and Backend Service logic."""
+
+    def __init__(self, service):
+        self.service = service
+
+    async def on_message(self, user_id: str, payload: dict):
+        # We construct a channel name for logging context if needed,
+        # but on_message gives us the parsed user_id and payload directly.
+        channel = f"personal:{user_id}"
+        await self.service.handle_realtime_event(channel, payload)
 
 
 class ChatBackendService:
@@ -228,15 +242,14 @@ class ChatBackendService:
         logger.info("Step 1: Syncing initial history...")
         await self.sync_history(mindspace_id=mindspace_id)
 
-        # 2. Connect to realtime WebSocket
+        # 2. Connect to realtime WebSocket with Handler
         logger.info("Step 2: Connecting to realtime...")
-        await self.client.realtime.connect()
+        handler = ServiceEventHandler(self)
+        await self.client.realtime.connect(events=handler)
 
         # 3. Subscribe to chat events
         logger.info("Step 3: Subscribing to events...")
-        await self.client.realtime.subscribe(
-            target_user_id=user_id, on_publication=self.handle_realtime_event
-        )
+        await self.client.realtime.subscribe(target_user_id=user_id)
 
         # 4. Start periodic sync in background
         logger.info("Step 4: Starting periodic sync...")

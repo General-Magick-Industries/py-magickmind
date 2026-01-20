@@ -6,41 +6,44 @@ with type safety and Pydantic validation.
 """
 
 import os
+from dotenv import load_dotenv
+
 from magick_mind import MagickMind
+from magick_mind.models.v1.chat import ConfigSchema
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Initialize client with credentials
 client = MagickMind(
-    base_url=os.getenv("BIFROST_URL", "https://bifrost.example.com"),
-    email=os.getenv("USER_EMAIL", "user@example.com"),
-    password=os.getenv("USER_PASSWORD", "password"),
+    base_url=os.getenv("BIFROST_BASE_URL", "https://dev-bifrost.magickmind.ai"),
+    email=os.getenv("BIFROST_EMAIL"),
+    password=os.getenv("BIFROST_PASSWORD"),
+)
+
+print("✅ Client initialized and authenticated")
+
+# Create config for chat (new OpenAPI 3.1 structure)
+config = ConfigSchema(
+    fast_model_id="openrouter/meta-llama/llama-3.1-8b-instruct:free",
+    smart_model_ids=["openrouter/meta-llama/llama-3.1-8b-instruct:free"],
+    compute_power=50,
 )
 
 # Send a chat message using typed resource
-# IDE will provide autocomplete for all parameters
 response = client.v1.chat.send(
-    api_key="sk-your-api-key",
-    mindspace_id="mind-123",
+    api_key=os.getenv("OPENROUTER_API_KEY"),
+    mindspace_id=os.getenv("MINDSPACE_ID", "mind-test-123"),
     message="Hello! Can you help me understand quantum computing?",
-    sender_id="user-456",
-    fast_brain_model_id="openrouter/meta-llama/llama-4-maverick",
+    enduser_id=os.getenv("USER_ID", "user-test-456"),
+    config=config,
 )
 
-# Access response with type safety - IDE knows the structure
+# Access response with type safety
 if response.success:
-    print("✓ Chat sent successfully")
+    print("✅ Chat sent successfully")
     print(f"Message ID: {response.content.message_id}")
     print(f"Task ID: {response.content.task_id}")
-    print(f"\nAI Response:\n{response.content.content}")
+    print(f"\n📝 AI Response:\n{response.content.content}")
 else:
-    print(f"✗ Failed: {response.message}")
-
-# Send a follow-up message (reply)
-follow_up = client.chat.send(  # Using convenience alias
-    api_key="sk-your-api-key",
-    mindspace_id="mind-123",
-    message="Can you explain that in simpler terms?",
-    sender_id="user-456",
-    reply_to_message_id=response.content.message_id,  # Reference previous message
-)
-
-print(f"\n✓ Follow-up sent: {follow_up.content.content[:100]}...")
+    print(f"❌ Failed: {response.message}")
