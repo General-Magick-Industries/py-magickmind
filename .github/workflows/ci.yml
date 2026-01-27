@@ -1,0 +1,87 @@
+name: AGD Magick Mind CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    name: Format and/or Lint with Ruff and Push Changes
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          # 'ref:' determines which branch, tag, or commit the action checks out.
+          # For pull request events, 'github.head_ref' contains the source branch of the PR.
+          # For push events, 'github.head_ref' is empty, so we fall back to 'github.ref',
+          # which contains the full ref (e.g., "refs/heads/main").
+          ref: ${{ github.head_ref || github.ref }}
+
+      - name: Install and Format with Ruff
+        uses: astral-sh/ruff-action@v3
+        with:
+          args: "format"
+          # args: "check --fix"
+      # - run: ruff format
+      - name: Check for modified files
+        id: git_status
+        run: echo "modified=$(if git diff-index --quiet HEAD --; then echo "false"; else echo "true"; fi)" >> $GITHUB_OUTPUT
+        # run: |
+        #   if  git diff-index --quiet HEAD; then
+        #     echo "::set-output name=modified::true"
+        #   else
+        #     echo "::set-output name=modified::false"
+        #   fi
+      # - name: Debug set-output state
+      #   run: |
+      #     echo steps.git_status.outputs.modified
+      #     echo steps.git_status.outputs.modified == 'true'
+      # - name: Ensure branch is checked out
+      #   run: |
+      #     # Determine branch name based on event type
+      #     if [ -n "${GITHUB_HEAD_REF}" ]; then
+      #       # Pull Request event: use head ref (source branch)
+      #       branch="${GITHUB_HEAD_REF}"
+      #       echo "Detected a pull request. Using head ref: $branch"
+      #       # Fetch the branch from the remote if it isn’t available locally.
+      #       git fetch origin "${branch}:${branch}"
+      #     elif [[ "${GITHUB_REF}" == refs/heads/* ]]; then
+      #       # Push event: extract branch name from GITHUB_REF
+      #       branch="${GITHUB_REF#refs/heads/}"
+      #       echo "Detected a push event on branch: $branch"
+      #     else
+      #       echo "Not a branch event (likely a tag); skipping commit step."
+      #       exit 0
+      #     fi
+      #     echo "Switching to branch: $branch"
+      #     git switch $branch
+
+      - name: Push changes
+        if: steps.git_status.outputs.modified == 'true'
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
+          git commit -am "CI Workflow: Style fixes by Ruff"
+          git push
+  # test:
+  #   name: Run Tests
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
+  #
+  #     - name: Set up Python
+  #       uses: actions/setup-python@v4
+  #       with:
+  #         python-version: "3.x"
+  #
+  #     - name: Install dependencies
+  #       run: pip install -r requirements.txt
+  #
+  #     - name: Run tests
+  #       run: pytest
+
