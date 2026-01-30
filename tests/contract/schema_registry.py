@@ -41,6 +41,7 @@ from magick_mind.models.v1.end_user import (
     CreateEndUserResponse,
     GetEndUserResponse,
     QueryEndUserResponse,
+    UpdateEndUserResponse,
     CreateEndUserRequest,
     UpdateEndUserRequest,
 )
@@ -222,7 +223,8 @@ RESPONSES = [
     ContractDef(
         "GetEndUserByIdResponse", GetEndUserResponse
     ),  # lowercase Id per Apidog
-    # Note: QueryEndUserResponse and UpdateEndUserResponse don't exist in Apidog spec
+    ContractDef("UpdateEndUserResponse", UpdateEndUserResponse),
+    # Note: QueryEndUserResponse doesn't exist in Apidog spec (uses GetEndUserListResponse)
     # History
     ContractDef("MindspaceMessagesResponse", HistoryResponse),
     # MindSpace (spec mismatches - tests will fail and expose bugs)
