@@ -2,23 +2,24 @@
 Contract test fixtures.
 
 Loads OpenAPI specs from specs/ folder for contract validation.
-Both dev and main are manually updated snapshots.
+Source of truth: Apidog exports (openapi.dev.json, openapi.main.json)
 """
+
+from __future__ import annotations
 
 import json
 import pytest
 from pathlib import Path
+from typing import Optional
 
 
-# Spec locations (both in SDK repo)
+# Spec locations
 SPECS_DIR = Path(__file__).parents[2] / "specs"
-DEV_SPEC_PATH = SPECS_DIR / "openapi.dev.json"  # Current default
-MAIN_SPEC_PATH = SPECS_DIR / "openapi.main.json"
-APIDOG_SPEC_PATH = SPECS_DIR / "apidog.dev.json"  # Apidog export
-GOCTL_SPEC_PATH = SPECS_DIR / "openapi.goctl.json"  # goctl generated
+DEV_SPEC_PATH = SPECS_DIR / "openapi.dev.json"  # Apidog dev export
+MAIN_SPEC_PATH = SPECS_DIR / "openapi.main.json"  # Apidog main export
 
 
-def _load_json(path: Path) -> dict | None:
+def _load_json(path: Path) -> Optional[dict]:
     """Load JSON file, return None if missing."""
     if not path.exists():
         return None
@@ -29,7 +30,7 @@ def _load_json(path: Path) -> dict | None:
 @pytest.fixture(scope="session")
 def spec_dev() -> dict:
     """
-    Load DEV spec (bleeding edge features).
+    Load DEV spec (Apidog dev environment export).
 
     Fails if missing - dev spec is required for development.
     """
@@ -37,31 +38,19 @@ def spec_dev() -> dict:
     if not data:
         pytest.fail(
             f"Dev spec not found at {DEV_SPEC_PATH}\n"
-            "Copy from bifrost: cp ../bifrost/api/openapi.json specs/openapi.dev.json"
+            "Export from Apidog and save to specs/openapi.dev.json"
         )
     return data
 
 
 @pytest.fixture(scope="session")
-def spec_main() -> dict | None:
+def spec_main() -> Optional[dict]:
     """
-    Load MAIN spec (UAT/production snapshot).
+    Load MAIN spec (Apidog production environment export).
 
     Returns None if missing (allows dev work without blocking).
     """
     return _load_json(MAIN_SPEC_PATH)
-
-
-@pytest.fixture(scope="session")
-def spec_apidog() -> dict | None:
-    """Load Apidog export spec."""
-    return _load_json(APIDOG_SPEC_PATH)
-
-
-@pytest.fixture(scope="session")
-def spec_goctl() -> dict | None:
-    """Load goctl-generated spec."""
-    return _load_json(GOCTL_SPEC_PATH)
 
 
 def pytest_addoption(parser):
@@ -69,42 +58,25 @@ def pytest_addoption(parser):
     parser.addoption(
         "--spec",
         action="store",
-        default="goctl",
-        choices=["goctl", "dev", "main"],
-        help="Which OpenAPI spec to test against: goctl, dev, or main",
+        default="dev",
+        choices=["dev", "main"],
+        help="Which OpenAPI spec to test against: dev or main",
     )
 
 
 @pytest.fixture(scope="session")
-def contract(request, spec_goctl, spec_dev, spec_main) -> dict:
+def contract(request, spec_dev, spec_main) -> dict:
     """Primary contract spec for testing (configurable via --spec)."""
     spec_choice = request.config.getoption("--spec")
 
-    if spec_choice == "dev":
-        return spec_dev
-    elif spec_choice == "main":
+    if spec_choice == "main":
         if not spec_main:
-            pytest.fail("Main spec not found")
+            pytest.fail("Main spec not found at specs/openapi.main.json")
         return spec_main
-    else:  # goctl (default)
-        return spec_goctl
+    else:  # dev (default)
+        return spec_dev
 
 
-def get_schema_from_spec(spec: dict, schema_name: str) -> dict | None:
+def get_schema_from_spec(spec: dict, schema_name: str) -> Optional[dict]:
     """Extract a schema definition from OpenAPI spec."""
     return spec.get("components", {}).get("schemas", {}).get(schema_name)
-
-
-def get_request_body_schema(spec: dict, schema_name: str) -> dict | None:
-    """
-    Extract schema from requestBodies (goctl style).
-
-    goctl puts schemas under components/requestBodies/Name/content/application/json/schema
-    """
-    request_body = spec.get("components", {}).get("requestBodies", {}).get(schema_name)
-    if not request_body:
-        return None
-    try:
-        return request_body["content"]["application/json"]["schema"]
-    except KeyError:
-        return None
