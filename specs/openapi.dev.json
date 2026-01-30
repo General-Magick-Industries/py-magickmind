@@ -1891,9 +1891,6 @@
       "RefreshResponse": {
         "allOf": [
           {
-            "$ref": "#/components/schemas/BaseSchema"
-          },
-          {
             "$ref": "#/components/schemas/TokenSchema"
           }
         ]
@@ -1915,9 +1912,6 @@
       },
       "LoginResponse": {
         "allOf": [
-          {
-            "$ref": "#/components/schemas/BaseSchema"
-          },
           {
             "$ref": "#/components/schemas/TokenSchema"
           }
@@ -2207,59 +2201,44 @@
       "CreateEndUserResponse": {
         "allOf": [
           {
-            "$ref": "#/components/schemas/BaseSchema"
-          },
-          {
-            "type": "object",
-            "properties": {
-              "end_user": {
-                "$ref": "#/components/schemas/EndUser"
-              }
-            },
-            "required": [
-              "end_user"
-            ]
+            "$ref": "#/components/schemas/EndUserSchema"
           }
         ]
       },
       "GetEndUserByIdResponse": {
         "allOf": [
           {
-            "$ref": "#/components/schemas/BaseSchema"
-          },
-          {
-            "type": "object",
-            "properties": {
-              "end_user": {
-                "$ref": "#/components/schemas/EndUser"
-              }
-            },
-            "required": [
-              "end_user"
-            ]
+            "$ref": "#/components/schemas/EndUserSchema"
           }
         ]
       },
       "GetEndUserListResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
+        "allOf": [
+          {
+            "type": "object",
+            "properties": {
+              "paging": {
+                "$ref": "#/components/schemas/PaginationSchema"
+              }
+            },
+            "required": [
+              "paging"
+            ]
           },
-          "message": {
-            "type": "string"
-          },
-          "end_users": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/EndUser"
-            }
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/EndUserSchema"
+                }
+              }
+            },
+            "required": [
+              "data"
+            ]
           }
-        },
-        "required": [
-          "end_users",
-          "success",
-          "message"
         ]
       },
       "UpdateEndUserRequest": {
@@ -2271,7 +2250,10 @@
           "external_id": {
             "type": "string"
           }
-        }
+        },
+        "required": [
+          "name"
+        ]
       },
       "Query End User List Request": {
         "type": "object",
@@ -3193,6 +3175,95 @@
         "required": [
           "success",
           "message"
+        ]
+      },
+      "EndUserSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "external_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "tenant_id": {
+            "type": "string"
+          },
+          "created_by": {
+            "type": "string"
+          },
+          "updated_by": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "external_id",
+          "tenant_id",
+          "created_by",
+          "updated_by",
+          "created_at",
+          "updated_at"
+        ]
+      },
+      "UpdateEndUserResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/EndUserSchema"
+          }
+        ]
+      },
+      "PaginationSchema": {
+        "type": "object",
+        "properties": {
+          "cursors": {
+            "$ref": "#/components/schemas/CursorSchema"
+          },
+          "has_more": {
+            "type": "boolean"
+          },
+          "has_previous": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "cursors",
+          "has_more",
+          "has_previous"
+        ]
+      },
+      "CursorSchema": {
+        "type": "object",
+        "properties": {
+          "after": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "before": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "after",
+          "before"
         ]
       }
     },
