@@ -1,8 +1,6 @@
 """Authentication-related Pydantic models."""
 
-from typing import Optional
 from pydantic import BaseModel, Field
-from magick_mind.models.common import BaseResponse
 
 
 class LoginRequest(BaseModel):
@@ -18,7 +16,7 @@ class RefreshRequest(BaseModel):
     refresh_token: str
 
 
-class TokenResponse(BaseResponse):
+class TokenResponse(BaseModel):
     """Response model from /v1/auth/login."""
 
     access_token: str
@@ -27,5 +25,6 @@ class TokenResponse(BaseResponse):
     refresh_token: str
     token_type: str
     id_token: str
+    not_before_policy: int = Field(..., alias="not-before-policy")
+    session_state: str
     scope: str
-    session_state: Optional[str] = None

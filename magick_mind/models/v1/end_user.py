@@ -47,30 +47,52 @@ class CreateEndUserRequest(BaseModel):
     actor_id: Optional[str] = Field(None, description="Actor ID (Relaxed)")
 
 
-class CreateEndUserResponse(BaseModel):
+class CreateEndUserResponse(EndUser):
     """
     Response schema for end user creation.
+
+    Returns flat EndUserSchema matching Bifrost API spec.
     """
 
-    end_user: EndUser = Field(..., description="Created end user")
+    pass
 
 
-class GetEndUserResponse(BaseModel):
+class GetEndUserResponse(EndUser):
     """
     Response schema for getting a single end user.
+
+    Returns flat EndUserSchema matching Bifrost API spec.
     """
 
-    end_user: EndUser = Field(..., description="Retrieved end user")
+    pass
+
+
+class Cursors(BaseModel):
+    """Pagination cursors."""
+
+    after: Optional[str] = Field(default=None, description="Cursor for next page")
+    before: Optional[str] = Field(default=None, description="Cursor for previous page")
+
+
+class PageInfo(BaseModel):
+    """Pagination information."""
+
+    cursors: Cursors = Field(..., description="Pagination cursors")
+    has_more: bool = Field(..., description="Whether there are more results")
+    has_previous: bool = Field(..., description="Whether there are previous results")
 
 
 class QueryEndUserResponse(BaseModel):
     """
     Response schema for querying end users.
+
+    Uses new pagination pattern: {data: [], paging: {}}
     """
 
-    end_users: list[EndUser] = Field(
+    data: list[EndUser] = Field(
         default_factory=list, description="List of end users matching the query"
     )
+    paging: PageInfo = Field(..., description="Pagination information")
 
 
 class UpdateEndUserRequest(BaseModel):
@@ -86,9 +108,11 @@ class UpdateEndUserRequest(BaseModel):
     tenant_id: Optional[str] = Field(None, description="Tenant ID (Relaxed)")
 
 
-class UpdateEndUserResponse(BaseModel):
+class UpdateEndUserResponse(EndUser):
     """
     Response schema for end user update.
+
+    Returns flat EndUserSchema matching Bifrost API spec.
     """
 
-    end_user: EndUser = Field(..., description="Updated end user")
+    pass
