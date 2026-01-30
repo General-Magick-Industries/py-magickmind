@@ -147,5 +147,25 @@ class UpdateMindSpaceResponse(BaseResponse):
     mindspace: MindSpace = Field(..., description="Updated mindspace")
 
 
+class AddMindSpaceUsersRequest(BaseModel):
+    """
+    Request to add users to a mindspace.
+    """
+
+    user_ids: list[str] = Field(
+        ..., description="Users to add to the mindspace", min_length=1
+    )
+
+
+class AddMindSpaceUsersResponse(MindSpace):
+    """
+    Response from adding users to a mindspace.
+
+    Returns the full mindspace with updated user_ids.
+    """
+
+    pass
+
+
 # Reuse HistoryResponse for messages endpoint since it's the same structure
 MindspaceMessagesResponse = HistoryResponse

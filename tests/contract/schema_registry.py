@@ -51,6 +51,8 @@ from magick_mind.models.v1.mindspace import (
     UpdateMindSpaceResponse,
     CreateMindSpaceRequest,
     UpdateMindSpaceRequest,
+    AddMindSpaceUsersRequest,
+    AddMindSpaceUsersResponse,
 )
 from magick_mind.models.v1.model import ModelsListResponse, Model
 from magick_mind.models.v1.history import HistoryResponse
@@ -154,6 +156,10 @@ def _update_mindspace_factory() -> UpdateMindSpaceRequest:
     )
 
 
+def _add_mindspace_users_factory() -> AddMindSpaceUsersRequest:
+    return AddMindSpaceUsersRequest(user_ids=["user-1", "user-2"])
+
+
 def _create_api_key_factory() -> CreateApiKeyRequest:
     return CreateApiKeyRequest(
         project_id="proj-1",
@@ -231,10 +237,12 @@ RESPONSES = [
     ContractDef("CreateMindspaceResponse", CreateMindSpaceResponse),  # Lowercase s
     ContractDef("GetMindSpaceListResponse", GetMindSpaceListResponse),
     ContractDef("UpdateMindSpaceResponse", UpdateMindSpaceResponse),
+    ContractDef("AddMindSpaceUsersResponse", AddMindSpaceUsersResponse),
     # Auth
     ContractDef("LoginResponse", TokenResponse),
     ContractDef("RefreshResponse", TokenResponse),
-    # --- INTENTIONAL SKIPS (Internal/Irrelevant) ---
+    # --- INTENTIONAL SKIPS ---
+    # Internal/Webhook
     ContractDef(
         "ArtifactWebhookResp", status=SchemaStatus.SKIPPED, reason="Internal Webhook"
     ),
@@ -291,6 +299,11 @@ REQUESTS = [
         "UpdateMindSpaceRequest",
         UpdateMindSpaceRequest,
         factory=_update_mindspace_factory,
+    ),
+    ContractDef(
+        "AddMindSpaceUsersRequest",
+        AddMindSpaceUsersRequest,
+        factory=_add_mindspace_users_factory,
     ),
     # API Keys
     ContractDef(
@@ -415,6 +428,19 @@ SHARED_MODELS = [
     ContractDef("EndUser", status=SchemaStatus.SKIPPED, reason="Component"),
     ContractDef("MindspaceType", status=SchemaStatus.SKIPPED, reason="Component"),
     ContractDef("TokenSchema", status=SchemaStatus.SKIPPED, reason="Component"),
+    # Pagination (internal components)
+    ContractDef("PaginationSchema", status=SchemaStatus.SKIPPED, reason="Component"),
+    ContractDef("CursorSchema", status=SchemaStatus.SKIPPED, reason="Component"),
+    # Error handling (internal components)
+    ContractDef(" RFC7807Schema", status=SchemaStatus.SKIPPED, reason="Component"),
+    ContractDef("ErrorFieldsSchema", status=SchemaStatus.SKIPPED, reason="Component"),
+    ContractDef("ErrorResponse", status=SchemaStatus.SKIPPED, reason="Error wrapper"),
+    # Other
+    ContractDef(
+        "ListProjectResponse",
+        status=SchemaStatus.SKIPPED,
+        reason="Empty schema in spec",
+    ),
 ]
 
 
