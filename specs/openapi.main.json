@@ -1,43 +1,20 @@
 {
-  "openapi": "3.0.1",
+  "openapi": "3.1.0",
   "info": {
-    "title": "Magick Mind Dev API",
+    "title": "API Reference",
     "description": "",
-    "version": "1.0.0"
+    "version": "0.0.1",
+    "summary": ""
   },
   "tags": [
     {
-      "name": "v1"
-    },
-    {
-      "name": "v1/Auth"
-    },
-    {
-      "name": "v1/Keys"
-    },
-    {
-      "name": "v1/End-Users"
-    },
-    {
-      "name": "v1/Corpus"
-    },
-    {
-      "name": "v1/Project"
-    },
-    {
-      "name": "v1/Mindspaces"
-    },
-    {
-      "name": "v1/Persona"
-    },
-    {
-      "name": "v1/Chat"
-    },
-    {
-      "name": "v1/OpenAI Compatible"
-    },
-    {
       "name": "Auth"
+    },
+    {
+      "name": "Projects"
+    },
+    {
+      "name": "Mindspaces"
     },
     {
       "name": "Keys"
@@ -49,16 +26,13 @@
       "name": "Artifacts"
     },
     {
-      "name": "Projects"
-    },
-    {
-      "name": "Mindspaces"
-    },
-    {
       "name": "Persona"
     },
     {
       "name": "OpenAI Compatible"
+    },
+    {
+      "name": "Traits"
     }
   ],
   "paths": {
@@ -68,7 +42,6 @@
         "deprecated": false,
         "description": "",
         "tags": [
-          "v1/Auth",
           "Auth"
         ],
         "parameters": [],
@@ -79,8 +52,8 @@
                 "$ref": "#/components/schemas/LoginRequest"
               },
               "example": {
-                "email": "serviceuser@email.com",
-                "password": "strongpassword"
+                "email": "minoakkyaw9@gmail.com",
+                "password": "1234"
               }
             }
           }
@@ -91,20 +64,18 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/LoginResponse"
+                  "$ref": "#/components/schemas/TokenSchema"
                 },
                 "example": {
-                  "success": true,
-                  "message": "Login Successful.",
-                  "access_token": "access_token_string",
+                  "access_token": "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJQMmNUSkh2bGczYWlTS1JjOG9pMGU1WFNpQk56Y094dkZWNUd1SnJLMFFVIn0.eyJleHAiOjE3Njk1OTY2MzUsImlhdCI6MTc2OTU5NjMzNSwianRpIjoiOGY4ZjRjMjYtMzAxOC00ODEzLWIxYmMtYzRmZGEzMTg4NTEzIiwiaXNzIjoiaHR0cHM6Ly9rZXljbG9hay5nbG9iYWxtYWdpY2suY29tL3JlYWxtcy9kZXYtbWFnaWNrLW1pbmQiLCJhdWQiOiJhY2NvdW50Iiwic3ViIjoiMGI3N2FlMzAtZjZkZS00NWExLWFkMDEtOWFiZTAwNGZiMjMzIiwidHlwIjoiQmVhcmVyIiwiYXpwIjoicHVibGljLWNsaWVudCIsInNpZCI6IjhhNWM4NWI5LWY0ODgtNGZkYi1iNDE0LWVmMGQ3YzAzNWE3ZCIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiZGVmYXVsdC1yb2xlcy1kZXYtbWFnaWNrLW1pbmQiLCJvZmZsaW5lX2FjY2VzcyIsInVtYV9hdXRob3JpemF0aW9uIl19LCJyZXNvdXJjZV9hY2Nlc3MiOnsiYWNjb3VudCI6eyJyb2xlcyI6WyJtYW5hZ2UtYWNjb3VudCIsIm1hbmFnZS1hY2NvdW50LWxpbmtzIiwidmlldy1wcm9maWxlIl19fSwic2NvcGUiOiJvcGVuaWQgcHJvZmlsZSBlbWFpbCIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJuYW1lIjoiTWluIE9hayBLeWF3IiwicHJlZmVycmVkX3VzZXJuYW1lIjoiNjkyNDA2ZGI5YjJlODkzOTc2NjViMTU2IiwiZ2l2ZW5fbmFtZSI6Ik1pbiBPYWsiLCJmYW1pbHlfbmFtZSI6Ikt5YXciLCJlbWFpbCI6Im1pbm9ha2t5YXc5QGdtYWlsLmNvbSJ9.ovy5j0vt4VtfugfHk5DRH3I9fA9jqmUZZw-it6OgxbENlysIjafVWxRP56waFfLv_txcwS7XQ2AYdCKa4BmlI7142xqGMbWKyXQP4gSkmUvKCLMo480MgwFThsDtPb2OCbQC2j2dgsToQwxzet5oqoFnPUSkjpBtSMrt8bvP0hNCZdgddSvlqsoam9kmNfe5Aw5MIa4fZkgqtc0TXfUG8XlDb0Uqis2vrzTTnRSjF65cXwe_LKmVtyTZfaTn6qJN1tpjDjDouYyr_9eQXyPAigOG9AbN7K0C4p2Heg4a1jndwYc84epf0OyRvB41TrU42Eenp5sErKKGFjFNnOBfVQ",
                   "expires_in": 300,
                   "refresh_expires_in": 1800,
-                  "refresh_token": "refresh_token_string",
+                  "refresh_token": "eyJhbGciOiJIUzUxMiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI0MDFmZDFmZi04M2VlLTQ4ODEtYWRlMC1mYTQ4YWNlNjRhY2QifQ.eyJleHAiOjE3Njk1OTgxMzUsImlhdCI6MTc2OTU5NjMzNSwianRpIjoiMTBhYzg0YWItZTQ4MS00ZmEzLTk3YmMtY2E0ZDk2MGYxNGUwIiwiaXNzIjoiaHR0cHM6Ly9rZXljbG9hay5nbG9iYWxtYWdpY2suY29tL3JlYWxtcy9kZXYtbWFnaWNrLW1pbmQiLCJhdWQiOiJodHRwczovL2tleWNsb2FrLmdsb2JhbG1hZ2ljay5jb20vcmVhbG1zL2Rldi1tYWdpY2stbWluZCIsInN1YiI6IjBiNzdhZTMwLWY2ZGUtNDVhMS1hZDAxLTlhYmUwMDRmYjIzMyIsInR5cCI6IlJlZnJlc2giLCJhenAiOiJwdWJsaWMtY2xpZW50Iiwic2lkIjoiOGE1Yzg1YjktZjQ4OC00ZmRiLWI0MTQtZWYwZDdjMDM1YTdkIiwic2NvcGUiOiJvcGVuaWQgcHJvZmlsZSBlbWFpbCBiYXNpYyB3ZWItb3JpZ2lucyByb2xlcyBhY3IifQ.7x4XSRNVuy2FhIvY6euee4j3DCsO7PKbYhPlc-VjM6tp37YNjZZbl44D3-85LlHKtiSOkiqLTDbOIqA3PsJ52Q",
                   "token_type": "Bearer",
-                  "id_token": "id_token",
+                  "id_token": "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJQMmNUSkh2bGczYWlTS1JjOG9pMGU1WFNpQk56Y094dkZWNUd1SnJLMFFVIn0.eyJleHAiOjE3Njk1OTY2MzUsImlhdCI6MTc2OTU5NjMzNSwianRpIjoiZmY1MWVlNzAtYWJhZi00MTYxLTg3NGYtM2RlZDVlMWMwODVlIiwiaXNzIjoiaHR0cHM6Ly9rZXljbG9hay5nbG9iYWxtYWdpY2suY29tL3JlYWxtcy9kZXYtbWFnaWNrLW1pbmQiLCJhdWQiOiJwdWJsaWMtY2xpZW50Iiwic3ViIjoiMGI3N2FlMzAtZjZkZS00NWExLWFkMDEtOWFiZTAwNGZiMjMzIiwidHlwIjoiSUQiLCJhenAiOiJwdWJsaWMtY2xpZW50Iiwic2lkIjoiOGE1Yzg1YjktZjQ4OC00ZmRiLWI0MTQtZWYwZDdjMDM1YTdkIiwiYXRfaGFzaCI6InJJdy1nVkF3Tk9vaUQybDR0M09yYlEiLCJhY3IiOiIxIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsIm5hbWUiOiJNaW4gT2FrIEt5YXciLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiI2OTI0MDZkYjliMmU4OTM5NzY2NWIxNTYiLCJnaXZlbl9uYW1lIjoiTWluIE9hayIsImZhbWlseV9uYW1lIjoiS3lhdyIsImVtYWlsIjoibWlub2Fra3lhdzlAZ21haWwuY29tIn0.Fvnx01B8drb_ICTSwd3TcYtzxuhobqihh9OD5RvXLKG--ulomNBbHr2s4ROj_3pLkgd--7MdsTbyHqOZzjHu9gdybZ80Umd-R6FOnSJQntSMBkJHCVNlNYSgkMuCFhtjQKfEeNhS16O5X62jDHAtDW1wSrxUpI29raskuilj1K2iRaiqADTY0dJ6c_vAj_7taFsNwGmUKKSA_s8o8g2r5pN1frEGe_qDBK80lgeK_pPM2dZWQiUQDoj_geOEmUMKj797rq9h_4MajyzwEuX4vhpWwNTPSQ3PnjpgqgVRc9geOBrKvW7_BocIh1t5Ql0beUwSC8gBiFPxhIcome5u9w",
                   "not-before-policy": 0,
-                  "session_state": "session state string",
-                  "scope": "scopes"
+                  "session_state": "8a5c85b9-f488-4fdb-b414-ef0d7c035a7d",
+                  "scope": "openid profile email"
                 }
               }
             },
@@ -115,38 +86,53 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Base%20Schema"
-                },
-                "examples": {
-                  "2": {
-                    "summary": "Wrong Password",
-                    "value": {
-                      "success": false,
-                      "message": "Invalid user credentials"
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string"
+                        },
+                        "title": {
+                          "type": "string"
+                        },
+                        "status": {
+                          "type": "integer"
+                        },
+                        "detail": {
+                          "type": "string"
+                        },
+                        "instance": {
+                          "type": "string"
+                        },
+                        "request_id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "title",
+                        "status",
+                        "detail",
+                        "instance",
+                        "request_id"
+                      ]
                     }
                   },
-                  "3": {
-                    "summary": "Email Unverified",
-                    "value": {
-                      "success": false,
-                      "message": "Account is not fully set up"
-                    }
-                  }
-                }
-              }
-            },
-            "headers": {}
-          },
-          "404": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Base%20Schema"
+                  "required": [
+                    "error"
+                  ]
                 },
                 "example": {
-                  "success": false,
-                  "message": "Resource not found"
+                  "error": {
+                    "type": "about:blank",
+                    "title": "Bad Request",
+                    "status": 400,
+                    "detail": "Invalid user credentials",
+                    "instance": "/v1/auth/login",
+                    "request_id": "e780cd17c309b76003067a1438e61d9b"
+                  }
                 }
               }
             },
@@ -166,7 +152,6 @@
         "deprecated": false,
         "description": "",
         "tags": [
-          "v1/Auth",
           "Auth"
         ],
         "parameters": [],
@@ -174,7 +159,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/RefreshSchema"
+                "$ref": "#/components/schemas/RefreshRequest"
               },
               "examples": {}
             }
@@ -186,20 +171,18 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Refresh%20Response"
+                  "$ref": "#/components/schemas/TokenSchema"
                 },
                 "example": {
-                  "success": true,
-                  "message": "Token refreshed.",
-                  "access_token": "access token string",
+                  "access_token": "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJQMmNUSkh2bGczYWlTS1JjOG9pMGU1WFNpQk56Y094dkZWNUd1SnJLMFFVIn0.eyJleHAiOjE3Njk1OTcwMjUsImlhdCI6MTc2OTU5NjcyNSwianRpIjoiNGM4OTM4YjQtNTNlNC00YWFiLWFhZjYtZjJhNGY0NzNjZmFkIiwiaXNzIjoiaHR0cHM6Ly9rZXljbG9hay5nbG9iYWxtYWdpY2suY29tL3JlYWxtcy9kZXYtbWFnaWNrLW1pbmQiLCJhdWQiOiJhY2NvdW50Iiwic3ViIjoiMGI3N2FlMzAtZjZkZS00NWExLWFkMDEtOWFiZTAwNGZiMjMzIiwidHlwIjoiQmVhcmVyIiwiYXpwIjoicHVibGljLWNsaWVudCIsInNpZCI6IjYzZjY0YmYzLTA0NjMtNDk3OC04MTAzLTFiNWM3MDllNDk1NSIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiZGVmYXVsdC1yb2xlcy1kZXYtbWFnaWNrLW1pbmQiLCJvZmZsaW5lX2FjY2VzcyIsInVtYV9hdXRob3JpemF0aW9uIl19LCJyZXNvdXJjZV9hY2Nlc3MiOnsiYWNjb3VudCI6eyJyb2xlcyI6WyJtYW5hZ2UtYWNjb3VudCIsIm1hbmFnZS1hY2NvdW50LWxpbmtzIiwidmlldy1wcm9maWxlIl19fSwic2NvcGUiOiJvcGVuaWQgcHJvZmlsZSBlbWFpbCIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJuYW1lIjoiTWluIE9hayBLeWF3IiwicHJlZmVycmVkX3VzZXJuYW1lIjoiNjkyNDA2ZGI5YjJlODkzOTc2NjViMTU2IiwiZ2l2ZW5fbmFtZSI6Ik1pbiBPYWsiLCJmYW1pbHlfbmFtZSI6Ikt5YXciLCJlbWFpbCI6Im1pbm9ha2t5YXc5QGdtYWlsLmNvbSJ9.Eg3jy3qUpyDXAc9_jyX0ov8IcpONCtS24W1eiCsXMVaY7y_IG9aA39tXf3gbfiTSq2dNbL5YevKX1Z1pJ4MC1AMpmdrYYiII0jyesen7zj8nsbKAO7OEagCa3BpbOs4Pvb3enwrSlcsXW6hnPIE5a7VgwNGeLP40kEEZnj4vgmgKhnerZgdL9DHkLDdq_OWMEhwr4PoCnEoHoSXxGPb4-Pj2LKh7PZYddHFVfH0_GMu8sVOMZfrehWiHF17hsdyIhXJpIJUtOWU8bYgyTyJSjbrkbuaEqUt0clqsQmAEZy9RlPq36xldn42dRCaXv2aacfhq9Jn9pqvlauiVHuSo0w",
                   "expires_in": 300,
                   "refresh_expires_in": 1800,
-                  "refresh_token": "refresh token string",
+                  "refresh_token": "eyJhbGciOiJIUzUxMiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI0MDFmZDFmZi04M2VlLTQ4ODEtYWRlMC1mYTQ4YWNlNjRhY2QifQ.eyJleHAiOjE3Njk1OTg1MjUsImlhdCI6MTc2OTU5NjcyNSwianRpIjoiYjY2NWE0OWMtMDViNC00ZGRhLWIzZjYtOTZmNzRlMmNlZWFjIiwiaXNzIjoiaHR0cHM6Ly9rZXljbG9hay5nbG9iYWxtYWdpY2suY29tL3JlYWxtcy9kZXYtbWFnaWNrLW1pbmQiLCJhdWQiOiJodHRwczovL2tleWNsb2FrLmdsb2JhbG1hZ2ljay5jb20vcmVhbG1zL2Rldi1tYWdpY2stbWluZCIsInN1YiI6IjBiNzdhZTMwLWY2ZGUtNDVhMS1hZDAxLTlhYmUwMDRmYjIzMyIsInR5cCI6IlJlZnJlc2giLCJhenAiOiJwdWJsaWMtY2xpZW50Iiwic2lkIjoiNjNmNjRiZjMtMDQ2My00OTc4LTgxMDMtMWI1YzcwOWU0OTU1Iiwic2NvcGUiOiJvcGVuaWQgcHJvZmlsZSBlbWFpbCBiYXNpYyB3ZWItb3JpZ2lucyByb2xlcyBhY3IifQ.NfjrnMFaadi9ibGz9furNU7vJ9cRYgwCx1TYjdJdk47y4YXSR-l26lZK9rZoBCGkuIZ6K2GRC8k8HKky8DSrkw",
                   "token_type": "Bearer",
-                  "id_token": "id token string",
+                  "id_token": "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJQMmNUSkh2bGczYWlTS1JjOG9pMGU1WFNpQk56Y094dkZWNUd1SnJLMFFVIn0.eyJleHAiOjE3Njk1OTcwMjUsImlhdCI6MTc2OTU5NjcyNSwianRpIjoiYzBmMjlhNGUtZTI3OS00YWQ3LWEwMDktZDg0NDY5MzM4M2I3IiwiaXNzIjoiaHR0cHM6Ly9rZXljbG9hay5nbG9iYWxtYWdpY2suY29tL3JlYWxtcy9kZXYtbWFnaWNrLW1pbmQiLCJhdWQiOiJwdWJsaWMtY2xpZW50Iiwic3ViIjoiMGI3N2FlMzAtZjZkZS00NWExLWFkMDEtOWFiZTAwNGZiMjMzIiwidHlwIjoiSUQiLCJhenAiOiJwdWJsaWMtY2xpZW50Iiwic2lkIjoiNjNmNjRiZjMtMDQ2My00OTc4LTgxMDMtMWI1YzcwOWU0OTU1IiwiYXRfaGFzaCI6Il9kUHZBd2hodmFMM1NWTXlIWmhGcEEiLCJhY3IiOiIxIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsIm5hbWUiOiJNaW4gT2FrIEt5YXciLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiI2OTI0MDZkYjliMmU4OTM5NzY2NWIxNTYiLCJnaXZlbl9uYW1lIjoiTWluIE9hayIsImZhbWlseV9uYW1lIjoiS3lhdyIsImVtYWlsIjoibWlub2Fra3lhdzlAZ21haWwuY29tIn0.Tkf1G9tFSjYMnkFUbXjcrRgcV40n0VgNTpSQNRmXvEdkDH9dJfoU4K7TsqJlqyc9gfQuQqOdVPw0iKyIlzRSuaPDWfvxyAXkWKgkJ4XU518oPWlcEdHJuOups82KgryrWARp6l1y_ZfqjRAp1WIpCwLAhY1CWH-J_lH0c0avIb-0Jo8xhyH94djRJ0N94O_OfgZYb3NkvDXz2T0awy53s9xZYLfsAJ5FFrGes95GNDDndOisi-gwYNxDQugmOAkWODVYYabD9RJcJol38gWXe6gKgFc1WnJ7DB_rd-8fLN8urVfvWu3N7dPwNY4vxLXxHobuHXHlvbzaeGSMDZy29Q",
                   "not-before-policy": 0,
-                  "session_state": "session state",
-                  "scope": "scopes"
+                  "session_state": "63f64bf3-0463-4978-8103-1b5c709e4955",
+                  "scope": "openid profile email"
                 }
               }
             },
@@ -219,7 +202,6 @@
         "deprecated": false,
         "description": "",
         "tags": [
-          "v1/Auth",
           "Auth"
         ],
         "parameters": [],
@@ -227,7 +209,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SignUpSchema"
+                "$ref": "#/components/schemas/SignUpRequest"
               },
               "example": {
                 "email": "Thea.Witting@yahoo.com",
@@ -244,7 +226,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Sign%20Up%20Response%20V1"
+                  "$ref": "#/components/schemas/SignUpResponse"
                 }
               }
             },
@@ -264,7 +246,6 @@
         "deprecated": false,
         "description": "",
         "tags": [
-          "v1/Auth",
           "Auth"
         ],
         "parameters": [],
@@ -293,7 +274,6 @@
         "deprecated": false,
         "description": "",
         "tags": [
-          "v1/Auth",
           "Auth"
         ],
         "parameters": [
@@ -328,14 +308,1008 @@
         ]
       }
     },
+    "/v1/end-users": {
+      "post": {
+        "summary": "Create End-User",
+        "deprecated": false,
+        "description": "",
+        "tags": [],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateEndUserRequest"
+              },
+              "examples": {
+                "1": {
+                  "value": {
+                    "name": "Roy Bosco",
+                    "external_id": "7c718ec1a65cb7b75eaad1d6"
+                  },
+                  "summary": "End-User with Name and External ID"
+                },
+                "2": {
+                  "value": {
+                    "name": "Shannon Dicki-Rolfson"
+                  },
+                  "summary": "End-User with name only"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EndUserSchema"
+                },
+                "example": {
+                  "id": "6979e85f6c264301cea8ee2e",
+                  "name": "Roy Bosco",
+                  "external_id": "",
+                  "tenant_id": "692406db9b2e89397665b156",
+                  "created_by": "692406db9b2e89397665b156",
+                  "updated_by": "692406db9b2e89397665b156",
+                  "created_at": "2026-01-28T10:43:43Z",
+                  "updated_at": "2026-01-28T10:43:43Z"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      },
+      "get": {
+        "summary": "Query End-Users",
+        "deprecated": false,
+        "description": "",
+        "tags": [],
+        "parameters": [
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Limit",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "default": 20,
+              "minimum": 1,
+              "maximum": 100
+            }
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "default": "asc"
+            }
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "description": "Name",
+            "required": false,
+            "example": "",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "external_id",
+            "in": "query",
+            "description": "External ID of the user in other system.",
+            "required": false,
+            "example": "",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetEndUserListResponse"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/v1/end-users/{id}": {
+      "get": {
+        "summary": "Get End-User by ID",
+        "deprecated": false,
+        "description": "",
+        "tags": [],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "example": "6979e85f6c264301cea8ee2e",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EndUserSchema"
+                },
+                "example": {
+                  "id": "6979e85f6c264301cea8ee2e",
+                  "name": "Roy Bosco",
+                  "external_id": "",
+                  "tenant_id": "692406db9b2e89397665b156",
+                  "created_by": "692406db9b2e89397665b156",
+                  "updated_by": "692406db9b2e89397665b156",
+                  "created_at": "2026-01-28T10:43:43Z",
+                  "updated_at": "2026-01-28T10:43:43Z"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      },
+      "put": {
+        "summary": "Update End-User",
+        "deprecated": false,
+        "description": "",
+        "tags": [],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "example": "6979e85f6c264301cea8ee2e",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateEndUserRequest"
+              },
+              "example": {
+                "name": "Adrian",
+                "external_id": ""
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EndUserSchema"
+                },
+                "example": {
+                  "id": "6979e85f6c264301cea8ee2e",
+                  "name": "Adrian",
+                  "external_id": "",
+                  "tenant_id": "692406db9b2e89397665b156",
+                  "created_by": "692406db9b2e89397665b156",
+                  "updated_by": "692406db9b2e89397665b156",
+                  "created_at": "2026-01-28T10:43:43Z",
+                  "updated_at": "2026-01-28T13:52:09Z"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      },
+      "delete": {
+        "summary": "Delete End-User",
+        "deprecated": false,
+        "description": "",
+        "tags": [],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "",
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/v1/projects": {
+      "post": {
+        "summary": "Create Project",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "Projects"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateProjectRequest"
+              },
+              "examples": {}
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectSchema"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      },
+      "get": {
+        "summary": "Get Project List",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "Projects"
+        ],
+        "parameters": [
+          {
+            "name": "name",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/v1/projects/{id}": {
+      "get": {
+        "summary": "Get Project by ID",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "Projects"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectSchema"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      },
+      "put": {
+        "summary": "Update Project",
+        "deprecated": false,
+        "description": "Update an existing project",
+        "tags": [
+          "Projects"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "example": "",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProjectRequest"
+              },
+              "examples": {}
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectSchema"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      },
+      "delete": {
+        "summary": "Delete Project",
+        "deprecated": false,
+        "description": "Delete a project by ID",
+        "tags": [
+          "Projects"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "example": "",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/v1/mindspaces": {
+      "post": {
+        "summary": "Create Mindspace",
+        "deprecated": false,
+        "description": "",
+        "tags": [],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateMindspaceRequest"
+              },
+              "example": {
+                "name": "Recycled Concrete Tuna",
+                "description": "The automobile layout consists of a front-engine design, with transaxle-type transmissions mounted at the rear of the engine and four wheel drive",
+                "project_id": "47cc766ec1aa7b4c5bdb4d6b",
+                "corpus_ids": [],
+                "user_ids": [],
+                "type": "GROUP"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateMindspaceResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Nam harum sodalitas testimonium timidus delibero caritas volup comburo thermae. Reiciendis cena usus cauda stella adfectus. Ipsum tabgo victus derideo abundans.",
+                  "mindspace": {
+                    "id": "43",
+                    "name": "Eva Borer",
+                    "description": "Mollitia curriculum voluptatibus conduco cumque cubicularis supplanto vulticulus creptio sufficio. Virga ver amo. Delego sub magni barba admoneo cinis tabella architecto. Cohaero conscendo dolorem thymum cito accedo corrupti sui accendo. Magnam explicabo tenetur cruciamentum demens cura teneo thymum. Blanditiis torrens altus villa pecto thorax quas casso. Tempora totidem absens ventito peior succedo cernuus dapifer. Supellex carus teneo.",
+                    "corpus_ids": [
+                      "eu",
+                      "Lorem ex"
+                    ],
+                    "user_ids": [
+                      "in ex Lorem dolore adipisicing",
+                      "commodo",
+                      "consectetur exercitation aliquip eiusmod deserunt"
+                    ],
+                    "type": "group",
+                    "created_at": "2025-12-07T14:27:38.210Z",
+                    "updated_at": "2026-06-11"
+                  }
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      },
+      "get": {
+        "summary": "Get Mindspace List",
+        "deprecated": false,
+        "description": "Retrieve list of mindspaces for a user",
+        "tags": [
+          "Mindspaces"
+        ],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "query",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetMindSpaceListResponse"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/v1/workspaces/{id}": {
+      "put": {
+        "summary": "Update Mindspace",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "Mindspaces"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "example": "6823a223c07297c9f0abc358",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateMindSpaceRequest"
+              },
+              "example": {
+                "name": "Test Workspace",
+                "description": "Magick Mind by GMI",
+                "user_id": "test_user_id"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateMindSpaceResponse"
+                },
+                "example": {
+                  "success": true,
+                  "message": "Workspace updated successfully.",
+                  "workspace": {
+                    "id": "6823a223c07297c9f0abc358",
+                    "name": "Test Workspace",
+                    "description": "Magick Mind by GMI",
+                    "created_by_user_id": "",
+                    "created_at": "2025-05-14T02:48:51+07:00",
+                    "updated_at": "2025-05-14T02:48:51+07:00"
+                  }
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      },
+      "delete": {
+        "summary": "Delete Mindspace",
+        "deprecated": false,
+        "description": "",
+        "tags": [],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "example": "682390efc07297c9f0abc351",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {}
+              },
+              "example": {
+                "user_id": "test_user_id"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                },
+                "example": ""
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/v1/mindspaces/{id}": {
+      "get": {
+        "summary": "Get Mindspace by ID",
+        "deprecated": false,
+        "description": "",
+        "tags": [],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "example": "6823981bc07297c9f0abc354",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      },
+      "delete": {
+        "summary": "Delete Mindspace",
+        "deprecated": false,
+        "description": "Delete a mindspace by ID",
+        "tags": [
+          "Mindspaces"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "example": "",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/v1/mindspaces/messages": {
+      "get": {
+        "summary": "Get Mindspace Messages",
+        "deprecated": false,
+        "description": "Retrieve chat messages for a mindspace with pagination",
+        "tags": [
+          "Mindspaces"
+        ],
+        "parameters": [
+          {
+            "name": "mindspace_id",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "after_id",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "before_id",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/v1/mindspaces/{id}/users": {
+      "post": {
+        "summary": "Add Mindspace Users by ID",
+        "deprecated": false,
+        "description": "",
+        "tags": [],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "example": "6972fc7815488d0531a5463c",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddMindSpaceUsersRequest"
+              },
+              "example": {
+                "user_ids": [
+                  "velit",
+                  "dolor sunt Lorem laborum"
+                ]
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "description": {
+                      "type": "string"
+                    },
+                    "project_id": {
+                      "type": "string"
+                    },
+                    "corpus_ids": {
+                      "type": [
+                        "array",
+                        "null"
+                      ],
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "user_ids": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "type": {
+                      "$ref": "#/components/schemas/MindspaceType"
+                    },
+                    "created_by": {
+                      "type": "string"
+                    },
+                    "updated_by": {
+                      "type": "string"
+                    },
+                    "created_at": {
+                      "type": "string"
+                    },
+                    "updated_at": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name",
+                    "description",
+                    "project_id",
+                    "corpus_ids",
+                    "user_ids",
+                    "type",
+                    "created_by",
+                    "updated_by",
+                    "created_at",
+                    "updated_at"
+                  ]
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/v1/chat/magickmind": {
+      "post": {
+        "summary": "Magick Mind Chat",
+        "deprecated": false,
+        "description": "",
+        "tags": [],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChatRequest"
+              },
+              "example": {
+                "api_key": "sk2-fdaD92BIjiq",
+                "mindspace_id": "28",
+                "message": "Adstringo traho cena tempore. Commodi deduco animus. Viridis comes ubi acerbitas tergiversatio tyrannus agnitio.",
+                "reply_to_message_id": "73",
+                "enduser_id": "78",
+                "additional_context": "Curiositas defungo volaticus cultura benigne. Corrupti dicta sublime vis custodia. Ullus strues acerbitas conscendo tempore.",
+                "artifact_ids": [],
+                "config": {
+                  "fast_model_id": "72",
+                  "smart_model_ids": [
+                    "dolor mollit ipsum adipisicing deserunt",
+                    "pariatur"
+                  ],
+                  "compute_power": 1
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatResponse"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
     "/v1/keys": {
       "post": {
         "summary": "Create API Key",
         "deprecated": false,
         "description": "",
-        "tags": [
-          "v1/Keys"
-        ],
+        "tags": [],
         "parameters": [],
         "requestBody": {
           "content": {
@@ -396,9 +1370,7 @@
         "summary": "Get API Key by User",
         "deprecated": false,
         "description": "",
-        "tags": [
-          "v1/Keys"
-        ],
+        "tags": [],
         "parameters": [],
         "requestBody": {
           "content": {
@@ -434,9 +1406,7 @@
         "summary": "Delete API Key",
         "deprecated": false,
         "description": "",
-        "tags": [
-          "v1/Keys"
-        ],
+        "tags": [],
         "parameters": [],
         "requestBody": {
           "content": {
@@ -452,7 +1422,7 @@
                   "key_id"
                 ]
               },
-              "example": null
+              "example": ""
             }
           }
         },
@@ -481,17 +1451,13 @@
         "deprecated": false,
         "description": "Update an existing API key",
         "tags": [
-          "v1/Keys",
           "Keys"
         ],
         "parameters": [],
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {}
-              },
+              "schema": {},
               "examples": {}
             }
           }
@@ -501,260 +1467,9 @@
             "description": "Successful response",
             "content": {
               "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {}
-                }
+                "schema": {}
               }
             },
-            "headers": {}
-          }
-        },
-        "security": []
-      }
-    },
-    "/v1/end-users": {
-      "post": {
-        "summary": "Create End-User",
-        "deprecated": false,
-        "description": "",
-        "tags": [
-          "v1/End-Users"
-        ],
-        "parameters": [],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/End%20User%20Create%20Req"
-              },
-              "examples": {
-                "1": {
-                  "value": {
-                    "name": "Roy Bosco",
-                    "external_id": "7c718ec1a65cb7b75eaad1d6"
-                  },
-                  "summary": "End-User with Name and External ID"
-                },
-                "2": {
-                  "value": {
-                    "name": "Shannon Dicki-Rolfson"
-                  },
-                  "summary": "End-User with only name"
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/End%20User%20Res"
-                }
-              }
-            },
-            "headers": {}
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ]
-      },
-      "get": {
-        "summary": "Query End-Users",
-        "deprecated": false,
-        "description": "",
-        "tags": [
-          "v1/End-Users"
-        ],
-        "parameters": [
-          {
-            "name": "name",
-            "in": "query",
-            "description": "name",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "external_id",
-            "in": "query",
-            "description": "",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "tenant_id",
-            "in": "query",
-            "description": "",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "actor_id",
-            "in": "query",
-            "description": "",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {}
-              },
-              "examples": {}
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {}
-                }
-              }
-            },
-            "headers": {}
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ]
-      }
-    },
-    "/v1/end-users/{id}": {
-      "get": {
-        "summary": "Get End-User",
-        "deprecated": false,
-        "description": "",
-        "tags": [
-          "v1/End-Users"
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {}
-                }
-              }
-            },
-            "headers": {}
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ]
-      },
-      "put": {
-        "summary": "Update End-User",
-        "deprecated": false,
-        "description": "",
-        "tags": [
-          "v1/End-Users"
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {}
-              },
-              "example": {
-                "name": "John Updated",
-                "external_id": "ext_user_99999",
-                "tenant_id": "tenant_new123"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {}
-                }
-              }
-            },
-            "headers": {}
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ]
-      },
-      "delete": {
-        "summary": "Delete End-User",
-        "deprecated": false,
-        "description": "",
-        "tags": [
-          "v1/End-Users"
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
             "headers": {}
           }
         },
@@ -770,15 +1485,13 @@
         "summary": "Create Corpus",
         "deprecated": false,
         "description": "",
-        "tags": [
-          "v1/Corpus"
-        ],
+        "tags": [],
         "parameters": [],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Corpus%20Create%20Req"
+                "$ref": "#/components/schemas/CreateCorpusRequest"
               },
               "examples": {}
             }
@@ -790,7 +1503,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Corpus%20Res"
+                  "$ref": "#/components/schemas/CreateCorpusResponse"
                 }
               }
             },
@@ -807,9 +1520,7 @@
         "summary": "Get Corpus List",
         "deprecated": false,
         "description": "",
-        "tags": [
-          "v1/Corpus"
-        ],
+        "tags": [],
         "parameters": [
           {
             "name": "user_id",
@@ -827,7 +1538,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Corpus%20List%20Res"
+                  "$ref": "#/components/schemas/GetCorpusResponse"
                 }
               }
             },
@@ -846,9 +1557,7 @@
         "summary": "Get Corpus by ID",
         "deprecated": false,
         "description": "",
-        "tags": [
-          "v1/Corpus"
-        ],
+        "tags": [],
         "parameters": [
           {
             "name": "id",
@@ -866,7 +1575,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Corpus%20Res"
+                  "$ref": "#/components/schemas/GetCorpusByIdResponse"
                 }
               }
             },
@@ -883,9 +1592,7 @@
         "summary": "Update Corpus",
         "deprecated": false,
         "description": "",
-        "tags": [
-          "v1/Corpus"
-        ],
+        "tags": [],
         "parameters": [
           {
             "name": "id",
@@ -901,7 +1608,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Corpus%20%20Update%20Req"
+                "$ref": "#/components/schemas/UpdateCorpusRequest"
               },
               "examples": {}
             }
@@ -913,7 +1620,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Corpus%20Res"
+                  "$ref": "#/components/schemas/UpdateCorpusResponse"
                 }
               }
             },
@@ -930,9 +1637,7 @@
         "summary": "Delete Corpus",
         "deprecated": false,
         "description": "",
-        "tags": [
-          "v1/Corpus"
-        ],
+        "tags": [],
         "parameters": [
           {
             "name": "id",
@@ -971,7 +1676,6 @@
         "deprecated": false,
         "description": "Client-driven finalize for artifact upload (fallback when webhook is unavailable)",
         "tags": [
-          "v1/Corpus",
           "Corpus",
           "Artifacts"
         ],
@@ -990,639 +1694,27 @@
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {}
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {}
-                }
-              }
-            },
-            "headers": {}
-          }
-        },
-        "security": []
-      }
-    },
-    "/v1/projects": {
-      "post": {
-        "summary": "Create Project",
-        "deprecated": false,
-        "description": "",
-        "tags": [
-          "v1/Project",
-          "Projects"
-        ],
-        "parameters": [],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/Create%20Project%20Request"
-              },
-              "examples": {}
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Create%20Project%20Response"
-                }
-              }
-            },
-            "headers": {}
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ]
-      },
-      "get": {
-        "summary": "Get Project List",
-        "deprecated": false,
-        "description": "",
-        "tags": [
-          "v1/Project",
-          "Projects"
-        ],
-        "parameters": [
-          {
-            "name": "user_id",
-            "in": "query",
-            "description": "",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {}
-                }
-              }
-            },
-            "headers": {}
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ]
-      }
-    },
-    "/v1/projects/{id}": {
-      "get": {
-        "summary": "Get Project by ID",
-        "deprecated": false,
-        "description": "",
-        "tags": [
-          "v1/Project",
-          "Projects"
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {}
-                }
-              }
-            },
-            "headers": {}
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ]
-      },
-      "put": {
-        "summary": "Update Project",
-        "deprecated": false,
-        "description": "Update an existing project",
-        "tags": [
-          "v1/Project",
-          "Projects"
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "",
-            "required": true,
-            "example": "",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/Update%20Project%20Request"
-              },
-              "examples": {}
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Update%20Project%20Response"
-                }
-              }
-            },
-            "headers": {}
-          }
-        },
-        "security": []
-      },
-      "delete": {
-        "summary": "Delete Project",
-        "deprecated": false,
-        "description": "Delete a project by ID",
-        "tags": [
-          "v1/Project",
-          "Projects"
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "",
-            "required": true,
-            "example": "",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "headers": {}
-          }
-        },
-        "security": []
-      }
-    },
-    "/v1/mindspaces": {
-      "post": {
-        "summary": "Create Mindspace",
-        "deprecated": false,
-        "description": "",
-        "tags": [
-          "v1/Mindspaces"
-        ],
-        "parameters": [],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/Mindspace%20Create%20Request"
-              },
-              "example": {
-                "name": "Jeffrey Schowalter",
-                "description": "Accusamus odit benigne tenetur templum custodia temptatio defetiscor cursim abeo. Volutabrum tracto bonus vado accedo tredecim acervus aequus tenuis depulso. Causa conventus decerno. Alienus theologus cometes. Vaco turpis absconditus appello conspergo. Deprecator solio dedecor eum tredecim natus cohibeo ab dolores decumbo.",
-                "corpus_ids": [
-                  "esse labore",
-                  "velit sunt nisi exercitation"
-                ],
-                "user_ids": [
-                  "amet esse qui",
-                  "culpa nulla sunt officia nisi",
-                  "nisi pariatur magna ad non"
-                ],
-                "type": "group"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {}
-                },
-                "example": {
-                  "success": false,
-                  "message": "Nam harum sodalitas testimonium timidus delibero caritas volup comburo thermae. Reiciendis cena usus cauda stella adfectus. Ipsum tabgo victus derideo abundans.",
-                  "mindspace": {
-                    "id": "43",
-                    "name": "Eva Borer",
-                    "description": "Mollitia curriculum voluptatibus conduco cumque cubicularis supplanto vulticulus creptio sufficio. Virga ver amo. Delego sub magni barba admoneo cinis tabella architecto. Cohaero conscendo dolorem thymum cito accedo corrupti sui accendo. Magnam explicabo tenetur cruciamentum demens cura teneo thymum. Blanditiis torrens altus villa pecto thorax quas casso. Tempora totidem absens ventito peior succedo cernuus dapifer. Supellex carus teneo.",
-                    "corpus_ids": [
-                      "eu",
-                      "Lorem ex"
-                    ],
-                    "user_ids": [
-                      "in ex Lorem dolore adipisicing",
-                      "commodo",
-                      "consectetur exercitation aliquip eiusmod deserunt"
-                    ],
-                    "type": "group",
-                    "created_at": "2025-12-07T14:27:38.210Z",
-                    "updated_at": "2026-06-11"
-                  }
-                }
-              }
-            },
-            "headers": {}
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ]
-      },
-      "get": {
-        "summary": "Get Mindspace List",
-        "deprecated": false,
-        "description": "Retrieve list of mindspaces for a user",
-        "tags": [
-          "v1/Mindspaces",
-          "Mindspaces"
-        ],
-        "parameters": [
-          {
-            "name": "user_id",
-            "in": "query",
-            "description": "",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetMindSpaceListResp"
-                }
-              }
-            },
-            "headers": {}
-          }
-        },
-        "security": []
-      }
-    },
-    "/v1/workspaces/{id}": {
-      "put": {
-        "summary": "Update Mindspace",
-        "deprecated": false,
-        "description": "",
-        "tags": [
-          "v1/Mindspaces",
-          "Mindspaces"
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "",
-            "required": true,
-            "example": "6823a223c07297c9f0abc358",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {}
-              },
-              "example": {
-                "name": "Test Workspace",
-                "description": "Magick Mind by GMI",
-                "user_id": "test_user_id"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {}
-                },
-                "example": {
-                  "success": true,
-                  "message": "Workspace updated successfully.",
-                  "workspace": {
-                    "id": "6823a223c07297c9f0abc358",
-                    "name": "Test Workspace",
-                    "description": "Magick Mind by GMI",
-                    "created_by_user_id": "",
-                    "created_at": "2025-05-14T02:48:51+07:00",
-                    "updated_at": "2025-05-14T02:48:51+07:00"
-                  }
-                }
-              }
-            },
-            "headers": {}
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ]
-      },
-      "delete": {
-        "summary": "Delete Mindspace",
-        "deprecated": false,
-        "description": "",
-        "tags": [
-          "v1/Mindspaces"
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "",
-            "required": true,
-            "example": "682390efc07297c9f0abc351",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {}
-              },
-              "example": {
-                "user_id": "test_user_id"
-              }
-            }
-          }
-        },
-        "responses": {
-          "204": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {}
-                },
-                "example": ""
-              }
-            },
-            "headers": {}
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ]
-      }
-    },
-    "/v1/mindspaces/{id}": {
-      "get": {
-        "summary": "Get Mindspace by ID",
-        "deprecated": false,
-        "description": "",
-        "tags": [
-          "v1/Mindspaces"
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "",
-            "required": true,
-            "example": "6823981bc07297c9f0abc354",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {}
-                }
-              }
-            },
-            "headers": {}
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ]
-      },
-      "put": {
-        "summary": "Update Mindspace",
-        "deprecated": false,
-        "description": "Update an existing mindspace",
-        "tags": [
-          "v1/Mindspaces",
-          "Mindspaces"
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "",
-            "required": true,
-            "example": "",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {}
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {}
-                }
-              }
-            },
-            "headers": {}
-          }
-        },
-        "security": []
-      },
-      "delete": {
-        "summary": "Delete Mindspace",
-        "deprecated": false,
-        "description": "Delete a mindspace by ID",
-        "tags": [
-          "v1/Mindspaces",
-          "Mindspaces"
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "",
-            "required": true,
-            "example": "",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {}
-                }
-              }
-            },
-            "headers": {}
-          }
-        },
-        "security": []
-      }
-    },
-    "/v1/mindspaces/messages": {
-      "get": {
-        "summary": "Get Mindspace Messages",
-        "deprecated": false,
-        "description": "Retrieve chat messages for a mindspace with pagination",
-        "tags": [
-          "v1/Mindspaces",
-          "Mindspaces"
-        ],
-        "parameters": [
-          {
-            "name": "mindspace_id",
-            "in": "query",
-            "description": "",
-            "required": false,
-            "schema": {
-              "type": "string"
+              "schema": {}
             }
           },
-          {
-            "name": "after_id",
-            "in": "query",
-            "description": "",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "before_id",
-            "in": "query",
-            "description": "",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "description": "",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
+          "required": true
+        },
         "responses": {
           "200": {
             "description": "Successful response",
             "content": {
               "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {}
-                }
+                "schema": {}
               }
             },
             "headers": {}
           }
         },
-        "security": []
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
       }
     },
     "/v1/persona": {
@@ -1630,9 +1722,7 @@
         "summary": "Create Persona",
         "deprecated": false,
         "description": "",
-        "tags": [
-          "v1/Persona"
-        ],
+        "tags": [],
         "parameters": [],
         "requestBody": {
           "content": {
@@ -1672,7 +1762,6 @@
         "deprecated": false,
         "description": "Retrieve a persona by ID",
         "tags": [
-          "v1/Persona",
           "Persona"
         ],
         "parameters": [
@@ -1692,23 +1781,23 @@
             "description": "Successful response",
             "content": {
               "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {}
-                }
+                "schema": {}
               }
             },
             "headers": {}
           }
         },
-        "security": []
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
       },
       "put": {
         "summary": "Update Persona",
         "deprecated": false,
         "description": "Update an existing persona",
         "tags": [
-          "v1/Persona",
           "Persona"
         ],
         "parameters": [
@@ -1726,35 +1815,33 @@
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {}
-              }
+              "schema": {}
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
             "description": "Successful response",
             "content": {
               "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {}
-                }
+                "schema": {}
               }
             },
             "headers": {}
           }
         },
-        "security": []
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
       },
       "delete": {
         "summary": "Delete Persona",
         "deprecated": false,
         "description": "Delete a persona by ID",
         "tags": [
-          "v1/Persona",
           "Persona"
         ],
         "parameters": [
@@ -1774,6 +1861,272 @@
             "description": "Successful response",
             "content": {
               "application/json": {
+                "schema": {}
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/v1/chat/completions": {
+      "post": {
+        "summary": "Chat Completions",
+        "deprecated": false,
+        "description": "OpenAI-compatible chat completions endpoint",
+        "tags": [
+          "OpenAI Compatible"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {}
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/v1/models": {
+      "get": {
+        "summary": "List Models",
+        "deprecated": false,
+        "description": "OpenAI-compatible models list endpoint",
+        "tags": [
+          "OpenAI Compatible"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/v1/traits": {
+      "post": {
+        "summary": "Create Trait",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "Traits"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTraitRequest"
+              },
+              "examples": {}
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateTraitResponse"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      },
+      "get": {
+        "summary": "List Traits",
+        "deprecated": false,
+        "description": "List traits (with filters, cursor pagination)",
+        "tags": [],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 20,
+              "maximum": 100
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListTraitsResponse"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/v1/traits/{trait_id}": {
+      "get": {
+        "summary": "Get Trait",
+        "deprecated": false,
+        "description": "",
+        "tags": [],
+        "parameters": [
+          {
+            "name": "trait_id",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetTraitResponse"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      },
+      "put": {
+        "summary": "Update Trait",
+        "deprecated": false,
+        "description": "Update trait",
+        "tags": [],
+        "parameters": [
+          {
+            "name": "trait_id",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateTraitResponse"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      },
+      "patch": {
+        "summary": "Partial Trait Update",
+        "deprecated": false,
+        "description": "",
+        "tags": [],
+        "parameters": [
+          {
+            "name": "trait_id",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {}
@@ -1783,29 +2136,56 @@
             "headers": {}
           }
         },
-        "security": []
-      }
-    },
-    "/v1/chat/magickmind": {
-      "post": {
-        "summary": "Magick Mind Chat",
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      },
+      "delete": {
+        "summary": "Delete Trait",
         "deprecated": false,
-        "description": "",
-        "tags": [
-          "v1/Chat"
+        "description": "Delete trait",
+        "tags": [],
+        "parameters": [
+          {
+            "name": "trait_id",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
-        "parameters": [],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {}
-              },
-              "examples": {}
+        "responses": {
+          "204": {
+            "description": "",
+            "headers": {}
+          },
+          "409": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
             }
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/v1/traits-validations": {
+      "post": {
+        "summary": "Validate Trait Value",
+        "deprecated": false,
+        "description": "Validate trait value",
+        "tags": [],
+        "parameters": [],
         "responses": {
           "200": {
             "description": "",
@@ -1827,56 +2207,43 @@
         ]
       }
     },
-    "/v1/chat/completions": {
+    "/v1/traits/search": {
       "post": {
-        "summary": "Chat Completions",
+        "summary": "Complex Search",
         "deprecated": false,
-        "description": "OpenAI-compatible chat completions endpoint",
-        "tags": [
-          "v1/OpenAI Compatible",
-          "OpenAI Compatible"
-        ],
+        "description": "Complex search",
+        "tags": [],
         "parameters": [],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {}
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                }
               }
             }
           }
         },
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {}
-                }
-              }
-            },
-            "headers": {}
+        "security": [
+          {
+            "bearer": []
           }
-        },
-        "security": []
+        ]
       }
     },
-    "/v1/models": {
-      "get": {
-        "summary": "List Models",
+    "/v1/traits/bulk": {
+      "post": {
+        "summary": "Bulk Operations",
         "deprecated": false,
-        "description": "OpenAI-compatible models list endpoint",
-        "tags": [
-          "v1/OpenAI Compatible",
-          "OpenAI Compatible"
-        ],
+        "description": "",
+        "tags": [],
         "parameters": [],
         "responses": {
-          "200": {
-            "description": "Successful response",
+          "207": {
+            "description": "",
             "content": {
               "application/json": {
                 "schema": {
@@ -1884,40 +2251,23 @@
                   "properties": {}
                 }
               }
-            },
-            "headers": {}
+            }
           }
         },
-        "security": []
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
       }
     }
   },
+  "webhooks": {},
   "components": {
     "schemas": {
-      "LoginRequest": {
+      "TokenSchema": {
         "type": "object",
         "properties": {
-          "email": {
-            "type": "string"
-          },
-          "password": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "email",
-          "password"
-        ]
-      },
-      "LoginResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "message": {
-            "type": "string"
-          },
           "access_token": {
             "type": "string"
           },
@@ -1955,23 +2305,10 @@
           "id_token",
           "not-before-policy",
           "session_state",
-          "scope",
-          "success",
-          "message"
+          "scope"
         ]
       },
-      "RefreshSchema": {
-        "type": "object",
-        "properties": {
-          "refresh_token": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "refresh_token"
-        ]
-      },
-      "SignUpSchema": {
+      "SignUpRequest": {
         "type": "object",
         "properties": {
           "email": {
@@ -1993,70 +2330,122 @@
           "password"
         ]
       },
-      "Sign Up Response V1": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "message": {
-            "type": "string"
+      "SignUpResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseSchema"
           }
-        },
-        "required": [
-          "success",
-          "message"
         ]
       },
-      "Refresh Response": {
+      "RefreshRequest": {
         "type": "object",
         "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "message": {
-            "type": "string"
-          },
-          "access_token": {
-            "type": "string"
-          },
-          "expires_in": {
-            "type": "integer"
-          },
-          "refresh_expires_in": {
-            "type": "integer"
-          },
           "refresh_token": {
-            "type": "string"
-          },
-          "token_type": {
-            "type": "string"
-          },
-          "id_token": {
-            "type": "string"
-          },
-          "not-before-policy": {
-            "type": "integer"
-          },
-          "session_state": {
-            "type": "string"
-          },
-          "scope": {
             "type": "string"
           }
         },
         "required": [
-          "access_token",
-          "expires_in",
-          "refresh_expires_in",
-          "refresh_token",
-          "token_type",
-          "id_token",
-          "not-before-policy",
-          "session_state",
-          "scope",
-          "success",
-          "message"
+          "refresh_token"
+        ]
+      },
+      "LoginRequest": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ]
+      },
+      "MindspaceType": {
+        "type": "string",
+        "enum": [
+          "PRIVATE",
+          "GROUP"
+        ]
+      },
+      "AddMindSpaceUsersRequest": {
+        "title": "AddMindSpaceUsersRequest",
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "user_ids": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string"
+            },
+            "description": "Users to add to the mindspace"
+          }
+        },
+        "required": [
+          "user_ids"
+        ]
+      },
+      "AddMindSpaceUsersResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "corpus_ids": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "user_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "type": {
+            "$ref": "#/components/schemas/MindspaceType"
+          },
+          "created_by": {
+            "type": "string"
+          },
+          "updated_by": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "description",
+          "project_id",
+          "corpus_ids",
+          "user_ids",
+          "type",
+          "created_by",
+          "updated_by",
+          "created_at",
+          "updated_at"
         ]
       },
       "MindspaceSchema": {
@@ -2075,11 +2464,13 @@
             "type": "string"
           },
           "corpus_ids": {
-            "type": "array",
+            "type": [
+              "array",
+              "null"
+            ],
             "items": {
               "type": "string"
-            },
-            "nullable": true
+            }
           },
           "user_ids": {
             "type": "array",
@@ -2088,11 +2479,7 @@
             }
           },
           "type": {
-            "type": "string",
-            "enum": [
-              "PRIVATE",
-              "GROUP"
-            ]
+            "$ref": "#/components/schemas/MindspaceType"
           },
           "created_by": {
             "type": "string"
@@ -2121,7 +2508,7 @@
           "project_id"
         ]
       },
-      "Mindspace Create Request": {
+      "CreateMindspaceRequest": {
         "type": "object",
         "properties": {
           "name": {
@@ -2146,11 +2533,7 @@
             }
           },
           "type": {
-            "type": "string",
-            "enum": [
-              "private",
-              "group"
-            ]
+            "$ref": "#/components/schemas/MindspaceType"
           }
         },
         "required": [
@@ -2161,26 +2544,25 @@
           "project_id"
         ]
       },
-      "Mindspace Create Response": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
+      "CreateMindspaceResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseSchema"
           },
-          "message": {
-            "type": "string"
-          },
-          "mindspace": {
-            "$ref": "#/components/schemas/MindspaceSchema"
+          {
+            "type": "object",
+            "properties": {
+              "mindspace": {
+                "$ref": "#/components/schemas/MindspaceSchema"
+              }
+            },
+            "required": [
+              "mindspace"
+            ]
           }
-        },
-        "required": [
-          "mindspace",
-          "success",
-          "message"
         ]
       },
-      "UpdateMindSpaceReq": {
+      "UpdateMindSpaceRequest": {
         "type": "object",
         "properties": {
           "name": {
@@ -2188,9 +2570,11 @@
             "maxLength": 100
           },
           "description": {
-            "type": "string",
-            "maxLength": 256,
-            "nullable": true
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 256
           },
           "project_id": {
             "type": "string"
@@ -2207,28 +2591,30 @@
               "type": "string"
             }
           }
-        },
-        "required": [
-          "name",
-          "project_id",
-          "corpus_ids",
-          "user_ids"
-        ]
+        }
       },
-      "UpdateMindSpaceResp": {
+      "UpdateMindSpaceResponse": {
         "allOf": [
           {
-            "$ref": "#/components/schemas/Base%20Schema"
+            "$ref": "#/components/schemas/BaseSchema"
           },
           {
-            "$ref": "#/components/schemas/MindspaceSchema"
+            "type": "object",
+            "properties": {
+              "mindspace": {
+                "$ref": "#/components/schemas/MindspaceSchema"
+              }
+            },
+            "required": [
+              "mindspace"
+            ]
           }
         ]
       },
-      "GetMindSpaceListResp": {
+      "GetMindSpaceListResponse": {
         "allOf": [
           {
-            "$ref": "#/components/schemas/Base%20Schema"
+            "$ref": "#/components/schemas/BaseSchema"
           },
           {
             "type": "object",
@@ -2243,7 +2629,7 @@
           }
         ]
       },
-      "MindspaceMessagesResp": {
+      "MindspaceMessagesResponse": {
         "type": "object",
         "properties": {
           "chat_histories": {
@@ -2269,7 +2655,7 @@
           }
         }
       },
-      "End User": {
+      "EndUserSchema": {
         "type": "object",
         "properties": {
           "id": {
@@ -2279,7 +2665,10 @@
             "type": "string"
           },
           "external_id": {
-            "type": "string"
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "tenant_id": {
             "type": "string"
@@ -2301,14 +2690,62 @@
           "id",
           "name",
           "external_id",
-          "tenant_id",
           "created_by",
           "updated_by",
           "created_at",
-          "updated_at"
+          "updated_at",
+          "tenant_id"
         ]
       },
-      "End User Create Req": {
+      "CreateEndUserRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "external_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 1,
+            "maxLength": 255
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "GetEndUserListResponse": {
+        "allOf": [
+          {
+            "type": "object",
+            "properties": {
+              "paging": {
+                "$ref": "#/components/schemas/PaginationSchema"
+              }
+            },
+            "required": [
+              "paging"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/EndUserSchema"
+                }
+              }
+            },
+            "required": [
+              "data"
+            ]
+          }
+        ]
+      },
+      "UpdateEndUserRequest": {
         "type": "object",
         "properties": {
           "name": {
@@ -2322,79 +2759,7 @@
           "name"
         ]
       },
-      "End User Res": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "message": {
-            "type": "string"
-          },
-          "end_user": {
-            "$ref": "#/components/schemas/End%20User"
-          }
-        },
-        "required": [
-          "success",
-          "message",
-          "end_user"
-        ]
-      },
-      "End User List Res": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "message": {
-            "type": "string"
-          },
-          "end_users": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/End%20User"
-            }
-          }
-        },
-        "required": [
-          "end_users",
-          "success",
-          "message"
-        ]
-      },
-      "End User Update Req": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string"
-          },
-          "external_id": {
-            "type": "string"
-          },
-          "tenant_id": {
-            "type": "string"
-          }
-        }
-      },
-      "Query End User List Request": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string"
-          },
-          "external_id": {
-            "type": "string"
-          },
-          "tenant_id": {
-            "type": "string"
-          },
-          "actor_id": {
-            "type": "string"
-          }
-        }
-      },
-      "Corpus Schema": {
+      "CorpusSchema": {
         "type": "object",
         "properties": {
           "id": {
@@ -2431,7 +2796,7 @@
           "updated_at"
         ]
       },
-      "Corpus Create Req": {
+      "CreateCorpusRequest": {
         "type": "object",
         "properties": {
           "name": {
@@ -2453,48 +2818,25 @@
           "artifact_ids"
         ]
       },
-      "Corpus Res": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
+      "CreateCorpusResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseSchema"
           },
-          "message": {
-            "type": "string"
-          },
-          "corpus": {
-            "$ref": "#/components/schemas/Corpus%20Schema"
+          {
+            "type": "object",
+            "properties": {
+              "corpus": {
+                "$ref": "#/components/schemas/CorpusSchema"
+              }
+            },
+            "required": [
+              "corpus"
+            ]
           }
-        },
-        "required": [
-          "corpus",
-          "success",
-          "message"
         ]
       },
-      "Corpus List Res": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "message": {
-            "type": "string"
-          },
-          "corpus": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Corpus%20Schema"
-            }
-          }
-        },
-        "required": [
-          "corpus",
-          "success",
-          "message"
-        ]
-      },
-      "Corpus  Update Req": {
+      "UpdateCorpusRequest": {
         "type": "object",
         "properties": {
           "name": {
@@ -2511,7 +2853,64 @@
           }
         }
       },
-      "Project Schema": {
+      "UpdateCorpusResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseSchema"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "corpus": {
+                "$ref": "#/components/schemas/CorpusSchema"
+              }
+            },
+            "required": [
+              "corpus"
+            ]
+          }
+        ]
+      },
+      "GetCorpusByIdResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseSchema"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "corpus": {
+                "$ref": "#/components/schemas/CorpusSchema"
+              }
+            },
+            "required": [
+              "corpus"
+            ]
+          }
+        ]
+      },
+      "GetCorpusResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseSchema"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "corpus": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/CorpusSchema"
+                }
+              }
+            },
+            "required": [
+              "corpus"
+            ]
+          }
+        ]
+      },
+      "ProjectSchema": {
         "type": "object",
         "properties": {
           "id": {
@@ -2524,11 +2923,13 @@
             "type": "string"
           },
           "corpus_ids": {
-            "type": "array",
+            "type": [
+              "array",
+              "null"
+            ],
             "items": {
               "type": "string"
-            },
-            "nullable": true
+            }
           },
           "created_by": {
             "type": "string"
@@ -2549,7 +2950,7 @@
           "updated_at"
         ]
       },
-      "Create Project Request": {
+      "CreateProjectRequest": {
         "type": "object",
         "properties": {
           "name": {
@@ -2567,29 +2968,10 @@
           }
         },
         "required": [
-          "name",
-          "corpus_ids"
+          "name"
         ]
       },
-      "Create Project Response": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/Base%20Schema"
-          },
-          {
-            "type": "object",
-            "properties": {
-              "project": {
-                "$ref": "#/components/schemas/Project%20Schema"
-              }
-            },
-            "required": [
-              "project"
-            ]
-          }
-        ]
-      },
-      "Update Project Request": {
+      "UpdateProjectRequest": {
         "type": "object",
         "properties": {
           "name": {
@@ -2611,48 +2993,55 @@
           "corpus_ids"
         ]
       },
-      "Update Project Response": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/Base%20Schema"
-          },
-          {
-            "type": "object",
-            "properties": {
-              "project": {
-                "$ref": "#/components/schemas/Project%20Schema"
-              }
-            },
-            "required": [
-              "project"
-            ]
-          }
-        ]
+      "ListProjectResponse": {
+        "type": "object",
+        "properties": {}
       },
-      "Chat Schema": {
+      "ChatSchema": {
         "type": "object",
         "properties": {
           "message_id": {
-            "type": "string"
-          },
-          "task_id": {
             "type": "string"
           },
           "content": {
             "type": "string"
           },
           "reply_to": {
-            "type": "string",
-            "nullable": true
+            "type": [
+              "string",
+              "null"
+            ]
           }
         },
         "required": [
           "message_id",
-          "task_id",
           "content"
         ]
       },
-      "Magick Mind Chat Request": {
+      "ConfigSchema": {
+        "type": "object",
+        "properties": {
+          "fast_model_id": {
+            "type": "string"
+          },
+          "smart_model_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "compute_power": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        },
+        "required": [
+          "fast_model_id",
+          "smart_model_ids",
+          "compute_power"
+        ]
+      },
+      "ChatRequest": {
         "type": "object",
         "properties": {
           "api_key": {
@@ -2665,19 +3054,19 @@
             "type": "string"
           },
           "reply_to_message_id": {
-            "type": "string"
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "enduser_id": {
             "type": "string"
           },
-          "fast_brain_model_id": {
-            "type": "string"
-          },
-          "model_ids": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+          "additional_context": {
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "artifact_ids": {
             "type": "array",
@@ -2685,18 +3074,19 @@
               "type": "string"
             }
           },
-          "compute_power": {
-            "type": "integer"
+          "config": {
+            "$ref": "#/components/schemas/ConfigSchema"
           }
         },
         "required": [
           "api_key",
           "mindspace_id",
           "message",
-          "enduser_id"
+          "enduser_id",
+          "config"
         ]
       },
-      "Chat Response": {
+      "ChatResponse": {
         "type": "object",
         "properties": {
           "success": {
@@ -2706,7 +3096,7 @@
             "type": "string"
           },
           "content": {
-            "$ref": "#/components/schemas/Chat%20Schema"
+            "$ref": "#/components/schemas/ChatSchema"
           }
         },
         "required": [
@@ -2722,8 +3112,10 @@
             "type": "string"
           },
           "artifact_id": {
-            "type": "string",
-            "nullable": true
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "name": {
             "type": "string"
@@ -2757,7 +3149,7 @@
       "GetPersonaByIdRes": {
         "allOf": [
           {
-            "$ref": "#/components/schemas/Base%20Schema"
+            "$ref": "#/components/schemas/BaseSchema"
           },
           {
             "$ref": "#/components/schemas/PersonaSchema"
@@ -2768,8 +3160,10 @@
         "type": "object",
         "properties": {
           "artifact_id": {
-            "type": "string",
-            "nullable": true
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "name": {
             "type": "string"
@@ -2833,8 +3227,10 @@
             "type": "string"
           },
           "reply_to_message_id": {
-            "type": "string",
-            "nullable": true
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "status": {
             "type": "string"
@@ -3220,7 +3616,333 @@
           }
         }
       },
-      "Base Schema": {
+      "TraitSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "namespace": {
+            "type": "string"
+          },
+          "owner_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "category": {
+            "type": "string"
+          },
+          "display_name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/TraitTypeSchema"
+          },
+          "numeric_config": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/NumericConfigSchema"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "categorical_config": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CategoricalConfigSchema"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "multilabel_config": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MultilabelConfigSchema"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "default_lock": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LockTypeSchema"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "default_learning_rate": {
+            "type": "number",
+            "format": "float64"
+          },
+          "supports_dyadic": {
+            "type": "boolean"
+          },
+          "visibility": {
+            "$ref": "#/components/schemas/TraitVisibilitySchema"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "namespace",
+          "category",
+          "display_name",
+          "description",
+          "type",
+          "default_learning_rate",
+          "default_lock",
+          "supports_dyadic",
+          "visibility",
+          "created_at",
+          "updated_at"
+        ]
+      },
+      "NumericConfigSchema": {
+        "type": "object",
+        "properties": {
+          "min": {
+            "type": "number",
+            "format": "float64"
+          },
+          "max": {
+            "type": "number",
+            "format": "float64"
+          },
+          "default": {
+            "type": "number",
+            "format": "float64"
+          }
+        },
+        "required": [
+          "min",
+          "max",
+          "default"
+        ]
+      },
+      "CategoricalConfigSchema": {
+        "type": "object",
+        "properties": {
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "default": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "options",
+          "default"
+        ]
+      },
+      "MultilabelConfigSchema": {
+        "type": "object",
+        "properties": {
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "max_selections": {
+            "type": "integer"
+          },
+          "default": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "options",
+          "max_selections",
+          "default"
+        ]
+      },
+      "TraitTypeSchema": {
+        "type": "string",
+        "enum": [
+          "NUMERIC",
+          "CATEGORICAL",
+          "MULTILABEL"
+        ]
+      },
+      "LockTypeSchema": {
+        "type": "string",
+        "enum": [
+          "HARD",
+          "SOFT"
+        ]
+      },
+      "TraitVisibilitySchema": {
+        "type": "string",
+        "enum": [
+          "PRIVATE",
+          "ORG",
+          "PUBLIC"
+        ]
+      },
+      "CreateTraitResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/TraitSchema"
+          }
+        ]
+      },
+      "CreateTraitRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "namespace": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "display_name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/TraitTypeSchema"
+          },
+          "numeric_config": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/NumericConfigSchema"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "categorical_config": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CategoricalConfigSchema"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "multilabel_config": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MultilabelConfigSchema"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "default_lock": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LockTypeSchema"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "default_learning_rate": {
+            "type": "number",
+            "format": "float64"
+          },
+          "supports_dyadic": {
+            "type": "boolean"
+          },
+          "visibility": {
+            "$ref": "#/components/schemas/TraitVisibilitySchema"
+          }
+        },
+        "required": [
+          "name",
+          "namespace",
+          "category",
+          "display_name",
+          "description",
+          "type",
+          "default_learning_rate",
+          "default_lock",
+          "supports_dyadic",
+          "visibility"
+        ]
+      },
+      "GetTraitResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/TraitSchema"
+          }
+        ]
+      },
+      "ListTraitsResponse": {
+        "allOf": [
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/TraitSchema"
+                }
+              }
+            },
+            "required": [
+              "data"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "pagniation": {
+                "$ref": "#/components/schemas/PaginationSchema"
+              }
+            },
+            "required": [
+              "pagniation"
+            ]
+          }
+        ]
+      },
+      "UpdateTraitResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/TraitSchema"
+          }
+        ]
+      },
+      "BaseSchema": {
         "type": "object",
         "properties": {
           "success": {
@@ -3234,8 +3956,118 @@
           "success",
           "message"
         ]
+      },
+      " RFC7807Schema": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "type": "integer",
+            "minimum": 400,
+            "maximum": 599
+          },
+          "detail": {
+            "type": "string"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ErrorFieldsSchema"
+            }
+          },
+          "request_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "title",
+          "status",
+          "detail",
+          "request_id"
+        ]
+      },
+      "ErrorFieldsSchema": {
+        "type": "object",
+        "properties": {
+          "field": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "field",
+          "code",
+          "message"
+        ]
+      },
+      "ErrorResponse": {
+        "allOf": [
+          {
+            "type": "object",
+            "properties": {
+              "error": {
+                "$ref": "#/components/schemas/%20RFC7807Schema"
+              }
+            },
+            "required": [
+              "error"
+            ]
+          }
+        ]
+      },
+      "PaginationSchema": {
+        "type": "object",
+        "properties": {
+          "cursors": {
+            "$ref": "#/components/schemas/CursorSchema"
+          },
+          "has_more": {
+            "type": "boolean"
+          },
+          "has_previous": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "cursors",
+          "has_more",
+          "has_previous"
+        ]
+      },
+      "CursorSchema": {
+        "type": "object",
+        "properties": {
+          "after": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "before": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "after",
+          "before"
+        ]
       }
     },
+    "responses": {},
     "securitySchemes": {
       "bearer": {
         "type": "http",
@@ -3243,5 +4075,10 @@
       }
     }
   },
-  "servers": []
+  "servers": [],
+  "security": [
+    {
+      "bearer": []
+    }
+  ]
 }
