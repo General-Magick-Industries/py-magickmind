@@ -47,26 +47,6 @@ class CreateEndUserRequest(BaseModel):
     actor_id: Optional[str] = Field(None, description="Actor ID (Relaxed)")
 
 
-class CreateEndUserResponse(EndUser):
-    """
-    Response schema for end user creation.
-
-    Returns flat EndUserSchema matching Bifrost API spec.
-    """
-
-    pass
-
-
-class GetEndUserResponse(EndUser):
-    """
-    Response schema for getting a single end user.
-
-    Returns flat EndUserSchema matching Bifrost API spec.
-    """
-
-    pass
-
-
 class Cursors(BaseModel):
     """Pagination cursors."""
 
@@ -106,13 +86,3 @@ class UpdateEndUserRequest(BaseModel):
         description="External ID for mapping to external systems (optional)",
     )
     tenant_id: Optional[str] = Field(None, description="Tenant ID (Relaxed)")
-
-
-class UpdateEndUserResponse(EndUser):
-    """
-    Response schema for end user update.
-
-    Returns flat EndUserSchema matching Bifrost API spec.
-    """
-
-    pass

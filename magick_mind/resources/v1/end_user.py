@@ -11,12 +11,9 @@ from typing import Optional
 
 from magick_mind.models.v1.end_user import (
     CreateEndUserRequest,
-    CreateEndUserResponse,
     EndUser,
-    GetEndUserResponse,
     QueryEndUserResponse,
     UpdateEndUserRequest,
-    UpdateEndUserResponse,
 )
 from magick_mind.resources.base import BaseResource
 from magick_mind.routes import Routes
@@ -66,8 +63,7 @@ class EndUserResourceV1(BaseResource):
         )
 
         response = self._http.post(Routes.END_USERS, json=request.model_dump())
-        create_response = CreateEndUserResponse(**response)
-        return create_response.end_user
+        return EndUser(**response)
 
     def get(self, end_user_id: str) -> EndUser:
         """
@@ -84,8 +80,7 @@ class EndUserResourceV1(BaseResource):
             print(f"End user name: {end_user.name}")
         """
         response = self._http.get(Routes.end_user(end_user_id))
-        get_response = GetEndUserResponse(**response)
-        return get_response.end_user
+        return EndUser(**response)
 
     def query(
         self,
@@ -130,7 +125,7 @@ class EndUserResourceV1(BaseResource):
 
         response = self._http.get(Routes.END_USERS, params=params)
         query_response = QueryEndUserResponse(**response)
-        return query_response.end_users
+        return query_response.data
 
     def update(
         self,
@@ -170,8 +165,7 @@ class EndUserResourceV1(BaseResource):
         response = self._http.put(
             Routes.end_user(end_user_id), json=request.model_dump(exclude_none=True)
         )
-        update_response = UpdateEndUserResponse(**response)
-        return update_response.end_user
+        return EndUser(**response)
 
     def delete(self, end_user_id: str) -> None:
         """
