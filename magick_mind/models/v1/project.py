@@ -4,12 +4,12 @@ Project models for Magick Mind SDK v1 API.
 Mirrors Bifrost's /v1/projects endpoint request/response schemas.
 """
 
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, List
 
 from pydantic import BaseModel, ConfigDict, Field
 
 if TYPE_CHECKING:
-    from magick_mind.models.v1.end_user import Cursors, PageInfo
+    from magick_mind.models.v1.end_user import PageInfo
 
 
 class Project(BaseModel):
@@ -47,12 +47,6 @@ class CreateProjectRequest(BaseModel):
     )
 
 
-# Type aliases for flat responses (matching Bifrost API)
-CreateProjectResponse = Project
-GetProjectResponse = Project
-UpdateProjectResponse = Project
-
-
 class GetProjectListResponse(BaseModel):
     """
     Response schema for listing projects.
@@ -62,6 +56,9 @@ class GetProjectListResponse(BaseModel):
 
     data: list[Project] = Field(..., description="List of projects")
     paging: "PageInfo" = Field(..., description="Pagination information")
+
+
+GetProjectListResponse.model_rebuild()
 
 
 class UpdateProjectRequest(BaseModel):

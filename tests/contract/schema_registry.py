@@ -16,9 +16,8 @@ from magick_mind.models.v1.artifact import (
     FinalizeArtifactRequest,
 )
 from magick_mind.models.v1.project import (
-    CreateProjectResponse,
-    UpdateProjectResponse,
     CreateProjectRequest,
+    Project,
     UpdateProjectRequest,
 )
 from magick_mind.models.v1.api_keys import (
@@ -213,8 +212,8 @@ RESPONSES = [
     ContractDef("GenericPresignResp", PresignArtifactResponse),
     # Note: PresignArtifactUploadResp removed - duplicate of GenericPresignResp
     # Project
-    ContractDef("CreateProjectResponse", CreateProjectResponse),
-    ContractDef("UpdateProjectResponse", UpdateProjectResponse),
+    ContractDef("CreateProjectResponse", Project),
+    ContractDef("UpdateProjectResponse", Project),
     # API Keys
     ContractDef("UpdateApiKeyResp", UpdateApiKeyResponse),
     ContractDef("CreateApiKeyResponse", CreateApiKeyResponse),

@@ -153,7 +153,7 @@ class TestProjectResourceV1:
         """Test listing projects filtered by creator user ID."""
         mock_response = Mock()
         mock_response.json.return_value = {
-            "projects": [
+            "data": [
                 {
                     "id": "proj-1",
                     "name": "User Project",

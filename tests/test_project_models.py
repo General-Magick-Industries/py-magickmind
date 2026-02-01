@@ -6,12 +6,9 @@ from pydantic import ValidationError
 from magick_mind.models.v1.end_user import PageInfo
 from magick_mind.models.v1.project import (
     CreateProjectRequest,
-    CreateProjectResponse,
     GetProjectListResponse,
-    GetProjectResponse,
     Project,
     UpdateProjectRequest,
-    UpdateProjectResponse,
 )
 
 
@@ -99,63 +96,21 @@ class TestCreateProjectRequest:
             CreateProjectRequest(description="No name")
 
 
-class TestCreateProjectResponse:
-    """Tests for CreateProjectResponse model."""
-
-    def test_valid_create_response(self):
-        """Test that CreateProjectResponse is a type alias for Project."""
-        project = Project(
-            id="proj-123",
-            name="Created Project",
-            description="New",
-            corpus_ids=[],
-            created_by="user-456",
-            created_at="2024-01-01T10:00:00Z",
-            updated_at="2024-01-01T10:00:00Z",
-        )
-
-        response = CreateProjectResponse(**project.model_dump())
-
-        assert response.id == "proj-123"
-        assert response.name == "Created Project"
-
-
-class TestGetProjectResponse:
-    """Tests for GetProjectResponse model."""
-
-    def test_valid_get_response(self):
-        """Test that GetProjectResponse is a type alias for Project."""
-        project_data = {
-            "id": "proj-123",
-            "name": "Retrieved Project",
-            "description": "Test",
-            "corpus_ids": ["corpus-1"],
-            "created_by": "user-456",
-            "created_at": "2024-01-01T10:00:00Z",
-            "updated_at": "2024-01-01T10:00:00Z",
-        }
-
-        response = GetProjectResponse(**project_data)
-
-        assert response.id == "proj-123"
-        assert response.corpus_ids == ["corpus-1"]
-
-
 class TestGetProjectListResponse:
     """Tests for GetProjectListResponse model."""
 
     def test_valid_list_response(self):
         """Test creating a valid project list response."""
         projects = [
-            {
-                "id": f"proj-{i}",
-                "name": f"Project {i}",
-                "description": f"Description {i}",
-                "corpus_ids": [f"corpus-{i}"],
-                "created_by": "user-456",
-                "created_at": "2024-01-01T10:00:00Z",
-                "updated_at": "2024-01-01T10:00:00Z",
-            }
+            Project(
+                id=f"proj-{i}",
+                name=f"Project {i}",
+                description=f"Description {i}",
+                corpus_ids=[f"corpus-{i}"],
+                created_by="user-456",
+                created_at="2024-01-01T10:00:00Z",
+                updated_at="2024-01-01T10:00:00Z",
+            )
             for i in range(3)
         ]
 
@@ -168,8 +123,8 @@ class TestGetProjectListResponse:
         response = GetProjectListResponse(data=projects, paging=paging)
 
         assert len(response.data) == 3
-        assert response.data[0]["id"] == "proj-0"
-        assert response.data[2]["id"] == "proj-2"
+        assert response.data[0].id == "proj-0"
+        assert response.data[2].id == "proj-2"
         assert response.paging.cursors.after == "cursor-123"
         assert response.paging.has_more is True
 
@@ -203,37 +158,14 @@ class TestUpdateProjectRequest:
         assert request.corpus_ids == ["corpus-1", "corpus-2"]
 
     def test_update_request_minimal(self):
-        """Test update request with only required fields."""
-        request = UpdateProjectRequest(name="Updated Name")
+        """Test update request with minimal required fields."""
+        request = UpdateProjectRequest(name="Updated Name", corpus_ids=[])
 
         assert request.name == "Updated Name"
-        assert request.description == ""
+        assert request.description == None
         assert request.corpus_ids == []
 
     def test_missing_name(self):
         """Test that missing name raises validation error."""
         with pytest.raises(ValidationError):
             UpdateProjectRequest(description="No name")
-
-
-class TestUpdateProjectResponse:
-    """Tests for UpdateProjectResponse model."""
-
-    def test_valid_update_response(self):
-        """Test that UpdateProjectResponse is a type alias for Project."""
-        project_data = {
-            "id": "proj-123",
-            "name": "Updated Project",
-            "description": "Updated",
-            "corpus_ids": ["corpus-1", "corpus-2"],
-            "created_by": "user-456",
-            "created_at": "2024-01-01T10:00:00Z",
-            "updated_at": "2024-01-01T11:00:00Z",
-        }
-
-        response = UpdateProjectResponse(**project_data)
-
-        assert response.id == "proj-123"
-        assert response.name == "Updated Project"
-        assert response.corpus_ids is not None
-        assert len(response.corpus_ids) == 2
