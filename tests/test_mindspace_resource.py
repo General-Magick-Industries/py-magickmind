@@ -7,11 +7,9 @@ from unittest.mock import Mock, patch
 
 from magick_mind import MagickMind
 from magick_mind.models.v1.mindspace import (
-    CreateMindSpaceResponse,
     GetMindSpaceListResponse,
-    GetMindSpaceResponse,
+    MindSpace,
     MindspaceMessagesResponse,
-    UpdateMindSpaceResponse,
 )
 from magick_mind.resources.v1.mindspace import MindspaceResourceV1
 
@@ -74,10 +72,9 @@ class TestMindspaceResourceV1:
         assert request_body["corpus_ids"] == ["corp-1"]
 
         # Verify response
-        assert isinstance(response, CreateMindSpaceResponse)
-        assert response.success is True
-        assert response.mindspace.id == "mind-123"
-        assert response.mindspace.type == "PRIVATE"
+        assert isinstance(response, MindSpace)
+        assert response.id == "mind-123"
+        assert response.type == "PRIVATE"
 
     def test_create_group_mindspace(self, mindspace_resource, mock_http_client):
         """Test create() with group mindspace type."""
@@ -107,8 +104,8 @@ class TestMindspaceResourceV1:
             user_ids=["user-1", "user-2"],
         )
 
-        assert response.mindspace.type == "GROUP"
-        assert len(response.mindspace.user_ids) == 2
+        assert response.type == "GROUP"
+        assert len(response.user_ids) == 2
 
     def test_get_makes_correct_api_call(self, mindspace_resource, mock_http_client):
         """Test get() makes correct GET request."""
@@ -138,9 +135,9 @@ class TestMindspaceResourceV1:
         mock_http_client.get.assert_called_once_with("/v1/mindspaces/mind-789")
 
         # Verify response
-        assert isinstance(response, GetMindSpaceResponse)
-        assert response.mindspace.id == "mind-789"
-        assert response.mindspace.name == "Retrieved Space"
+        assert isinstance(response, MindSpace)
+        assert response.id == "mind-789"
+        assert response.name == "Retrieved Space"
 
     def test_list_without_filter(self, mindspace_resource, mock_http_client):
         """Test list() without user_id filter."""
@@ -246,9 +243,9 @@ class TestMindspaceResourceV1:
         assert len(request_body["corpus_ids"]) == 2
 
         # Verify response
-        assert isinstance(response, UpdateMindSpaceResponse)
-        assert response.mindspace.name == "Updated Name"
-        assert response.mindspace.updated_by == "user-2"
+        assert isinstance(response, MindSpace)
+        assert response.name == "Updated Name"
+        assert response.updated_by == "user-2"
 
     def test_delete_makes_correct_api_call(self, mindspace_resource, mock_http_client):
         """Test delete() makes correct DELETE request."""
@@ -410,9 +407,7 @@ class TestMindspaceResourceIntegration:
         # Create mindspace via v1 resource
         response = client.v1.mindspace.create(name="Test Space", type="PRIVATE")
 
-        assert response.success is True
-        assert response.mindspace.id == "mind-new"
+        assert response.id == "mind-new"
 
         # Verify the same works via alias
         response2 = client.mindspace.create(name="Test Space 2", type="GROUP")
-        assert response2.success is True

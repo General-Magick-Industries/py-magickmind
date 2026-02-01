@@ -6,13 +6,11 @@ from typing import TYPE_CHECKING, Optional
 
 from magick_mind.models.v1.mindspace import (
     CreateMindSpaceRequest,
-    CreateMindSpaceResponse,
     GetMindSpaceListResponse,
-    GetMindSpaceResponse,
-    MindspaceMessagesResponse,
+    MindSpace,
     MindSpaceType,
+    MindspaceMessagesResponse,
     UpdateMindSpaceRequest,
-    UpdateMindSpaceResponse,
 )
 from magick_mind.resources.base import BaseResource
 from magick_mind.routes import Routes
@@ -55,20 +53,19 @@ class MindspaceResourceV1(BaseResource):
         project_id: Optional[str] = None,
         corpus_ids: Optional[list[str]] = None,
         user_ids: Optional[list[str]] = None,
-    ) -> CreateMindSpaceResponse:
+    ) -> MindSpace:
         """
         Create a new mindspace.
-
         Args:
             name: Mindspace name (max 100 characters)
-            type: Mindspace type - either "private" or "group"
+            type: Mindspace type - either "PRIVATE" or "GROUP"
             description: Optional description (max 256 characters)
             project_id: Optional associated project ID
             corpus_ids: Optional list of corpus IDs to attach
             user_ids: Optional list of user IDs to grant access
 
         Returns:
-            CreateMindSpaceResponse with created mindspace
+            MindSpace
 
         Raises:
             HTTPError: If the API request fails
@@ -76,14 +73,14 @@ class MindspaceResourceV1(BaseResource):
 
         Example:
             # Create a group mindspace
-            response = client.v1.mindspace.create(
+            mindspace = client.v1.mindspace.create(
                 name="Engineering Team",
-                type="group",
+                type="GROUP",
                 description="Team collaboration space",
                 corpus_ids=["corp-1", "corp-2"],
                 user_ids=["user-1", "user-2"]
             )
-            print(f"Created mindspace: {response.mindspace.id}")
+            print(f"Created mindspace: {mindspace.id}")
         """
         # Build and validate request
         request = CreateMindSpaceRequest(
@@ -100,10 +97,12 @@ class MindspaceResourceV1(BaseResource):
             Routes.MINDSPACES, json=request.model_dump(exclude_none=True)
         )
 
-        # Parse and validate response
-        return CreateMindSpaceResponse.model_validate(response)
+        response_data = self._http.post(
+            Routes.MINDSPACES, json=request.model_dump(exclude_none=True)
+        ).json()
+        return MindSpace.model_validate(response_data["mindspace"])
 
-    def get(self, mindspace_id: str) -> GetMindSpaceResponse:
+    def get(self, mindspace_id: str) -> MindSpace:
         """
         Get a mindspace by ID.
 
@@ -111,19 +110,19 @@ class MindspaceResourceV1(BaseResource):
             mindspace_id: Mindspace ID to retrieve
 
         Returns:
-            GetMindSpaceResponse with mindspace data
+            MindSpace
 
         Raises:
             HTTPError: If the API request fails or mindspace not found
 
         Example:
-            response = client.v1.mindspace.get("mind-123")
-            print(f"Mindspace: {response.mindspace.name}")
-            print(f"Type: {response.mindspace.type}")
-            print(f"Corpus: {response.mindspace.corpus_ids}")
+            mindspace = client.v1.mindspace.get("mind-123")
+            print(f"Mindspace: {mindspace.name}")
+            print(f"Type: {mindspace.type}")
+            print(f"Corpus: {mindspace.corpus_ids}")
         """
-        response = self._http.get(Routes.mindspace(mindspace_id))
-        return GetMindSpaceResponse.model_validate(response)
+        response_data = self._http.get(Routes.mindspace(mindspace_id)).json()
+        return MindSpace.model_validate(response_data["mindspace"])
 
     def list(self, user_id: Optional[str] = None) -> GetMindSpaceListResponse:
         """
@@ -148,8 +147,8 @@ class MindspaceResourceV1(BaseResource):
         if user_id:
             params["user_id"] = user_id
 
-        response = self._http.get(Routes.MINDSPACES, params=params)
-        return GetMindSpaceListResponse.model_validate(response)
+        response_data = self._http.get(Routes.MINDSPACES, params=params).json()
+        return GetMindSpaceListResponse.model_validate(response_data)
 
     def update(
         self,
@@ -159,7 +158,7 @@ class MindspaceResourceV1(BaseResource):
         project_id: Optional[str] = None,
         corpus_ids: Optional[list[str]] = None,
         user_ids: Optional[list[str]] = None,
-    ) -> UpdateMindSpaceResponse:
+    ) -> MindSpace:
         """
         Update an existing mindspace.
 
@@ -172,7 +171,7 @@ class MindspaceResourceV1(BaseResource):
             user_ids: Updated list of user IDs
 
         Returns:
-            UpdateMindSpaceResponse with updated mindspace
+            MindSpace
 
         Raises:
             HTTPError: If the API request fails or mindspace not found
@@ -180,12 +179,12 @@ class MindspaceResourceV1(BaseResource):
 
         Example:
             # Update mindspace to add more corpus
-            response = client.v1.mindspace.update(
+            mindspace = client.v1.mindspace.update(
                 mindspace_id="mind-123",
                 name="Engineering Team",
                 corpus_ids=["corp-1", "corp-2", "corp-3"]
             )
-            print(f"Updated: {response.mindspace.corpus_ids}")
+            print(f"Updated: {mindspace.corpus_ids}")
         """
         # Build and validate request
         request = UpdateMindSpaceRequest(
@@ -203,7 +202,8 @@ class MindspaceResourceV1(BaseResource):
         )
 
         # Parse and validate response
-        return UpdateMindSpaceResponse.model_validate(response)
+        response_data = response.json()
+        return MindSpace.model_validate(response_data["mindspace"])
 
     def delete(self, mindspace_id: str) -> None:
         """
@@ -289,7 +289,7 @@ class MindspaceResourceV1(BaseResource):
             params["before_id"] = before_id
 
         # Make request
-        response = self._http.get(Routes.MINDSPACE_MESSAGES, params=params)
+        response_data = self._http.get(Routes.MINDSPACE_MESSAGES, params=params).json()
 
         # Parse and return
-        return MindspaceMessagesResponse(**response)
+        return MindspaceMessagesResponse.model_validate(response_data)

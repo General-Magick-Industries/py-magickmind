@@ -86,22 +86,6 @@ class CreateMindSpaceRequest(BaseModel):
     )
 
 
-class CreateMindSpaceResponse(BaseResponse):
-    """
-    Response from creating a mindspace.
-    """
-
-    mindspace: MindSpace = Field(..., description="Created mindspace")
-
-
-class GetMindSpaceResponse(BaseResponse):
-    """
-    Response from getting a mindspace by ID.
-    """
-
-    mindspace: MindSpace = Field(..., description="Retrieved mindspace")
-
-
 class GetMindSpaceListResponse(BaseResponse):
     """
     Response from listing mindspaces.
@@ -130,41 +114,6 @@ class UpdateMindSpaceRequest(BaseModel):
     user_ids: list[str] = Field(
         default_factory=list, description="List of user IDs to grant access"
     )
-
-
-class UpdateMindSpaceResponse(BaseResponse):
-    """
-    Response from updating a mindspace.
-
-    Example:
-        {
-            "success": true,
-            "message": "Mindspace updated successfully",
-            "mindspace": { ... }
-        }
-    """
-
-    mindspace: MindSpace = Field(..., description="Updated mindspace")
-
-
-class AddMindSpaceUsersRequest(BaseModel):
-    """
-    Request to add users to a mindspace.
-    """
-
-    user_ids: list[str] = Field(
-        ..., description="Users to add to the mindspace", min_length=1
-    )
-
-
-class AddMindSpaceUsersResponse(MindSpace):
-    """
-    Response from adding users to a mindspace.
-
-    Returns the full mindspace with updated user_ids.
-    """
-
-    pass
 
 
 # Reuse HistoryResponse for messages endpoint since it's the same structure
