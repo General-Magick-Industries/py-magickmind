@@ -4,12 +4,9 @@ import pytest
 
 from magick_mind.models.v1.end_user import (
     CreateEndUserRequest,
-    CreateEndUserResponse,
     EndUser,
-    GetEndUserResponse,
     QueryEndUserResponse,
     UpdateEndUserRequest,
-    UpdateEndUserResponse,
 )
 
 
@@ -96,44 +93,6 @@ class TestCreateEndUserRequest:
         assert request.actor_id is None  # Now Optional
 
 
-class TestCreateEndUserResponse:
-    """Tests for CreateEndUserResponse model."""
-
-    def test_create_response(self):
-        """Test CreateEndUserResponse wraps EndUser."""
-        end_user_data = {
-            "id": "user-123",
-            "name": "John Doe",
-            "tenant_id": "tenant-456",
-            "created_at": "2024-01-01T10:00:00Z",
-            "updated_at": "2024-01-01T10:00:00Z",
-        }
-
-        response = CreateEndUserResponse(end_user=EndUser(**end_user_data))
-
-        assert isinstance(response.end_user, EndUser)
-        assert response.end_user.id == "user-123"
-
-
-class TestGetEndUserResponse:
-    """Tests for GetEndUserResponse model."""
-
-    def test_get_response(self):
-        """Test GetEndUserResponse wraps EndUser."""
-        end_user_data = {
-            "id": "user-123",
-            "name": "John Doe",
-            "tenant_id": "tenant-456",
-            "created_at": "2024-01-01T10:00:00Z",
-            "updated_at": "2024-01-01T10:00:00Z",
-        }
-
-        response = GetEndUserResponse(end_user=EndUser(**end_user_data))
-
-        assert isinstance(response.end_user, EndUser)
-        assert response.end_user.name == "John Doe"
-
-
 class TestQueryEndUserResponse:
     """Tests for QueryEndUserResponse model."""
 
@@ -202,22 +161,3 @@ class TestUpdateEndUserRequest:
         assert request.name is None
         assert request.external_id is None
         assert request.tenant_id is None
-
-
-class TestUpdateEndUserResponse:
-    """Tests for UpdateEndUserResponse model."""
-
-    def test_update_response(self):
-        """Test UpdateEndUserResponse wraps EndUser."""
-        end_user_data = {
-            "id": "user-123",
-            "name": "Updated User",
-            "tenant_id": "tenant-456",
-            "created_at": "2024-01-01T10:00:00Z",
-            "updated_at": "2024-01-01T11:00:00Z",
-        }
-
-        response = UpdateEndUserResponse(end_user=EndUser(**end_user_data))
-
-        assert isinstance(response.end_user, EndUser)
-        assert response.end_user.name == "Updated User"

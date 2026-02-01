@@ -30,28 +30,21 @@ from magick_mind.models.v1.api_keys import (
     DeleteApiKeyRequest,
 )
 from magick_mind.models.v1.corpus import (
-    CreateCorpusResponse,
-    GetCorpusResponse,
-    UpdateCorpusResponse,
+    Corpus,
     CreateCorpusRequest,
     UpdateCorpusRequest,
 )
 from magick_mind.models.v1.end_user import (
-    CreateEndUserResponse,
-    GetEndUserResponse,
+    EndUser,
     QueryEndUserResponse,
-    UpdateEndUserResponse,
     CreateEndUserRequest,
     UpdateEndUserRequest,
 )
 from magick_mind.models.v1.mindspace import (
-    CreateMindSpaceResponse,
+    MindSpace,
     GetMindSpaceListResponse,
-    UpdateMindSpaceResponse,
     CreateMindSpaceRequest,
     UpdateMindSpaceRequest,
-    AddMindSpaceUsersRequest,
-    AddMindSpaceUsersResponse,
 )
 from magick_mind.models.v1.model import ModelsListResponse, Model
 from magick_mind.models.v1.history import HistoryResponse
@@ -155,10 +148,6 @@ def _update_mindspace_factory() -> UpdateMindSpaceRequest:
     )
 
 
-def _add_mindspace_users_factory() -> AddMindSpaceUsersRequest:
-    return AddMindSpaceUsersRequest(user_ids=["user-1", "user-2"])
-
-
 def _create_api_key_factory() -> CreateApiKeyRequest:
     return CreateApiKeyRequest(
         project_id="proj-1",
@@ -220,23 +209,20 @@ RESPONSES = [
     ContractDef("ListApiKeysResponse", ListApiKeysResponse),
     ContractDef("DeleteApiKeyResponse", DeleteApiKeyResponse),
     # Corpus
-    ContractDef("CreateCorpusResponse", CreateCorpusResponse),
-    ContractDef("GetCorpusResponse", GetCorpusResponse),
-    ContractDef("UpdateCorpusResponse", UpdateCorpusResponse),
+    ContractDef("CreateCorpusResponse", Corpus),
+    ContractDef("GetCorpusResponse", Corpus),
+    ContractDef("UpdateCorpusResponse", Corpus),
     # End User
-    ContractDef("CreateEndUserResponse", CreateEndUserResponse),
-    ContractDef(
-        "GetEndUserByIdResponse", GetEndUserResponse
-    ),  # lowercase Id per Apidog
-    ContractDef("UpdateEndUserResponse", UpdateEndUserResponse),
+    ContractDef("CreateEndUserResponse", EndUser),
+    ContractDef("GetEndUserByIdResponse", EndUser),  # lowercase Id per Apidog
+    ContractDef("UpdateEndUserResponse", EndUser),
     # Note: QueryEndUserResponse doesn't exist in Apidog spec (uses GetEndUserListResponse)
     # History
     ContractDef("MindspaceMessagesResponse", HistoryResponse),
     # MindSpace (spec mismatches - tests will fail and expose bugs)
-    ContractDef("CreateMindspaceResponse", CreateMindSpaceResponse),  # Lowercase s
+    ContractDef("CreateMindspaceResponse", MindSpace),  # Lowercase s
     ContractDef("GetMindSpaceListResponse", GetMindSpaceListResponse),
-    ContractDef("UpdateMindSpaceResponse", UpdateMindSpaceResponse),
-    ContractDef("AddMindSpaceUsersResponse", AddMindSpaceUsersResponse),
+    ContractDef("UpdateMindSpaceResponse", MindSpace),
     # Auth
     ContractDef("LoginResponse", TokenResponse),
     ContractDef("RefreshResponse", TokenResponse),
@@ -249,9 +235,7 @@ RESPONSES = [
     ContractDef(
         "ChatCompletionsResp", status=SchemaStatus.SKIPPED, reason="OpenAI Compat"
     ),
-    ContractDef(
-        "GetCorpusByIdResponse", GetCorpusResponse
-    ),  # Alias to existing GetCorpusResponse
+    ContractDef("GetCorpusByIdResponse", Corpus),  # Alias to existing GetCorpusResponse
     # Note: GetEndUserByIdResponse already mapped above
     ContractDef(
         "GetEndUserListResponse",
@@ -298,11 +282,6 @@ REQUESTS = [
         "UpdateMindSpaceRequest",
         UpdateMindSpaceRequest,
         factory=_update_mindspace_factory,
-    ),
-    ContractDef(
-        "AddMindSpaceUsersRequest",
-        AddMindSpaceUsersRequest,
-        factory=_add_mindspace_users_factory,
     ),
     # API Keys
     ContractDef(
