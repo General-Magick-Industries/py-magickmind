@@ -3,6 +3,7 @@
 import pytest
 from pydantic import ValidationError
 
+from magick_mind.models.v1.end_user import PageInfo
 from magick_mind.models.v1.project import (
     CreateProjectRequest,
     CreateProjectResponse,
@@ -102,7 +103,7 @@ class TestCreateProjectResponse:
     """Tests for CreateProjectResponse model."""
 
     def test_valid_create_response(self):
-        """Test creating a valid project creation response."""
+        """Test that CreateProjectResponse is a type alias for Project."""
         project = Project(
             id="proj-123",
             name="Created Project",
@@ -113,31 +114,31 @@ class TestCreateProjectResponse:
             updated_at="2024-01-01T10:00:00Z",
         )
 
-        response = CreateProjectResponse(project=project)
+        response = CreateProjectResponse(**project.model_dump())
 
-        assert response.project.id == "proj-123"
-        assert response.project.name == "Created Project"
+        assert response.id == "proj-123"
+        assert response.name == "Created Project"
 
 
 class TestGetProjectResponse:
     """Tests for GetProjectResponse model."""
 
     def test_valid_get_response(self):
-        """Test creating a valid get project response."""
-        project = Project(
-            id="proj-123",
-            name="Retrieved Project",
-            description="Test",
-            corpus_ids=["corpus-1"],
-            created_by="user-456",
-            created_at="2024-01-01T10:00:00Z",
-            updated_at="2024-01-01T10:00:00Z",
-        )
+        """Test that GetProjectResponse is a type alias for Project."""
+        project_data = {
+            "id": "proj-123",
+            "name": "Retrieved Project",
+            "description": "Test",
+            "corpus_ids": ["corpus-1"],
+            "created_by": "user-456",
+            "created_at": "2024-01-01T10:00:00Z",
+            "updated_at": "2024-01-01T10:00:00Z",
+        }
 
-        response = GetProjectResponse(project=project)
+        response = GetProjectResponse(**project_data)
 
-        assert response.project.id == "proj-123"
-        assert response.project.corpus_ids == ["corpus-1"]
+        assert response.id == "proj-123"
+        assert response.corpus_ids == ["corpus-1"]
 
 
 class TestGetProjectListResponse:
@@ -146,35 +147,44 @@ class TestGetProjectListResponse:
     def test_valid_list_response(self):
         """Test creating a valid project list response."""
         projects = [
-            Project(
-                id=f"proj-{i}",
-                name=f"Project {i}",
-                description=f"Description {i}",
-                corpus_ids=[f"corpus-{i}"],
-                created_by="user-456",
-                created_at="2024-01-01T10:00:00Z",
-                updated_at="2024-01-01T10:00:00Z",
-            )
+            {
+                "id": f"proj-{i}",
+                "name": f"Project {i}",
+                "description": f"Description {i}",
+                "corpus_ids": [f"corpus-{i}"],
+                "created_by": "user-456",
+                "created_at": "2024-01-01T10:00:00Z",
+                "updated_at": "2024-01-01T10:00:00Z",
+            }
             for i in range(3)
         ]
 
-        response = GetProjectListResponse(projects=projects)
+        paging = PageInfo(
+            cursors={"after": "cursor-123", "before": "cursor-0"},
+            has_more=True,
+            has_previous=False,
+        )
 
-        assert len(response.projects) == 3
-        assert response.projects[0].id == "proj-0"
-        assert response.projects[2].id == "proj-2"
+        response = GetProjectListResponse(data=projects, paging=paging)
+
+        assert len(response.data) == 3
+        assert response.data[0]["id"] == "proj-0"
+        assert response.data[2]["id"] == "proj-2"
+        assert response.paging.cursors.after == "cursor-123"
+        assert response.paging.has_more is True
 
     def test_empty_list_response(self):
         """Test creating an empty project list response."""
-        response = GetProjectListResponse()
+        paging = PageInfo(
+            cursors={"after": None, "before": None},
+            has_more=False,
+            has_previous=False,
+        )
 
-        assert response.projects == []
+        response = GetProjectListResponse(data=[], paging=paging)
 
-    def test_list_response_with_empty_list(self):
-        """Test explicitly setting empty projects list."""
-        response = GetProjectListResponse(projects=[])
-
-        assert len(response.projects) == 0
+        assert response.data == []
+        assert response.paging.has_more is False
 
 
 class TestUpdateProjectRequest:
@@ -210,19 +220,20 @@ class TestUpdateProjectResponse:
     """Tests for UpdateProjectResponse model."""
 
     def test_valid_update_response(self):
-        """Test creating a valid project update response."""
-        project = Project(
-            id="proj-123",
-            name="Updated Project",
-            description="Updated",
-            corpus_ids=["corpus-1", "corpus-2"],
-            created_by="user-456",
-            created_at="2024-01-01T10:00:00Z",
-            updated_at="2024-01-01T11:00:00Z",
-        )
+        """Test that UpdateProjectResponse is a type alias for Project."""
+        project_data = {
+            "id": "proj-123",
+            "name": "Updated Project",
+            "description": "Updated",
+            "corpus_ids": ["corpus-1", "corpus-2"],
+            "created_by": "user-456",
+            "created_at": "2024-01-01T10:00:00Z",
+            "updated_at": "2024-01-01T11:00:00Z",
+        }
 
-        response = UpdateProjectResponse(project=project)
+        response = UpdateProjectResponse(**project_data)
 
-        assert response.project.id == "proj-123"
-        assert response.project.name == "Updated Project"
-        assert len(response.project.corpus_ids) == 2
+        assert response.id == "proj-123"
+        assert response.name == "Updated Project"
+        assert response.corpus_ids is not None
+        assert len(response.corpus_ids) == 2

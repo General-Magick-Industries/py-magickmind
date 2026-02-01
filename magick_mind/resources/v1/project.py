@@ -61,8 +61,7 @@ class ProjectResourceV1(BaseResource):
         )
 
         response = self._http.post(Routes.PROJECTS, json=request.model_dump())
-        create_response = CreateProjectResponse(**response)
-        return create_response.project
+        return CreateProjectResponse(**response)
 
     def get(self, project_id: str) -> Project:
         """
@@ -79,8 +78,7 @@ class ProjectResourceV1(BaseResource):
             print(f"Project name: {project.name}")
         """
         response = self._http.get(Routes.project(project_id))
-        get_response = GetProjectResponse(**response)
-        return get_response.project
+        return GetProjectResponse(**response)
 
     def list(self, created_by_user_id: Optional[str] = None) -> list[Project]:
         """
@@ -107,7 +105,7 @@ class ProjectResourceV1(BaseResource):
 
         response = self._http.get(Routes.PROJECTS, params=params)
         list_response = GetProjectListResponse(**response)
-        return list_response.projects
+        return list_response.data
 
     def update(
         self,
@@ -144,8 +142,7 @@ class ProjectResourceV1(BaseResource):
         )
 
         response = self._http.put(Routes.project(project_id), json=request.model_dump())
-        update_response = UpdateProjectResponse(**response)
-        return update_response.project
+        return UpdateProjectResponse(**response)
 
     def delete(self, project_id: str) -> None:
         """

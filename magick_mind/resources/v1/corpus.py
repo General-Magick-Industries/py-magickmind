@@ -11,7 +11,6 @@ from typing import TYPE_CHECKING, Optional
 from magick_mind.models.v1.corpus import (
     CreateCorpusRequest,
     CreateCorpusResponse,
-    DeleteCorpusResponse,
     GetCorpusResponse,
     ListCorpusResponse,
     UpdateCorpusRequest,
@@ -139,7 +138,7 @@ class CorpusResourceV1:
 
         return UpdateCorpusResponse(**resp.json())
 
-    def delete(self, corpus_id: str) -> DeleteCorpusResponse:
+    def delete(self, corpus_id: str) -> None:
         """
         Delete a corpus.
 
@@ -147,12 +146,13 @@ class CorpusResourceV1:
             corpus_id: The corpus ID to delete
 
         Returns:
-            DeleteCorpusResponse
+            None (Bifrost returns 204 No Content)
+
+        Example:
+            client.v1.corpus.delete(corpus_id="corpus-123")
+            print("Corpus deleted successfully")
 
         Raises:
-            httpx.HTTPStatusError: If the request fails
+            httpx.HTTPStatusError: If request fails
         """
-        resp = self.http.delete(Routes.corpus(corpus_id))
-        resp.raise_for_status()
-
-        return DeleteCorpusResponse(**resp.json())
+        self.http.delete(Routes.corpus(corpus_id))
