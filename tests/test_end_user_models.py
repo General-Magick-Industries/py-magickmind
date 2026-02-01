@@ -4,7 +4,9 @@ import pytest
 
 from magick_mind.models.v1.end_user import (
     CreateEndUserRequest,
+    Cursors,
     EndUser,
+    PageInfo,
     QueryEndUserResponse,
     UpdateEndUserRequest,
 )
@@ -116,19 +118,31 @@ class TestQueryEndUserResponse:
         ]
 
         response = QueryEndUserResponse(
-            end_users=[EndUser(**data) for data in users_data]
+            data=[EndUser(**data) for data in users_data],
+            paging=PageInfo(
+                cursors=Cursors(after=None, before=None),
+                has_more=False,
+                has_previous=False,
+            ),
         )
 
-        assert len(response.end_users) == 2
-        assert all(isinstance(user, EndUser) for user in response.end_users)
-        assert response.end_users[0].id == "user-1"
-        assert response.end_users[1].id == "user-2"
+        assert len(response.data) == 2
+        assert all(isinstance(user, EndUser) for user in response.data)
+        assert response.data[0].id == "user-1"
+        assert response.data[1].id == "user-2"
 
     def test_query_response_empty(self):
         """Test QueryEndUserResponse with empty list."""
-        response = QueryEndUserResponse(end_users=[])
+        response = QueryEndUserResponse(
+            data=[],
+            paging=PageInfo(
+                cursors=Cursors(after=None, before=None),
+                has_more=False,
+                has_previous=False,
+            ),
+        )
 
-        assert response.end_users == []
+        assert response.data == []
 
 
 class TestUpdateEndUserRequest:

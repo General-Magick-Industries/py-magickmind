@@ -172,8 +172,6 @@ class TestGetMindSpaceListResponse:
     def test_valid_list_response_parsing(self):
         """Test GetMindSpaceListResponse parses bifrost API response."""
         response_data = {
-            "success": True,
-            "message": "Mindspaces retrieved successfully",
             "mindspaces": [
                 {
                     "id": "mind-1",
@@ -206,7 +204,6 @@ class TestGetMindSpaceListResponse:
 
         response = GetMindSpaceListResponse.model_validate(response_data)
 
-        assert response.success is True
         assert len(response.mindspaces) == 2
         assert response.mindspaces[0].type == "PRIVATE"
         assert response.mindspaces[1].type == "GROUP"
@@ -214,14 +211,11 @@ class TestGetMindSpaceListResponse:
     def test_empty_list_response(self):
         """Test GetMindSpaceListResponse handles empty list."""
         response_data = {
-            "success": True,
-            "message": "No mindspaces found",
             "mindspaces": [],
         }
 
         response = GetMindSpaceListResponse.model_validate(response_data)
 
-        assert response.success is True
         assert len(response.mindspaces) == 0
 
 
