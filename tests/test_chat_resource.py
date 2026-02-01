@@ -73,7 +73,6 @@ class TestChatResourceV1:
 
         # Verify response
         assert isinstance(response, ChatSendResponse)
-        assert response.success is True
         assert response.content.message_id == "msg-789"
         assert response.content.content == "Hello! How can I help you?"
 
@@ -212,7 +211,6 @@ class TestChatResourceIntegration:
         )
 
         # Verify response
-        assert response.success is True
         assert response.content.message_id == "msg-789"
         assert response.content.content == "AI response here"
 
@@ -224,4 +222,4 @@ class TestChatResourceIntegration:
             enduser_id="user-456",
             config=valid_config,
         )
-        assert response2.success is True
+        assert response2.content.message_id == "msg-789"

@@ -97,10 +97,7 @@ class MindspaceResourceV1(BaseResource):
             Routes.MINDSPACES, json=request.model_dump(exclude_none=True)
         )
 
-        response_data = self._http.post(
-            Routes.MINDSPACES, json=request.model_dump(exclude_none=True)
-        ).json()
-        return MindSpace.model_validate(response_data["mindspace"])
+        return MindSpace.model_validate(response)
 
     def get(self, mindspace_id: str) -> MindSpace:
         """
@@ -121,8 +118,8 @@ class MindspaceResourceV1(BaseResource):
             print(f"Type: {mindspace.type}")
             print(f"Corpus: {mindspace.corpus_ids}")
         """
-        response_data = self._http.get(Routes.mindspace(mindspace_id)).json()
-        return MindSpace.model_validate(response_data["mindspace"])
+        response_data = self._http.get(Routes.mindspace(mindspace_id))
+        return MindSpace.model_validate(response_data)
 
     def list(self, user_id: Optional[str] = None) -> GetMindSpaceListResponse:
         """
@@ -147,7 +144,7 @@ class MindspaceResourceV1(BaseResource):
         if user_id:
             params["user_id"] = user_id
 
-        response_data = self._http.get(Routes.MINDSPACES, params=params).json()
+        response_data = self._http.get(Routes.MINDSPACES, params=params)
         return GetMindSpaceListResponse.model_validate(response_data)
 
     def update(
@@ -202,8 +199,7 @@ class MindspaceResourceV1(BaseResource):
         )
 
         # Parse and validate response
-        response_data = response.json()
-        return MindSpace.model_validate(response_data["mindspace"])
+        return MindSpace.model_validate(response)
 
     def delete(self, mindspace_id: str) -> None:
         """
@@ -289,7 +285,7 @@ class MindspaceResourceV1(BaseResource):
             params["before_id"] = before_id
 
         # Make request
-        response_data = self._http.get(Routes.MINDSPACE_MESSAGES, params=params).json()
+        response_data = self._http.get(Routes.MINDSPACE_MESSAGES, params=params)
 
         # Parse and return
         return MindspaceMessagesResponse.model_validate(response_data)

@@ -86,7 +86,7 @@ class CreateMindSpaceRequest(BaseModel):
     )
 
 
-class GetMindSpaceListResponse(BaseResponse):
+class GetMindSpaceListResponse(BaseModel):
     """
     Response from listing mindspaces.
     """
