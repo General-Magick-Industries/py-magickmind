@@ -51,12 +51,6 @@ class CreateCorpusRequest(BaseModel):
     )
 
 
-# Type aliases for flat responses (matching Bifrost API)
-CreateCorpusResponse = Corpus
-GetCorpusResponse = Corpus
-UpdateCorpusResponse = Corpus
-
-
 class ListCorpusResponse(BaseModel):
     """
     Response for listing corpus.
