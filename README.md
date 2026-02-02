@@ -479,7 +479,8 @@ from magick_mind import (
     MagickMind,
     AuthenticationError,
     TokenExpiredError,
-    APIError,
+    ProblemDetailsException,
+    ValidationError,
     RateLimitError
 )
 
@@ -492,8 +493,15 @@ except TokenExpiredError as e:
     print(f"Token expired: {e}")
 except RateLimitError as e:
     print(f"Rate limited: {e}")
-except APIError as e:
-    print(f"API error: {e}")
+except ValidationError as e:
+    # Handle field-level validation errors (400 Bad Request)
+    print(f"Validation error: {e.detail}")
+    for field, errors in e.get_field_errors().items():
+        print(f"  {field}: {', '.join(errors)}")
+except ProblemDetailsException as e:
+    # Handle other API errors (RFC 7807 Problem Details)
+    print(f"API error: {e.title} - {e.detail}")
+    print(f"Request ID: {e.request_id}")  # For support tickets
 ```
 
 ## Configuration

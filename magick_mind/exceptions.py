@@ -105,7 +105,3 @@ class ValidationError(ProblemDetailsException):
                 errors_by_field[err.field] = []
             errors_by_field[err.field].append(err.message)
         return errors_by_field
-
-
-# DEPRECATED: Compatibility alias, will be removed in task 04
-APIError = ProblemDetailsException
