@@ -25,15 +25,13 @@ class TestProjectResourceV1:
         """Test creating a new project."""
         mock_response = Mock()
         mock_response.json.return_value = {
-            "project": {
-                "id": "proj-123",
-                "name": "My Project",
-                "description": "A test project",
-                "corpus_ids": ["corpus-1", "corpus-2"],
-                "created_by": "user-456",
-                "created_at": "2024-01-01T10:00:00Z",
-                "updated_at": "2024-01-01T10:00:00Z",
-            }
+            "id": "proj-123",
+            "name": "My Project",
+            "description": "A test project",
+            "corpus_ids": ["corpus-1", "corpus-2"],
+            "created_by": "user-456",
+            "created_at": "2024-01-01T10:00:00Z",
+            "updated_at": "2024-01-01T10:00:00Z",
         }
         mock_http_client.post.return_value = mock_response
 
@@ -64,15 +62,13 @@ class TestProjectResourceV1:
         """Test creating project with only required fields."""
         mock_response = Mock()
         mock_response.json.return_value = {
-            "project": {
-                "id": "proj-456",
-                "name": "Minimal Project",
-                "description": "",
-                "corpus_ids": [],
-                "created_by": "user-789",
-                "created_at": "2024-01-01T10:00:00Z",
-                "updated_at": "2024-01-01T10:00:00Z",
-            }
+            "id": "proj-456",
+            "name": "Minimal Project",
+            "description": "",
+            "corpus_ids": [],
+            "created_by": "user-789",
+            "created_at": "2024-01-01T10:00:00Z",
+            "updated_at": "2024-01-01T10:00:00Z",
         }
         mock_http_client.post.return_value = mock_response
 
@@ -91,15 +87,13 @@ class TestProjectResourceV1:
         """Test getting a project by ID."""
         mock_response = Mock()
         mock_response.json.return_value = {
-            "project": {
-                "id": "proj-123",
-                "name": "Retrieved Project",
-                "description": "Test",
-                "corpus_ids": ["corpus-1"],
-                "created_by": "user-456",
-                "created_at": "2024-01-01T10:00:00Z",
-                "updated_at": "2024-01-01T10:00:00Z",
-            }
+            "id": "proj-123",
+            "name": "Retrieved Project",
+            "description": "Test",
+            "corpus_ids": ["corpus-1"],
+            "created_by": "user-456",
+            "created_at": "2024-01-01T10:00:00Z",
+            "updated_at": "2024-01-01T10:00:00Z",
         }
         mock_http_client.get.return_value = mock_response
 
@@ -116,7 +110,7 @@ class TestProjectResourceV1:
         """Test listing all projects."""
         mock_response = Mock()
         mock_response.json.return_value = {
-            "projects": [
+            "data": [
                 {
                     "id": "proj-1",
                     "name": "Project 1",
@@ -135,7 +129,12 @@ class TestProjectResourceV1:
                     "created_at": "2024-01-01T11:00:00Z",
                     "updated_at": "2024-01-01T11:00:00Z",
                 },
-            ]
+            ],
+            "paging": {
+                "cursors": {"after": "cursor-123", "before": None},
+                "has_more": True,
+                "has_previous": False,
+            },
         }
         mock_http_client.get.return_value = mock_response
 
@@ -154,7 +153,7 @@ class TestProjectResourceV1:
         """Test listing projects filtered by creator user ID."""
         mock_response = Mock()
         mock_response.json.return_value = {
-            "projects": [
+            "data": [
                 {
                     "id": "proj-1",
                     "name": "User Project",
@@ -164,7 +163,12 @@ class TestProjectResourceV1:
                     "created_at": "2024-01-01T10:00:00Z",
                     "updated_at": "2024-01-01T10:00:00Z",
                 }
-            ]
+            ],
+            "paging": {
+                "cursors": {"after": None, "before": None},
+                "has_more": False,
+                "has_previous": False,
+            },
         }
         mock_http_client.get.return_value = mock_response
 
@@ -181,7 +185,14 @@ class TestProjectResourceV1:
     def test_list_projects_empty(self, project_resource, mock_http_client):
         """Test listing projects when none exist."""
         mock_response = Mock()
-        mock_response.json.return_value = {"projects": []}
+        mock_response.json.return_value = {
+            "data": [],
+            "paging": {
+                "cursors": {"after": None, "before": None},
+                "has_more": False,
+                "has_previous": False,
+            },
+        }
         mock_http_client.get.return_value = mock_response
 
         result = project_resource.list()
@@ -192,17 +203,15 @@ class TestProjectResourceV1:
         """Test updating a project."""
         mock_response = Mock()
         mock_response.json.return_value = {
-            "project": {
-                "id": "proj-123",
-                "name": "Updated Project",
-                "description": "Updated description",
-                "corpus_ids": ["corpus-1", "corpus-2", "corpus-3"],
-                "created_by": "user-456",
-                "created_at": "2024-01-01T10:00:00Z",
-                "updated_at": "2024-01-01T11:00:00Z",
-            }
+            "id": "proj-123",
+            "name": "Updated Project",
+            "description": "Updated description",
+            "corpus_ids": ["corpus-1", "corpus-2", "corpus-3"],
+            "created_by": "user-456",
+            "created_at": "2024-01-01T10:00:00Z",
+            "updated_at": "2024-01-01T11:00:00Z",
         }
-        mock_http_client.put.return_value = mock_response
+        mock_http_client.put.return_value = mock_response.json.return_value
 
         result = project_resource.update(
             project_id="proj-123",
@@ -232,17 +241,15 @@ class TestProjectResourceV1:
         """Test updating project with only required fields."""
         mock_response = Mock()
         mock_response.json.return_value = {
-            "project": {
-                "id": "proj-123",
-                "name": "New Name",
-                "description": "",
-                "corpus_ids": [],
-                "created_by": "user-456",
-                "created_at": "2024-01-01T10:00:00Z",
-                "updated_at": "2024-01-01T11:00:00Z",
-            }
+            "id": "proj-123",
+            "name": "New Name",
+            "description": "",
+            "corpus_ids": [],
+            "created_by": "user-456",
+            "created_at": "2024-01-01T10:00:00Z",
+            "updated_at": "2024-01-01T11:00:00Z",
         }
-        mock_http_client.put.return_value = mock_response
+        mock_http_client.put.return_value = mock_response.json.return_value
 
         result = project_resource.update(project_id="proj-123", name="New Name")
 

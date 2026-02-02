@@ -178,8 +178,6 @@ class TestChatSendResponse:
 
         response = ChatSendResponse.model_validate(response_data)
 
-        assert response.success is True
-        assert response.message == "Chat request processed successfully"
         assert response.content is not None
         assert response.content.message_id == "msg-789"
         assert response.content.task_id == "task-123"
@@ -195,8 +193,6 @@ class TestChatSendResponse:
 
         response = ChatSendResponse.model_validate(response_data)
 
-        assert response.success is False
-        assert response.message == "Invalid API key"
         assert response.content is None
 
     def test_response_with_reply_to(self):

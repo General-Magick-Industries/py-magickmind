@@ -1,0 +1,1909 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "API Reference",
+    "description": "",
+    "version": "0.0.1",
+    "summary": ""
+  },
+  "tags": [],
+  "paths": {},
+  "webhooks": {},
+  "components": {
+    "schemas": {
+      "TokenSchema": {
+        "type": "object",
+        "properties": {
+          "access_token": {
+            "type": "string"
+          },
+          "expires_in": {
+            "type": "integer"
+          },
+          "refresh_expires_in": {
+            "type": "integer"
+          },
+          "refresh_token": {
+            "type": "string"
+          },
+          "token_type": {
+            "type": "string"
+          },
+          "id_token": {
+            "type": "string"
+          },
+          "not-before-policy": {
+            "type": "integer"
+          },
+          "session_state": {
+            "type": "string"
+          },
+          "scope": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "access_token",
+          "expires_in",
+          "refresh_expires_in",
+          "refresh_token",
+          "token_type",
+          "id_token",
+          "not-before-policy",
+          "session_state",
+          "scope"
+        ]
+      },
+      "SignUpRequest": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "first_name": {
+            "type": "string"
+          },
+          "last_name": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "email",
+          "first_name",
+          "password"
+        ]
+      },
+      "SignUpResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseSchema"
+          }
+        ]
+      },
+      "RefreshRequest": {
+        "type": "object",
+        "properties": {
+          "refresh_token": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "refresh_token"
+        ]
+      },
+      "RefreshResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/TokenSchema"
+          }
+        ]
+      },
+      "LoginRequest": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ]
+      },
+      "LoginResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/TokenSchema"
+          }
+        ]
+      },
+      "MindspaceType": {
+        "type": "string",
+        "enum": [
+          "PRIVATE",
+          "GROUP"
+        ]
+      },
+      "MindspaceSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "corpus_ids": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "user_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "type": {
+            "$ref": "#/components/schemas/MindspaceType"
+          },
+          "created_by": {
+            "type": "string"
+          },
+          "updated_by": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "description",
+          "corpus_ids",
+          "user_ids",
+          "type",
+          "created_at",
+          "updated_at",
+          "created_by",
+          "updated_by",
+          "project_id"
+        ]
+      },
+      "CreateMindspaceRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "corpus_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "user_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "type": {
+            "$ref": "#/components/schemas/MindspaceType"
+          }
+        },
+        "required": [
+          "name",
+          "corpus_ids",
+          "user_ids",
+          "type",
+          "project_id"
+        ]
+      },
+      "CreateMindspaceResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseSchema"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "mindspace": {
+                "$ref": "#/components/schemas/MindspaceSchema"
+              }
+            },
+            "required": [
+              "mindspace"
+            ]
+          }
+        ]
+      },
+      "UpdateMindSpaceRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 256
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "corpus_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "user_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "UpdateMindSpaceResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseSchema"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "mindspace": {
+                "$ref": "#/components/schemas/MindspaceSchema"
+              }
+            },
+            "required": [
+              "mindspace"
+            ]
+          }
+        ]
+      },
+      "GetMindSpaceListResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseSchema"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "mindspaces": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/MindspaceSchema"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "MindspaceMessagesResponse": {
+        "type": "object",
+        "properties": {
+          "chat_histories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ChatHistoryItem"
+            }
+          },
+          "last_id": {
+            "type": "string"
+          },
+          "next_after_id": {
+            "type": "string"
+          },
+          "next_before_id": {
+            "type": "string"
+          },
+          "has_more": {
+            "type": "boolean"
+          },
+          "has_older": {
+            "type": "boolean"
+          }
+        }
+      },
+      "AddMindSpaceUsersRequest": {
+        "title": "AddMindSpaceUsersRequest",
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "user_ids": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string"
+            },
+            "description": "Users to add to the mindspace"
+          }
+        },
+        "required": [
+          "user_ids"
+        ]
+      },
+      "AddMindSpaceUsersResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "corpus_ids": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "user_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "type": {
+            "$ref": "#/components/schemas/MindspaceType"
+          },
+          "created_by": {
+            "type": "string"
+          },
+          "updated_by": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "description",
+          "project_id",
+          "corpus_ids",
+          "user_ids",
+          "type",
+          "created_by",
+          "updated_by",
+          "created_at",
+          "updated_at"
+        ]
+      },
+      "EndUserSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "external_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "tenant_id": {
+            "type": "string"
+          },
+          "created_by": {
+            "type": "string"
+          },
+          "updated_by": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "external_id",
+          "created_by",
+          "updated_by",
+          "created_at",
+          "updated_at",
+          "tenant_id"
+        ]
+      },
+      "CreateEndUserRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "external_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 1,
+            "maxLength": 255
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "CreateEndUserResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/EndUserSchema"
+          }
+        ]
+      },
+      "GetEndUserByIdResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/EndUserSchema"
+          }
+        ]
+      },
+      "UpdateEndUserRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "external_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "UpdateEndUserResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/EndUserSchema"
+          }
+        ]
+      },
+      "GetEndUserListResponse": {
+        "allOf": [
+          {
+            "type": "object",
+            "properties": {
+              "paging": {
+                "$ref": "#/components/schemas/PaginationSchema"
+              }
+            },
+            "required": [
+              "paging"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/EndUserSchema"
+                }
+              }
+            },
+            "required": [
+              "data"
+            ]
+          }
+        ]
+      },
+      "ProjectSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "corpus_ids": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "created_by": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "corpus_ids",
+          "created_by",
+          "created_at",
+          "updated_at"
+        ]
+      },
+      "GetProjectListResponse": {
+        "allOf": [
+          {
+            "type": "object",
+            "properties": {
+              "paging": {
+                "$ref": "#/components/schemas/PaginationSchema"
+              }
+            },
+            "required": [
+              "paging"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ProjectSchema"
+                }
+              }
+            },
+            "required": [
+              "data"
+            ]
+          }
+        ]
+      },
+      "CreateProjectRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "corpus_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 0
+          }
+        },
+        "required": [
+          "name",
+          "corpus_ids"
+        ]
+      },
+      "CreateProjectResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ProjectSchema"
+          }
+        ]
+      },
+      "UpdateProjectRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 256
+          },
+          "corpus_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "name",
+          "corpus_ids"
+        ]
+      },
+      "UpdateProjectResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ProjectSchema"
+          }
+        ]
+      },
+      "ListProjectResponse": {
+        "type": "object",
+        "properties": {}
+      },
+      "ChatSchema": {
+        "type": "object",
+        "properties": {
+          "message_id": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "reply_to": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "message_id",
+          "content"
+        ]
+      },
+      "ConfigSchema": {
+        "type": "object",
+        "properties": {
+          "fast_model_id": {
+            "type": "string"
+          },
+          "smart_model_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "compute_power": {
+            "type": "integer",
+            "format": "uint32"
+          }
+        },
+        "required": [
+          "fast_model_id",
+          "smart_model_ids",
+          "compute_power"
+        ]
+      },
+      "ChatRequest": {
+        "type": "object",
+        "properties": {
+          "api_key": {
+            "type": "string"
+          },
+          "mindspace_id": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "reply_to_message_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "enduser_id": {
+            "type": "string"
+          },
+          "additional_context": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "artifact_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "config": {
+            "$ref": "#/components/schemas/ConfigSchema"
+          }
+        },
+        "required": [
+          "api_key",
+          "mindspace_id",
+          "message",
+          "enduser_id",
+          "config"
+        ]
+      },
+      "ChatResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "content": {
+            "$ref": "#/components/schemas/ChatSchema"
+          }
+        },
+        "required": [
+          "content",
+          "success",
+          "message"
+        ]
+      },
+      "ChatHistoryItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "mindspace_id": {
+            "type": "string"
+          },
+          "sent_by_user_id": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "reply_to_message_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "type": "string"
+          },
+          "create_at": {
+            "type": "string"
+          },
+          "update_at": {
+            "type": "string"
+          }
+        }
+      },
+      "BaseSchema": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "success",
+          "message"
+        ]
+      },
+      " RFC7807Schema": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "type": "integer",
+            "minimum": 400,
+            "maximum": 599
+          },
+          "detail": {
+            "type": "string"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ErrorFieldsSchema"
+            }
+          },
+          "request_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "title",
+          "status",
+          "detail",
+          "request_id"
+        ]
+      },
+      "ErrorFieldsSchema": {
+        "type": "object",
+        "properties": {
+          "field": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "field",
+          "code",
+          "message"
+        ]
+      },
+      "ErrorResponse": {
+        "allOf": [
+          {
+            "type": "object",
+            "properties": {
+              "error": {
+                "$ref": "#/components/schemas/%20RFC7807Schema"
+              }
+            },
+            "required": [
+              "error"
+            ]
+          }
+        ]
+      },
+      "PaginationSchema": {
+        "type": "object",
+        "properties": {
+          "cursors": {
+            "$ref": "#/components/schemas/CursorSchema"
+          },
+          "has_more": {
+            "type": "boolean"
+          },
+          "has_previous": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "cursors",
+          "has_more",
+          "has_previous"
+        ]
+      },
+      "CursorSchema": {
+        "type": "object",
+        "properties": {
+          "after": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "before": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "after",
+          "before"
+        ]
+      },
+      "CorpusSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "artifact_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "created_by": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "description",
+          "created_by",
+          "created_at",
+          "updated_at"
+        ]
+      },
+      "CreateCorpusRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "artifact_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "name",
+          "description",
+          "artifact_ids"
+        ]
+      },
+      "CreateCorpusResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseSchema"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "corpus": {
+                "$ref": "#/components/schemas/CorpusSchema"
+              }
+            },
+            "required": [
+              "corpus"
+            ]
+          }
+        ]
+      },
+      "UpdateCorpusRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "artifact_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "UpdateCorpusResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseSchema"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "corpus": {
+                "$ref": "#/components/schemas/CorpusSchema"
+              }
+            },
+            "required": [
+              "corpus"
+            ]
+          }
+        ]
+      },
+      "GetCorpusByIdResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseSchema"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "corpus": {
+                "$ref": "#/components/schemas/CorpusSchema"
+              }
+            },
+            "required": [
+              "corpus"
+            ]
+          }
+        ]
+      },
+      "GetCorpusResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseSchema"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "corpus": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/CorpusSchema"
+                }
+              }
+            },
+            "required": [
+              "corpus"
+            ]
+          }
+        ]
+      },
+      "PersonaSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "artifact_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          },
+          "traits": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "tones": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "background_story": {
+            "type": "string"
+          },
+          "created_by": {
+            "type": "string"
+          },
+          "updated_by": {
+            "type": "string"
+          }
+        }
+      },
+      "GetPersonaByIdRes": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseSchema"
+          },
+          {
+            "$ref": "#/components/schemas/PersonaSchema"
+          }
+        ]
+      },
+      "UpdatePersonaReq": {
+        "type": "object",
+        "properties": {
+          "artifact_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          },
+          "traits": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "tones": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "background_story": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "role",
+          "traits",
+          "tones",
+          "background_story"
+        ]
+      },
+      "UpdatePersonaRes": {
+        "allOf": [
+          {
+            "type": "object",
+            "properties": {}
+          },
+          {
+            "type": "object",
+            "properties": {
+              "schema": {
+                "$ref": "#/components/schemas/PersonaSchema"
+              }
+            }
+          }
+        ]
+      },
+      "UpdateApiKeyReq": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "models": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "key_alias": {
+            "type": "string"
+          },
+          "duration": {
+            "type": "string"
+          },
+          "max_budget": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "required": [
+          "key",
+          "models",
+          "key_alias"
+        ]
+      },
+      "UpdateApiKeyResp": {
+        "allOf": [
+          {
+            "type": "object",
+            "properties": {}
+          },
+          {
+            "type": "object",
+            "properties": {
+              "key": {
+                "$ref": "#/components/schemas/KeyResponseSchema"
+              }
+            }
+          }
+        ]
+      },
+      "KeyResponseSchema": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "key_alias": {
+            "type": "string"
+          },
+          "key_id": {
+            "type": "string"
+          },
+          "expires": {
+            "type": "string"
+          }
+        }
+      },
+      "GenericPresignReq": {
+        "type": "object",
+        "properties": {
+          "file_name": {
+            "type": "string"
+          },
+          "content_type": {
+            "type": "string"
+          },
+          "size_bytes": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "end_user_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "file_name",
+          "content_type",
+          "size_bytes"
+        ]
+      },
+      "GenericPresignResp": {
+        "allOf": [
+          {
+            "type": "object",
+            "properties": {}
+          },
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "bucket": {
+                "type": "string"
+              },
+              "key": {
+                "type": "string"
+              },
+              "s3_url": {
+                "type": "string",
+                "description": "s3://bucket/key format"
+              },
+              "upload_url": {
+                "type": "string",
+                "description": "Presigned PUT URL"
+              },
+              "expires_at": {
+                "type": "integer",
+                "format": "int64",
+                "description": "Unix timestamp in seconds"
+              },
+              "required_headers": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "description": "Headers client must include on PUT",
+                "properties": {}
+              }
+            }
+          }
+        ]
+      },
+      "ArtifactWebhookReq": {
+        "type": "object",
+        "properties": {
+          "artifact_id": {
+            "type": "string"
+          },
+          "corpus_id": {
+            "type": "string"
+          },
+          "bucket": {
+            "type": "string"
+          },
+          "key": {
+            "type": "string"
+          },
+          "version_id": {
+            "type": "string"
+          },
+          "size_bytes": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "content_type": {
+            "type": "string"
+          },
+          "etag": {
+            "type": "string"
+          },
+          "checksum_sha256": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "uploaded",
+              "processing",
+              "ready",
+              "failed"
+            ]
+          },
+          "error_code": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "artifact_id",
+          "bucket",
+          "key",
+          "status"
+        ]
+      },
+      "ArtifactWebhookResp": {
+        "allOf": [
+          {
+            "type": "object",
+            "properties": {}
+          }
+        ]
+      },
+      "ClientFinalizeArtifactUploadReq": {
+        "type": "object",
+        "properties": {
+          "artifact_id": {
+            "type": "string"
+          },
+          "bucket": {
+            "type": "string"
+          },
+          "key": {
+            "type": "string"
+          },
+          "version_id": {
+            "type": "string"
+          },
+          "size_bytes": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "content_type": {
+            "type": "string"
+          },
+          "etag": {
+            "type": "string"
+          },
+          "checksum_sha256": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "artifact_id",
+          "bucket",
+          "key"
+        ]
+      },
+      "ClientFinalizeArtifactUploadResp": {
+        "allOf": [
+          {
+            "type": "object",
+            "properties": {}
+          }
+        ]
+      },
+      "Message": {
+        "type": "object",
+        "properties": {
+          "role": {
+            "type": "string",
+            "enum": [
+              "system",
+              "user",
+              "assistant"
+            ]
+          },
+          "content": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "properties": {}
+              }
+            ]
+          },
+          "tool_calls": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {}
+            }
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "Mindspace": {
+        "type": "object",
+        "properties": {
+          "mindspace_id": {
+            "type": "string"
+          },
+          "user_id": {
+            "type": "string"
+          }
+        }
+      },
+      "ChatCompletionsReq": {
+        "type": "object",
+        "properties": {
+          "model": {
+            "type": "string"
+          },
+          "messages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Message"
+            }
+          },
+          "mindspace": {
+            "$ref": "#/components/schemas/Mindspace"
+          },
+          "tools": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {}
+            }
+          }
+        },
+        "required": [
+          "model",
+          "messages"
+        ]
+      },
+      "Choice": {
+        "type": "object",
+        "properties": {
+          "index": {
+            "type": "integer"
+          },
+          "message": {
+            "$ref": "#/components/schemas/Message"
+          },
+          "finish_reason": {
+            "type": "string"
+          }
+        }
+      },
+      "ChatCompletionsResp": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "object": {
+            "type": "string"
+          },
+          "created": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "model": {
+            "type": "string"
+          },
+          "choices": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Choice"
+            }
+          }
+        }
+      },
+      "Model": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "object": {
+            "type": "string"
+          },
+          "created": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "owned_by": {
+            "type": "string"
+          }
+        }
+      },
+      "ModelsListResp": {
+        "type": "object",
+        "properties": {
+          "object": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Model"
+            }
+          }
+        }
+      },
+      "TraitSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "namespace": {
+            "type": "string"
+          },
+          "owner_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "category": {
+            "type": "string"
+          },
+          "display_name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/TraitTypeSchema"
+          },
+          "numeric_config": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/NumericConfigSchema"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "categorical_config": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CategoricalConfigSchema"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "multilabel_config": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MultilabelConfigSchema"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "default_lock": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LockTypeSchema"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "default_learning_rate": {
+            "type": "number",
+            "format": "float64"
+          },
+          "supports_dyadic": {
+            "type": "boolean"
+          },
+          "visibility": {
+            "$ref": "#/components/schemas/TraitVisibilitySchema"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "namespace",
+          "category",
+          "display_name",
+          "description",
+          "type",
+          "default_learning_rate",
+          "default_lock",
+          "supports_dyadic",
+          "visibility",
+          "created_at",
+          "updated_at"
+        ]
+      },
+      "NumericConfigSchema": {
+        "type": "object",
+        "properties": {
+          "min": {
+            "type": "number",
+            "format": "float64"
+          },
+          "max": {
+            "type": "number",
+            "format": "float64"
+          },
+          "default": {
+            "type": "number",
+            "format": "float64"
+          }
+        },
+        "required": [
+          "min",
+          "max",
+          "default"
+        ]
+      },
+      "CategoricalConfigSchema": {
+        "type": "object",
+        "properties": {
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "default": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "options",
+          "default"
+        ]
+      },
+      "MultilabelConfigSchema": {
+        "type": "object",
+        "properties": {
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "max_selections": {
+            "type": "integer"
+          },
+          "default": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "options",
+          "max_selections",
+          "default"
+        ]
+      },
+      "TraitTypeSchema": {
+        "type": "string",
+        "enum": [
+          "NUMERIC",
+          "CATEGORICAL",
+          "MULTILABEL"
+        ]
+      },
+      "LockTypeSchema": {
+        "type": "string",
+        "enum": [
+          "HARD",
+          "SOFT"
+        ]
+      },
+      "TraitVisibilitySchema": {
+        "type": "string",
+        "enum": [
+          "PRIVATE",
+          "ORG",
+          "PUBLIC"
+        ]
+      },
+      "CreateTraitResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/TraitSchema"
+          }
+        ]
+      },
+      "CreateTraitRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "namespace": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "display_name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/TraitTypeSchema"
+          },
+          "numeric_config": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/NumericConfigSchema"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "categorical_config": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CategoricalConfigSchema"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "multilabel_config": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MultilabelConfigSchema"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "default_lock": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LockTypeSchema"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "default_learning_rate": {
+            "type": "number",
+            "format": "float64"
+          },
+          "supports_dyadic": {
+            "type": "boolean"
+          },
+          "visibility": {
+            "$ref": "#/components/schemas/TraitVisibilitySchema"
+          }
+        },
+        "required": [
+          "name",
+          "namespace",
+          "category",
+          "display_name",
+          "description",
+          "type",
+          "default_learning_rate",
+          "default_lock",
+          "supports_dyadic",
+          "visibility"
+        ]
+      },
+      "GetTraitResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/TraitSchema"
+          }
+        ]
+      },
+      "ListTraitsResponse": {
+        "allOf": [
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/TraitSchema"
+                }
+              }
+            },
+            "required": [
+              "data"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "pagniation": {
+                "$ref": "#/components/schemas/PaginationSchema"
+              }
+            },
+            "required": [
+              "pagniation"
+            ]
+          }
+        ]
+      },
+      "UpdateTraitResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/TraitSchema"
+          }
+        ]
+      }
+    },
+    "responses": {},
+    "securitySchemes": {
+      "bearer": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  },
+  "servers": [],
+  "security": [
+    {
+      "bearer": []
+    }
+  ]
+}

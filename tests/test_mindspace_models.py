@@ -5,12 +5,9 @@ from pydantic import ValidationError
 
 from magick_mind.models.v1.mindspace import (
     CreateMindSpaceRequest,
-    CreateMindSpaceResponse,
     GetMindSpaceListResponse,
-    GetMindSpaceResponse,
     MindSpace,
     UpdateMindSpaceRequest,
-    UpdateMindSpaceResponse,
 )
 
 
@@ -169,77 +166,12 @@ class TestCreateMindSpaceRequest:
         assert "project_id" not in dumped
 
 
-class TestCreateMindSpaceResponse:
-    """Tests for CreateMindSpaceResponse model."""
-
-    def test_valid_response_parsing(self):
-        """Test CreateMindSpaceResponse parses bifrost API response."""
-        response_data = {
-            "success": True,
-            "message": "Mindspace created successfully",
-            "mindspace": {
-                "id": "mind-123",
-                "name": "My Workspace",
-                "description": "Test workspace",
-                "project_id": "proj-456",
-                "corpus_ids": ["corp-1"],
-                "user_ids": ["user-1"],
-                "type": "PRIVATE",
-                "created_by": "user-1",
-                "updated_by": "user-1",
-                "created_at": "2025-12-16T09:00:00Z",
-                "updated_at": "2025-12-16T09:00:00Z",
-            },
-        }
-
-        response = CreateMindSpaceResponse.model_validate(response_data)
-
-        assert response.success is True
-        assert response.message == "Mindspace created successfully"
-        assert response.mindspace.id == "mind-123"
-        assert response.mindspace.name == "My Workspace"
-        assert response.mindspace.type == "PRIVATE"
-
-
-class TestGetMindSpaceResponse:
-    """Tests for GetMindSpaceResponse model."""
-
-    def test_valid_response_parsing(self):
-        """Test GetMindSpaceResponse parses bifrost API response."""
-        response_data = {
-            "success": True,
-            "message": "Mindspace retrieved successfully",
-            "mindspace": {
-                "id": "mind-789",
-                "name": "Team Workspace",
-                "description": "Team collaboration",
-                "project_id": "proj-123",
-                "corpus_ids": ["corp-1", "corp-2"],
-                "user_ids": ["user-1", "user-2"],
-                "type": "GROUP",
-                "created_by": "user-1",
-                "updated_by": "user-2",
-                "created_at": "2025-12-16T08:00:00Z",
-                "updated_at": "2025-12-16T09:00:00Z",
-            },
-        }
-
-        response = GetMindSpaceResponse.model_validate(response_data)
-
-        assert response.success is True
-        assert response.mindspace.id == "mind-789"
-        assert response.mindspace.type == "GROUP"
-        assert len(response.mindspace.corpus_ids) == 2
-
-
 class TestGetMindSpaceListResponse:
     """Tests for GetMindSpaceListResponse model."""
 
     def test_valid_list_response_parsing(self):
         """Test GetMindSpaceListResponse parses bifrost API response."""
         response_data = {
-            "success": True,
-            "message": "Mindspaces retrieved successfully",
             "mindspaces": [
                 {
                     "id": "mind-1",
@@ -272,7 +204,6 @@ class TestGetMindSpaceListResponse:
 
         response = GetMindSpaceListResponse.model_validate(response_data)
 
-        assert response.success is True
         assert len(response.mindspaces) == 2
         assert response.mindspaces[0].type == "PRIVATE"
         assert response.mindspaces[1].type == "GROUP"
@@ -280,14 +211,11 @@ class TestGetMindSpaceListResponse:
     def test_empty_list_response(self):
         """Test GetMindSpaceListResponse handles empty list."""
         response_data = {
-            "success": True,
-            "message": "No mindspaces found",
             "mindspaces": [],
         }
 
         response = GetMindSpaceListResponse.model_validate(response_data)
 
-        assert response.success is True
         assert len(response.mindspaces) == 0
 
 
@@ -314,33 +242,3 @@ class TestUpdateMindSpaceRequest:
 
         assert request.name == "Minimal Update"
         assert request.description is None
-
-
-class TestUpdateMindSpaceResponse:
-    """Tests for UpdateMindSpaceResponse model."""
-
-    def test_valid_update_response_parsing(self):
-        """Test UpdateMindSpaceResponse parses bifrost API response."""
-        response_data = {
-            "success": True,
-            "message": "Mindspace updated successfully",
-            "mindspace": {
-                "id": "mind-123",
-                "name": "Updated Workspace",
-                "description": "Updated description",
-                "project_id": "proj-456",
-                "corpus_ids": ["corp-1", "corp-2"],
-                "user_ids": ["user-1", "user-2"],
-                "type": "GROUP",
-                "created_by": "user-1",
-                "updated_by": "user-2",
-                "created_at": "2025-12-16T08:00:00Z",
-                "updated_at": "2025-12-16T10:00:00Z",
-            },
-        }
-
-        response = UpdateMindSpaceResponse.model_validate(response_data)
-
-        assert response.success is True
-        assert response.mindspace.name == "Updated Workspace"
-        assert response.mindspace.updated_by == "user-2"
