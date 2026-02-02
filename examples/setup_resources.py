@@ -1,8 +1,27 @@
+"""
+Example: Setup Resources for SDK Examples
+
+This script creates the necessary resources (EndUser, Project, Mindspace)
+and updates your .env file with the IDs.
+
+Demonstrates:
+- Proper error handling with ProblemDetailsException
+- Validation error handling with field-level details
+- Resource creation with the simplified response models
+"""
+
 import os
 import logging
 from typing import Dict
 from dotenv import load_dotenv, set_key
+
 from magick_mind import MagickMind
+from magick_mind.exceptions import (
+    AuthenticationError,
+    ProblemDetailsException,
+    ValidationError,
+    RateLimitError,
+)
 
 # Load existing .env
 load_dotenv()
@@ -29,7 +48,7 @@ def update_env_file(updates: Dict[str, str]):
 
 def main():
     logger.info("=" * 60)
-    logger.info("🛠️  SDK RESOURCE SETUP")
+    logger.info("SDK RESOURCE SETUP")
     logger.info("=" * 60)
 
     # 1. Validate Credentials
@@ -39,19 +58,25 @@ def main():
     ws_endpoint = os.getenv("BIFROST_WS_ENDPOINT")
 
     if not email or not password:
-        logger.error("❌ ERROR: Missing credentials!")
+        logger.error("ERROR: Missing credentials!")
         logger.error(
             "Please ensure BIFROST_EMAIL and BIFROST_PASSWORD are set in your .env file"
         )
         return
 
     if not ws_endpoint:
-        logger.warning("⚠️  WARNING: BIFROST_WS_ENDPOINT is not set!")
+        logger.warning("WARNING: BIFROST_WS_ENDPOINT is not set!")
         logger.warning(
             "Realtime examples will fail without it. Please add it to your .env file."
         )
 
-    client = MagickMind(email=email, password=password, base_url=base_url)
+    # Initialize client - authentication happens on first API call
+    try:
+        client = MagickMind(email=email, password=password, base_url=base_url)
+    except AuthenticationError as e:
+        logger.error(f"ERROR: Authentication failed: {e}")
+        return
+
     updates = {}
 
     # 2. Setup End User
@@ -72,9 +97,18 @@ def main():
             actor_id="actor-test-1",
             external_id=user_id,
         )
-        logger.info(f"✅ EndUser verified: {user_id}")
-    except Exception as e:
-        logger.warning(f"ℹ️  Note on EndUser: {e}")
+        logger.info(f"EndUser verified: {user_id}")
+    except ValidationError as e:
+        # Handle field-level validation errors
+        logger.warning(f"EndUser validation issue: {e.title}")
+        for field, messages in e.get_field_errors().items():
+            logger.warning(f"  - {field}: {', '.join(messages)}")
+    except ProblemDetailsException as e:
+        # Handle other API errors (e.g., user already exists)
+        if e.status == 409:  # Conflict - already exists
+            logger.info(f"EndUser already exists: {user_id}")
+        else:
+            logger.warning(f"Note on EndUser: [{e.status}] {e.title}: {e.detail}")
 
     # 3. Setup Project
     logger.info("\n--- 2. Project ---")
@@ -88,18 +122,30 @@ def main():
             if projects:
                 project_id = projects[0].id
                 logger.info(
-                    f"✅ Found existing Project: {project_id} ({projects[0].name})"
+                    f"Found existing Project: {project_id} ({projects[0].name})"
                 )
             else:
-                resp = client.v1.project.create(
+                # create() returns Project directly (not wrapped)
+                project = client.v1.project.create(
                     name="Test Project", description="Created by SDK Setup"
                 )
-                project_id = resp.id
-                logger.info(f"✅ Created new Project: {project_id}")
+                project_id = project.id
+                logger.info(f"Created new Project: {project_id}")
 
             updates["PROJECT_ID"] = project_id
-        except Exception as e:
-            logger.error(f"❌ Failed to setup Project: {e}")
+
+        except ValidationError as e:
+            logger.error(f"Project validation error: {e.title}")
+            for field, messages in e.get_field_errors().items():
+                logger.error(f"  - {field}: {', '.join(messages)}")
+            return
+        except ProblemDetailsException as e:
+            logger.error(f"Failed to setup Project: [{e.status}] {e.detail}")
+            if e.request_id:
+                logger.error(f"  Request ID: {e.request_id}")
+            return
+        except RateLimitError:
+            logger.error("Rate limited! Please wait and try again.")
             return
 
     # 4. Setup Mindspace
@@ -114,26 +160,35 @@ def main():
     else:
         logger.info("MINDSPACE_ID not set (or is dummy). Creating...")
         try:
-            resp = client.v1.mindspace.create(
+            # create() returns MindSpace directly (not wrapped)
+            mindspace = client.v1.mindspace.create(
                 name="Test Mindspace",
                 type="PRIVATE",
                 description="Realtime Test Mindspace",
                 project_id=project_id,
                 user_ids=[user_id],
             )
-            mindspace_id = resp.mindspace.id
-            logger.info(f"✅ Created new Mindspace: {mindspace_id}")
+            mindspace_id = mindspace.id
+            logger.info(f"Created new Mindspace: {mindspace_id}")
             updates["MINDSPACE_ID"] = mindspace_id
-        except Exception as e:
-            logger.error(f"❌ Failed to setup Mindspace: {e}")
+
+        except ValidationError as e:
+            logger.error(f"Mindspace validation error: {e.title}")
+            for field, messages in e.get_field_errors().items():
+                logger.error(f"  - {field}: {', '.join(messages)}")
+            return
+        except ProblemDetailsException as e:
+            logger.error(f"Failed to setup Mindspace: [{e.status}] {e.detail}")
+            if e.request_id:
+                logger.error(f"  Request ID: {e.request_id}")
             return
 
     # 5. Populate .env
     if updates:
         update_env_file(updates)
-        logger.info("\n✨ .env file updated successfully!")
+        logger.info("\n.env file updated successfully!")
     else:
-        logger.info("\n✨ Environment is already fully configured.")
+        logger.info("\nEnvironment is already fully configured.")
 
     logger.info("=" * 60)
     logger.info("READY TO RUN EXAMPLES")

@@ -23,8 +23,8 @@ class TestProjectResourceV1:
 
     def test_create_project(self, project_resource, mock_http_client):
         """Test creating a new project."""
-        mock_response = Mock()
-        mock_response.json.return_value = {
+        # HTTP client returns dict directly (not Mock with .json())
+        mock_http_client.post.return_value = {
             "id": "proj-123",
             "name": "My Project",
             "description": "A test project",
@@ -33,7 +33,6 @@ class TestProjectResourceV1:
             "created_at": "2024-01-01T10:00:00Z",
             "updated_at": "2024-01-01T10:00:00Z",
         }
-        mock_http_client.post.return_value = mock_response
 
         result = project_resource.create(
             name="My Project",
@@ -60,8 +59,7 @@ class TestProjectResourceV1:
 
     def test_create_project_minimal(self, project_resource, mock_http_client):
         """Test creating project with only required fields."""
-        mock_response = Mock()
-        mock_response.json.return_value = {
+        mock_http_client.post.return_value = {
             "id": "proj-456",
             "name": "Minimal Project",
             "description": "",
@@ -70,7 +68,6 @@ class TestProjectResourceV1:
             "created_at": "2024-01-01T10:00:00Z",
             "updated_at": "2024-01-01T10:00:00Z",
         }
-        mock_http_client.post.return_value = mock_response
 
         result = project_resource.create(name="Minimal Project")
 
@@ -85,8 +82,7 @@ class TestProjectResourceV1:
 
     def test_get_project(self, project_resource, mock_http_client):
         """Test getting a project by ID."""
-        mock_response = Mock()
-        mock_response.json.return_value = {
+        mock_http_client.get.return_value = {
             "id": "proj-123",
             "name": "Retrieved Project",
             "description": "Test",
@@ -95,7 +91,6 @@ class TestProjectResourceV1:
             "created_at": "2024-01-01T10:00:00Z",
             "updated_at": "2024-01-01T10:00:00Z",
         }
-        mock_http_client.get.return_value = mock_response
 
         result = project_resource.get(project_id="proj-123")
 
@@ -108,8 +103,7 @@ class TestProjectResourceV1:
 
     def test_list_projects_all(self, project_resource, mock_http_client):
         """Test listing all projects."""
-        mock_response = Mock()
-        mock_response.json.return_value = {
+        mock_http_client.get.return_value = {
             "data": [
                 {
                     "id": "proj-1",
@@ -136,7 +130,6 @@ class TestProjectResourceV1:
                 "has_previous": False,
             },
         }
-        mock_http_client.get.return_value = mock_response
 
         result = project_resource.list()
 
@@ -151,8 +144,7 @@ class TestProjectResourceV1:
 
     def test_list_projects_by_user(self, project_resource, mock_http_client):
         """Test listing projects filtered by creator user ID."""
-        mock_response = Mock()
-        mock_response.json.return_value = {
+        mock_http_client.get.return_value = {
             "data": [
                 {
                     "id": "proj-1",
@@ -170,7 +162,6 @@ class TestProjectResourceV1:
                 "has_previous": False,
             },
         }
-        mock_http_client.get.return_value = mock_response
 
         result = project_resource.list(created_by_user_id="user-123")
 
@@ -184,8 +175,7 @@ class TestProjectResourceV1:
 
     def test_list_projects_empty(self, project_resource, mock_http_client):
         """Test listing projects when none exist."""
-        mock_response = Mock()
-        mock_response.json.return_value = {
+        mock_http_client.get.return_value = {
             "data": [],
             "paging": {
                 "cursors": {"after": None, "before": None},
@@ -193,7 +183,6 @@ class TestProjectResourceV1:
                 "has_previous": False,
             },
         }
-        mock_http_client.get.return_value = mock_response
 
         result = project_resource.list()
 
@@ -201,8 +190,7 @@ class TestProjectResourceV1:
 
     def test_update_project(self, project_resource, mock_http_client):
         """Test updating a project."""
-        mock_response = Mock()
-        mock_response.json.return_value = {
+        mock_http_client.put.return_value = {
             "id": "proj-123",
             "name": "Updated Project",
             "description": "Updated description",
@@ -211,7 +199,6 @@ class TestProjectResourceV1:
             "created_at": "2024-01-01T10:00:00Z",
             "updated_at": "2024-01-01T11:00:00Z",
         }
-        mock_http_client.put.return_value = mock_response.json.return_value
 
         result = project_resource.update(
             project_id="proj-123",
@@ -239,8 +226,7 @@ class TestProjectResourceV1:
 
     def test_update_project_minimal(self, project_resource, mock_http_client):
         """Test updating project with only required fields."""
-        mock_response = Mock()
-        mock_response.json.return_value = {
+        mock_http_client.put.return_value = {
             "id": "proj-123",
             "name": "New Name",
             "description": "",
@@ -249,7 +235,6 @@ class TestProjectResourceV1:
             "created_at": "2024-01-01T10:00:00Z",
             "updated_at": "2024-01-01T11:00:00Z",
         }
-        mock_http_client.put.return_value = mock_response.json.return_value
 
         result = project_resource.update(project_id="proj-123", name="New Name")
 
@@ -260,7 +245,7 @@ class TestProjectResourceV1:
     def test_delete_project(self, project_resource, mock_http_client):
         """Test deleting a project."""
         # Delete typically returns no content or success message
-        mock_http_client.delete.return_value = Mock()
+        mock_http_client.delete.return_value = {}
 
         # Should not raise any exception
         project_resource.delete(project_id="proj-123")
