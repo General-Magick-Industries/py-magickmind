@@ -90,7 +90,7 @@ class ArtifactResourceV1(BaseResource):
         response = self._http.post(
             Routes.ARTIFACTS_PRESIGN, json=request.model_dump(exclude_none=True)
         )
-        return PresignArtifactResponse(**response.json())
+        return PresignArtifactResponse(**response)
 
     def upload_file(
         self,
@@ -142,6 +142,9 @@ class ArtifactResourceV1(BaseResource):
         )
 
         # Upload to S3 using httpx
+        if not presign_response.upload_url:
+            raise ValueError("Presign failed: No upload URL returned")
+
         with open(file_path, "rb") as f:
             upload_response = httpx.put(
                 presign_response.upload_url,
@@ -168,7 +171,7 @@ class ArtifactResourceV1(BaseResource):
             print(f"S3 URL: {artifact.s3_url}")
         """
         response = self._http.get(Routes.artifact(artifact_id))
-        get_response = GetArtifactResponse(**response.json())
+        get_response = GetArtifactResponse(**response)
         return get_response.artifact
 
     def list(
@@ -206,7 +209,7 @@ class ArtifactResourceV1(BaseResource):
             params["status"] = status
 
         response = self._http.get(Routes.ARTIFACTS, params=params)
-        list_response = ListArtifactsResponse(**response.json())
+        list_response = ListArtifactsResponse(**response)
         return list_response.artifacts
 
     def delete(self, artifact_id: str) -> None:
@@ -284,4 +287,4 @@ class ArtifactResourceV1(BaseResource):
             endpoint = Routes.ARTIFACTS_FINALIZE
 
         response = self._http.post(endpoint, json=request.model_dump(exclude_none=True))
-        return FinalizeArtifactResponse(**response.json())
+        return FinalizeArtifactResponse(**response)

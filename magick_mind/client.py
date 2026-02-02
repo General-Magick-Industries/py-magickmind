@@ -89,7 +89,7 @@ class MagickMind:
         self._http = HTTPClient(config=self.config, auth=self.auth)
 
         # Create Realtime client (private, accessed via property)
-        self._realtime = RealtimeClient(auth=self.auth, ws_url=ws_endpoint)
+        self._realtime = RealtimeClient(auth=self.auth, ws_url=ws_endpoint or "")
 
         # Initialize typed resources
         from magick_mind.resources import V1Resources

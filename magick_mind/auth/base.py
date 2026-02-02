@@ -38,6 +38,13 @@ class AuthProvider(ABC):
         """
         pass
 
+    async def get_token_async(self) -> str:
+        """
+        Get the raw access token asynchronously.
+        Override in subclasses that support async.
+        """
+        return self.get_token()
+
     def refresh_if_needed(self) -> None:
         """
         Refresh authentication credentials if needed.

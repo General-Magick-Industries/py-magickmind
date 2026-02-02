@@ -58,7 +58,7 @@ class ProjectResourceV1(BaseResource):
         )
 
         response = self._http.post(Routes.PROJECTS, json=request.model_dump())
-        return Project(**response.json())
+        return Project(**response)
 
     def get(self, project_id: str) -> Project:
         """
@@ -75,7 +75,7 @@ class ProjectResourceV1(BaseResource):
             print(f"Project name: {project.name}")
         """
         response = self._http.get(Routes.project(project_id))
-        return Project(**response.json())
+        return Project(**response)
 
     def list(self, created_by_user_id: Optional[str] = None) -> list[Project]:
         """
@@ -101,7 +101,7 @@ class ProjectResourceV1(BaseResource):
             params["user_id"] = created_by_user_id
 
         response = self._http.get(Routes.PROJECTS, params=params)
-        list_response = GetProjectListResponse(**response.json())
+        list_response = GetProjectListResponse(**response)
         return [Project.model_validate(p) for p in list_response.data]
 
     def update(

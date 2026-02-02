@@ -128,11 +128,6 @@ class EmailPasswordAuth(AuthProvider):
                 # Parse and validate response
                 data = TokenResponse(**response.json())
 
-                if not data.success:
-                    raise AuthenticationError(
-                        data.message or "Login failed", status_code=response.status_code
-                    )
-
                 self._store_tokens(data)
 
         except httpx.HTTPStatusError as e:
@@ -161,9 +156,6 @@ class EmailPasswordAuth(AuthProvider):
 
                 # Parse and validate response
                 data = TokenResponse(**response.json())
-
-                if not data.success:
-                    raise TokenExpiredError(data.message or "Token refresh failed")
 
                 self._store_tokens(data)
         except httpx.HTTPStatusError as e:
@@ -233,11 +225,6 @@ class EmailPasswordAuth(AuthProvider):
                 response.raise_for_status()
 
                 data = TokenResponse(**response.json())
-                if not data.success:
-                    raise AuthenticationError(
-                        data.message or "Login failed", status_code=response.status_code
-                    )
-
                 self._store_tokens(data)
                 # logger.info(f"debug_auth: Async login successful for {self.email}")
         except httpx.HTTPStatusError as e:
@@ -262,9 +249,6 @@ class EmailPasswordAuth(AuthProvider):
                 response.raise_for_status()
 
                 data = TokenResponse(**response.json())
-                if not data.success:
-                    raise TokenExpiredError(data.message or "Token refresh failed")
-
                 self._store_tokens(data)
         except httpx.HTTPStatusError as e:
             if e.response.status_code == 401:

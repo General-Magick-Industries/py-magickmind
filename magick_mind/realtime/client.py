@@ -52,7 +52,7 @@ class _DelegatingSubscriptionHandler(SubscriptionEventHandler):
         # Wrap in adapter for ClientEventHandler
         server_ctx = _PublicationAdapter(ctx, self._channel)
         try:
-            await self._client_handler.on_publication(server_ctx)
+            await self._client_handler.on_publication(server_ctx)  # type: ignore[arg-type]
         except Exception:
             logger.exception(f"Error in on_publication handler for {self._channel}")
 

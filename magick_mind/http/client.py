@@ -241,13 +241,17 @@ class HTTPClient:
         return self._handle_response(response)
 
     def delete(
-        self, path: str, headers: Optional[Dict[str, str]] = None
+        self,
+        path: str,
+        json: Optional[Dict[str, Any]] = None,
+        headers: Optional[Dict[str, str]] = None,
     ) -> Dict[str, Any]:
         """
         Make a DELETE request.
 
         Args:
             path: API endpoint path
+            json: Request body as dictionary (optional)
             headers: Additional headers
 
         Returns:
@@ -259,7 +263,14 @@ class HTTPClient:
         url = self._build_url(path)
         request_headers = self._get_headers(headers)
 
-        response = self._client.delete(url, headers=request_headers)
+        # httpx.delete supports json/content/etc since 0.14+
+        # But Client.delete doesn't pass it in all versions?
+        # Actually standard httpx.Client.delete doesn't allow json param in older versions?
+        # Checking: httpx.delete(url, params=..., headers=...) - no json.
+        # So we must use .request("DELETE", ...)
+        response = self._client.request(
+            "DELETE", url, json=json, headers=request_headers
+        )
         return self._handle_response(response)
 
     def close(self) -> None:

@@ -85,4 +85,4 @@ class HistoryResourceV1(BaseResource):
         response = self._http.get(Routes.HISTORY_MESSAGES, params=params)
 
         # Parse and return
-        return HistoryResponse(**response.json())
+        return HistoryResponse(**response)

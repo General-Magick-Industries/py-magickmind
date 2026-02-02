@@ -18,12 +18,13 @@ from magick_mind.routes import Routes
 
 if TYPE_CHECKING:
     import httpx
+    from magick_mind.http import HTTPClient
 
 
 class CorpusResourceV1:
     """Resource client for corpus operations."""
 
-    def __init__(self, http_client: httpx.Client):
+    def __init__(self, http_client: HTTPClient):
         """
         Initialize the corpus resource.
 
@@ -59,9 +60,8 @@ class CorpusResourceV1:
         )
 
         resp = self.http.post(Routes.CORPUS, json=payload.model_dump())
-        resp.raise_for_status()
 
-        return Corpus(**resp.json())
+        return Corpus(**resp)
 
     def get(self, corpus_id: str) -> Corpus:
         """
@@ -77,9 +77,8 @@ class CorpusResourceV1:
             httpx.HTTPStatusError: If the request fails
         """
         resp = self.http.get(Routes.corpus(corpus_id))
-        resp.raise_for_status()
 
-        return Corpus(**resp.json())
+        return Corpus(**resp)
 
     def list(self, user_id: Optional[str] = None) -> ListCorpusResponse:
         """
@@ -99,9 +98,8 @@ class CorpusResourceV1:
             params["user_id"] = user_id
 
         resp = self.http.get(Routes.CORPUS, params=params)
-        resp.raise_for_status()
 
-        return ListCorpusResponse(**resp.json())
+        return ListCorpusResponse(**resp)
 
     def update(
         self,
@@ -132,9 +130,8 @@ class CorpusResourceV1:
         )
 
         resp = self.http.put(Routes.corpus(corpus_id), json=payload.model_dump())
-        resp.raise_for_status()
 
-        return Corpus(**resp.json())
+        return Corpus(**resp)
 
     def delete(self, corpus_id: str) -> None:
         """
