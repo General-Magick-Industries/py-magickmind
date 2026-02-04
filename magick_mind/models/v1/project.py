@@ -4,9 +4,11 @@ Project models for Magick Mind SDK v1 API.
 Mirrors Bifrost's /v1/projects endpoint request/response schemas.
 """
 
-from typing import Optional
+from typing import Optional, List
 
 from pydantic import BaseModel, ConfigDict, Field
+
+from magick_mind.models.v1.end_user import PageInfo
 
 
 class Project(BaseModel):
@@ -44,49 +46,28 @@ class CreateProjectRequest(BaseModel):
     )
 
 
-class CreateProjectResponse(BaseModel):
-    """
-    Response schema for project creation.
-    """
-
-    project: Optional[Project] = Field(None, description="Created project (Relaxed)")
-
-
-class GetProjectResponse(BaseModel):
-    """
-    Response schema for getting a single project.
-    """
-
-    project: Optional[Project] = Field(None, description="Retrieved project (Relaxed)")
-
-
 class GetProjectListResponse(BaseModel):
     """
     Response schema for listing projects.
+
+    Matches Bifrost's {data: list[Project], paging: PageInfo} structure.
     """
 
-    projects: list[Project] = Field(
-        default_factory=list, description="List of projects"
-    )
+    data: list[Project] = Field(..., description="List of projects")
+    paging: PageInfo = Field(..., description="Pagination information")
 
 
 class UpdateProjectRequest(BaseModel):
     """
     Request schema for updating a project.
+
+    Both name and corpus_ids are REQUIRED (matching Bifrost API).
     """
 
     name: str = Field(..., description="Project name (required)")
-    description: str = Field(
-        default="", description="Project description (optional, max 256 chars)"
+    description: Optional[str] = Field(
+        None, description="Project description (optional, max 256 chars)"
     )
     corpus_ids: list[str] = Field(
-        default_factory=list, description="List of corpus IDs to associate with project"
+        ..., description="List of corpus IDs to associate with project (required)"
     )
-
-
-class UpdateProjectResponse(BaseModel):
-    """
-    Response schema for project update.
-    """
-
-    project: Optional[Project] = Field(None, description="Updated project (Relaxed)")

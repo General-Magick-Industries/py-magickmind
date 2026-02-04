@@ -81,8 +81,8 @@ class HistoryResourceV1(BaseResource):
         if before_id:
             params["before_id"] = before_id
 
-        # Make request
-        response = self._http.get(Routes.HISTORY_MESSAGES, params=params)
+        # Make request (returns dict directly)
+        response_data = self._http.get(Routes.HISTORY_MESSAGES, params=params)
 
         # Parse and return
-        return HistoryResponse(**response.json())
+        return HistoryResponse(**response_data)

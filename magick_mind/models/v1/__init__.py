@@ -15,21 +15,14 @@ from magick_mind.models.v1.chat import ChatPayload, ChatSendRequest, ChatSendRes
 from magick_mind.models.v1.corpus import (
     Corpus,
     CreateCorpusRequest,
-    CreateCorpusResponse,
-    DeleteCorpusResponse,
-    GetCorpusResponse,
     ListCorpusResponse,
     UpdateCorpusRequest,
-    UpdateCorpusResponse,
 )
 from magick_mind.models.v1.end_user import (
     CreateEndUserRequest,
-    CreateEndUserResponse,
     EndUser,
-    GetEndUserResponse,
     QueryEndUserResponse,
     UpdateEndUserRequest,
-    UpdateEndUserResponse,
 )
 from magick_mind.models.v1.history import ChatHistoryMessage, HistoryResponse
 from magick_mind.models.v1.api_keys import (
@@ -44,12 +37,9 @@ from magick_mind.models.v1.api_keys import (
 )
 from magick_mind.models.v1.project import (
     CreateProjectRequest,
-    CreateProjectResponse,
     GetProjectListResponse,
-    GetProjectResponse,
     Project,
     UpdateProjectRequest,
-    UpdateProjectResponse,
 )
 from magick_mind.models.v1.model import Model, ModelsListResponse
 
@@ -62,18 +52,11 @@ __all__ = [
     "HistoryResponse",
     "Project",
     "CreateProjectRequest",
-    "CreateProjectResponse",
-    "GetProjectResponse",
     "GetProjectListResponse",
-    "UpdateProjectRequest",
-    "UpdateProjectResponse",
     "EndUser",
     "CreateEndUserRequest",
-    "CreateEndUserResponse",
-    "GetEndUserResponse",
     "QueryEndUserResponse",
     "UpdateEndUserRequest",
-    "UpdateEndUserResponse",
     "Artifact",
     "PresignArtifactRequest",
     "PresignArtifactResponse",
@@ -85,12 +68,8 @@ __all__ = [
     "ArtifactWebhookPayload",
     "Corpus",
     "CreateCorpusRequest",
-    "CreateCorpusResponse",
-    "GetCorpusResponse",
     "ListCorpusResponse",
     "UpdateCorpusRequest",
-    "UpdateCorpusResponse",
-    "DeleteCorpusResponse",
     "ApiKey",
     "KeyResponse",
     "CreateApiKeyRequest",
