@@ -9,6 +9,8 @@ from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from magick_mind.models.common import PageInfo
+
 
 class ApiKey(BaseModel):
     """
@@ -71,11 +73,21 @@ class CreateApiKeyResponse(BaseModel):
 
 
 class ListApiKeysResponse(BaseModel):
-    """Response for listing API keys."""
+    """
+    Response for listing API keys.
 
-    success: bool = Field(..., description="Request success status")
-    message: str = Field(..., description="Response message")
-    keys: list[ApiKey] = Field(..., description="List of API keys (metadata only)")
+    Uses standardized Bifrost pagination format: {data: [], paging: {}}.
+    """
+
+    data: list[ApiKey] = Field(
+        default_factory=list, description="List of API keys (metadata only)"
+    )
+    paging: PageInfo = Field(..., description="Pagination information")
+
+    @property
+    def keys(self) -> list[ApiKey]:
+        """Alias for data field (backward compatibility)."""
+        return self.data
 
 
 class UpdateApiKeyRequest(BaseModel):

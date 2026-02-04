@@ -8,12 +8,14 @@ from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from magick_mind.models.common import Cursors, PageInfo
+
 
 class ChatHistoryMessage(BaseModel):
     """
     Individual chat history message from Bifrost.
 
-    Maps to ChatHistory from Xavier's chat_history_service.proto.
+    Maps to ChatHistoryItem from Bifrost's magickmind.api.
     """
 
     model_config = ConfigDict(populate_by_name=True)
@@ -30,9 +32,6 @@ class ChatHistoryMessage(BaseModel):
         default=None, description="ID of message being replied to"
     )
     status: Optional[str] = Field(None, description="Message status")
-    artifact_ids: Optional[list[str]] = Field(
-        None, description="Artifact IDs attached to this message"
-    )
     created_at: Optional[str] = Field(
         None, alias="create_at", description="Creation timestamp (RFC3339)"
     )
@@ -45,30 +44,51 @@ class HistoryResponse(BaseModel):
     """
     Response from Bifrost's /v1/mindspaces/messages endpoint.
 
-    Includes chat histories and pagination cursors.
-    Three modes:
-    - Latest: Get most recent messages (returns last_id)
-    - Forward: Get messages after a point (returns next_after_id, has_more)
-    - Backward: Get messages before a point (returns next_before_id, has_older)
+    Uses standardized Bifrost pagination format:
+    {
+        "data": [...],
+        "paging": {
+            "cursors": {"after": "...", "before": "..."},
+            "has_more": true,
+            "has_previous": false
+        }
+    }
     """
 
-    chat_histories: list[ChatHistoryMessage] = Field(
+    data: list[ChatHistoryMessage] = Field(
         default_factory=list, description="List of chat messages"
     )
+    paging: PageInfo = Field(
+        default_factory=lambda: PageInfo(
+            cursors=Cursors(after=None, before=None),
+            has_more=False,
+            has_previous=False,
+        ),
+        description="Pagination information",
+    )
 
-    # Cursor fields (populated based on query mode)
-    last_id: Optional[str] = Field(
-        default=None, description="Last message ID (for latest mode)"
-    )
-    next_after_id: Optional[str] = Field(
-        default=None, description="Cursor for forward pagination"
-    )
-    next_before_id: Optional[str] = Field(
-        default=None, description="Cursor for backward pagination"
-    )
-    has_more: bool = Field(
-        default=False, description="True if more messages exist forward"
-    )
-    has_older: bool = Field(
-        default=False, description="True if more messages exist backward"
-    )
+    # Computed convenience properties for backward compatibility
+    @property
+    def chat_histories(self) -> list[ChatHistoryMessage]:
+        """Alias for data field (backward compatibility)."""
+        return self.data
+
+    @property
+    def has_more(self) -> bool:
+        """True if more messages exist forward."""
+        return self.paging.has_more
+
+    @property
+    def has_older(self) -> bool:
+        """True if more messages exist backward."""
+        return self.paging.has_previous
+
+    @property
+    def next_after_id(self) -> Optional[str]:
+        """Cursor for forward pagination."""
+        return self.paging.cursors.after if self.paging.cursors else None
+
+    @property
+    def next_before_id(self) -> Optional[str]:
+        """Cursor for backward pagination."""
+        return self.paging.cursors.before if self.paging.cursors else None
