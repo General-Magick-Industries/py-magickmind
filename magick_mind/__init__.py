@@ -6,12 +6,11 @@ Simple, powerful SDK for authentication and interaction with the Magick Mind API
 
 from magick_mind.client import MagickMind
 from magick_mind.exceptions import (
+    APIError,
     AuthenticationError,
     MagickMindError,
-    ProblemDetailsException,
-    RateLimitError,
     TokenExpiredError,
-    ValidationError,
+    RateLimitError,
 )
 from magick_mind.models.v1 import (
     ChatPayload,
@@ -21,16 +20,14 @@ from magick_mind.models.v1 import (
     HistoryResponse,
 )
 
-__version__ = "0.1.0"
+__version__ = "0.0.1"
 
 __all__ = [
     "MagickMind",
+    "APIError",
     "AuthenticationError",
-    "MagickMindError",
-    "ProblemDetailsException",
     "RateLimitError",
     "TokenExpiredError",
-    "ValidationError",
     "ChatSendRequest",
     "ChatPayload",
     "ChatSendResponse",

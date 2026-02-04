@@ -9,10 +9,13 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Optional
 
 from magick_mind.models.v1.corpus import (
-    Corpus,
     CreateCorpusRequest,
+    CreateCorpusResponse,
+    DeleteCorpusResponse,
+    GetCorpusResponse,
     ListCorpusResponse,
     UpdateCorpusRequest,
+    UpdateCorpusResponse,
 )
 from magick_mind.routes import Routes
 
@@ -37,7 +40,7 @@ class CorpusResourceV1:
         name: str,
         description: str,
         artifact_ids: Optional[list[str]] = None,
-    ) -> Corpus:
+    ) -> CreateCorpusResponse:
         """
         Create a new corpus.
 
@@ -47,7 +50,7 @@ class CorpusResourceV1:
             artifact_ids: Optional list of artifact IDs to include
 
         Returns:
-            Corpus object
+            CreateCorpusResponse with the created corpus
 
         Raises:
             httpx.HTTPStatusError: If the request fails
@@ -61,9 +64,9 @@ class CorpusResourceV1:
         resp = self.http.post(Routes.CORPUS, json=payload.model_dump())
         resp.raise_for_status()
 
-        return Corpus(**resp.json())
+        return CreateCorpusResponse(**resp.json())
 
-    def get(self, corpus_id: str) -> Corpus:
+    def get(self, corpus_id: str) -> GetCorpusResponse:
         """
         Get a corpus by ID.
 
@@ -71,7 +74,7 @@ class CorpusResourceV1:
             corpus_id: The corpus ID
 
         Returns:
-            Corpus object
+            GetCorpusResponse with the corpus data
 
         Raises:
             httpx.HTTPStatusError: If the request fails
@@ -79,7 +82,7 @@ class CorpusResourceV1:
         resp = self.http.get(Routes.corpus(corpus_id))
         resp.raise_for_status()
 
-        return Corpus(**resp.json())
+        return GetCorpusResponse(**resp.json())
 
     def list(self, user_id: Optional[str] = None) -> ListCorpusResponse:
         """
@@ -109,7 +112,7 @@ class CorpusResourceV1:
         name: str,
         description: str,
         artifact_ids: list[str],
-    ) -> Corpus:
+    ) -> UpdateCorpusResponse:
         """
         Update an existing corpus.
 
@@ -120,7 +123,7 @@ class CorpusResourceV1:
             artifact_ids: New list of artifact IDs
 
         Returns:
-            Corpus object
+            UpdateCorpusResponse with the updated corpus
 
         Raises:
             httpx.HTTPStatusError: If the request fails
@@ -134,9 +137,9 @@ class CorpusResourceV1:
         resp = self.http.put(Routes.corpus(corpus_id), json=payload.model_dump())
         resp.raise_for_status()
 
-        return Corpus(**resp.json())
+        return UpdateCorpusResponse(**resp.json())
 
-    def delete(self, corpus_id: str) -> None:
+    def delete(self, corpus_id: str) -> DeleteCorpusResponse:
         """
         Delete a corpus.
 
@@ -144,13 +147,12 @@ class CorpusResourceV1:
             corpus_id: The corpus ID to delete
 
         Returns:
-            None (Bifrost returns 204 No Content)
-
-        Example:
-            client.v1.corpus.delete(corpus_id="corpus-123")
-            print("Corpus deleted successfully")
+            DeleteCorpusResponse
 
         Raises:
-            httpx.HTTPStatusError: If request fails
+            httpx.HTTPStatusError: If the request fails
         """
-        self.http.delete(Routes.corpus(corpus_id))
+        resp = self.http.delete(Routes.corpus(corpus_id))
+        resp.raise_for_status()
+
+        return DeleteCorpusResponse(**resp.json())

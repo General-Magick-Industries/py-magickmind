@@ -11,9 +11,12 @@ from typing import Optional
 
 from magick_mind.models.v1.project import (
     CreateProjectRequest,
+    CreateProjectResponse,
     GetProjectListResponse,
+    GetProjectResponse,
     Project,
     UpdateProjectRequest,
+    UpdateProjectResponse,
 )
 from magick_mind.resources.base import BaseResource
 from magick_mind.routes import Routes
@@ -58,7 +61,8 @@ class ProjectResourceV1(BaseResource):
         )
 
         response = self._http.post(Routes.PROJECTS, json=request.model_dump())
-        return Project.model_validate(response)
+        create_response = CreateProjectResponse(**response)
+        return create_response.project
 
     def get(self, project_id: str) -> Project:
         """
@@ -75,7 +79,8 @@ class ProjectResourceV1(BaseResource):
             print(f"Project name: {project.name}")
         """
         response = self._http.get(Routes.project(project_id))
-        return Project.model_validate(response)
+        get_response = GetProjectResponse(**response)
+        return get_response.project
 
     def list(self, created_by_user_id: Optional[str] = None) -> list[Project]:
         """
@@ -101,8 +106,8 @@ class ProjectResourceV1(BaseResource):
             params["user_id"] = created_by_user_id
 
         response = self._http.get(Routes.PROJECTS, params=params)
-        list_response = GetProjectListResponse.model_validate(response)
-        return [Project.model_validate(p) for p in list_response.data]
+        list_response = GetProjectListResponse(**response)
+        return list_response.projects
 
     def update(
         self,
@@ -139,7 +144,8 @@ class ProjectResourceV1(BaseResource):
         )
 
         response = self._http.put(Routes.project(project_id), json=request.model_dump())
-        return Project(**response)
+        update_response = UpdateProjectResponse(**response)
+        return update_response.project
 
     def delete(self, project_id: str) -> None:
         """

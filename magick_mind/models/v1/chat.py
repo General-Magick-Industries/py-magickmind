@@ -7,6 +7,8 @@ from typing import Optional
 
 from pydantic import BaseModel, Field, field_serializer
 
+from magick_mind.models.common import BaseResponse
+
 
 class ConfigSchema(BaseModel):
     """
@@ -82,14 +84,14 @@ class ChatPayload(BaseModel):
     )
 
 
-class ChatSendResponse(BaseModel):
+class ChatSendResponse(BaseResponse):
     """
     Response from sending a chat message.
 
-    Matches Bifrost ChatResponse structure with only content field.
-
     Example:
         {
+            "success": true,
+            "message": "Chat request processed successfully",
             "content": {
                 "message_id": "msg-789",
                 "task_id": "task-123",

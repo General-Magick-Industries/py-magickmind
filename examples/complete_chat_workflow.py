@@ -40,7 +40,6 @@ import logging
 from typing import Set
 
 from magick_mind import MagickMind
-from magick_mind.models.v1.chat import ConfigSchema
 from magick_mind.realtime.handler import RealtimeEventHandler
 
 # Setup logging
@@ -139,10 +138,10 @@ async def main():
         logger.info("✅ Realtime connected")
 
         # Step 2: Subscribe to your user's updates
-        enduser_id = "user-123"  # Your user ID
-        logger.info(f"\n--- Step 2: Subscribe to {enduser_id} ---")
-        await client.realtime.subscribe(enduser_id)
-        logger.info(f"✅ Subscribed to {enduser_id}")
+        sender_id = "user-123"  # Your user ID
+        logger.info(f"\n--- Step 2: Subscribe to {sender_id} ---")
+        await client.realtime.subscribe(sender_id)
+        logger.info(f"✅ Subscribed to {sender_id}")
 
         # Give realtime connection a moment to stabilize
         await asyncio.sleep(1)
@@ -160,15 +159,11 @@ async def main():
             api_key=api_key,
             mindspace_id=mindspace_id,
             message="What is the meaning of life? Please think carefully.",
-            enduser_id=enduser_id,
-            config=ConfigSchema(
-                fast_model_id="openrouter/meta-llama/llama-3.1-8b-instruct:free",
-                smart_model_ids=["openrouter/meta-llama/llama-3.1-8b-instruct:free"],
-                compute_power=50,
-            ),
+            sender_id=sender_id,
+            fast_brain_model_id="openrouter/meta-llama/llama-3.1-8b-instruct:free",
         )
 
-        if response.content and response.content.message_id:
+        if response.success:
             original_message_id = response.content.message_id
             logger.info("✅ Message sent successfully!")
             logger.info(f"   Message ID: {original_message_id}")
@@ -176,7 +171,7 @@ async def main():
                 f"   AI responses will have reply_to_message_id = {original_message_id}"
             )
         else:
-            logger.error("❌ Failed to send message: No message_id in response")
+            logger.error(f"❌ Failed to send message: {response.message}")
             return
 
         # Step 4: Wait for AI responses via Realtime

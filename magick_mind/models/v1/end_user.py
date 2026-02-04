@@ -1,19 +1,20 @@
-"""End user models for Magick Mind SDK v1 API.
+"""
+End user models for Magick Mind SDK v1 API.
 
 Mirrors Bifrost's /v1/end-users endpoint request/response schemas.
 """
-
-from __future__ import annotations
 
 from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from magick_mind.models.common import PageInfo
-
 
 class EndUser(BaseModel):
-    """End user schema from Bifrost."""
+    """
+    End user schema from Bifrost.
+
+    Represents an end user in a multi-tenant agentic SaaS application.
+    """
 
     model_config = ConfigDict(populate_by_name=True)
 
@@ -33,7 +34,9 @@ class EndUser(BaseModel):
 
 
 class CreateEndUserRequest(BaseModel):
-    """Request schema for creating a new end user."""
+    """
+    Request schema for creating a new end user.
+    """
 
     name: str = Field(..., description="End user name (required)")
     external_id: Optional[str] = Field(
@@ -45,21 +48,45 @@ class CreateEndUserRequest(BaseModel):
 
 
 class CreateEndUserResponse(EndUser):
-    """Response schema for end user creation."""
+    """
+    Response schema for end user creation.
+
+    Returns flat EndUserSchema matching Bifrost API spec.
+    """
 
     pass
 
 
 class GetEndUserResponse(EndUser):
-    """Response schema for getting a single end user."""
+    """
+    Response schema for getting a single end user.
+
+    Returns flat EndUserSchema matching Bifrost API spec.
+    """
 
     pass
 
 
-class QueryEndUserResponse(BaseModel):
-    """Response schema for querying end users.
+class Cursors(BaseModel):
+    """Pagination cursors."""
 
-    Uses standardized Bifrost pagination format: {data: [], paging: {}}.
+    after: Optional[str] = Field(default=None, description="Cursor for next page")
+    before: Optional[str] = Field(default=None, description="Cursor for previous page")
+
+
+class PageInfo(BaseModel):
+    """Pagination information."""
+
+    cursors: Cursors = Field(..., description="Pagination cursors")
+    has_more: bool = Field(..., description="Whether there are more results")
+    has_previous: bool = Field(..., description="Whether there are previous results")
+
+
+class QueryEndUserResponse(BaseModel):
+    """
+    Response schema for querying end users.
+
+    Uses new pagination pattern: {data: [], paging: {}}
     """
 
     data: list[EndUser] = Field(
@@ -69,7 +96,9 @@ class QueryEndUserResponse(BaseModel):
 
 
 class UpdateEndUserRequest(BaseModel):
-    """Request schema for updating an end user."""
+    """
+    Request schema for updating an end user.
+    """
 
     name: Optional[str] = Field(default=None, description="End user name (optional)")
     external_id: Optional[str] = Field(
@@ -80,6 +109,10 @@ class UpdateEndUserRequest(BaseModel):
 
 
 class UpdateEndUserResponse(EndUser):
-    """Response schema for end user update."""
+    """
+    Response schema for end user update.
+
+    Returns flat EndUserSchema matching Bifrost API spec.
+    """
 
     pass

@@ -5,13 +5,14 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Optional
 
 from magick_mind.models.v1.mindspace import (
-    AddMindSpaceUsersRequest,
     CreateMindSpaceRequest,
+    CreateMindSpaceResponse,
     GetMindSpaceListResponse,
-    MindSpace,
-    MindSpaceType,
+    GetMindSpaceResponse,
     MindspaceMessagesResponse,
+    MindSpaceType,
     UpdateMindSpaceRequest,
+    UpdateMindSpaceResponse,
 )
 from magick_mind.resources.base import BaseResource
 from magick_mind.routes import Routes
@@ -54,19 +55,20 @@ class MindspaceResourceV1(BaseResource):
         project_id: Optional[str] = None,
         corpus_ids: Optional[list[str]] = None,
         user_ids: Optional[list[str]] = None,
-    ) -> MindSpace:
+    ) -> CreateMindSpaceResponse:
         """
         Create a new mindspace.
+
         Args:
             name: Mindspace name (max 100 characters)
-            type: Mindspace type - either "PRIVATE" or "GROUP"
+            type: Mindspace type - either "private" or "group"
             description: Optional description (max 256 characters)
             project_id: Optional associated project ID
             corpus_ids: Optional list of corpus IDs to attach
             user_ids: Optional list of user IDs to grant access
 
         Returns:
-            MindSpace
+            CreateMindSpaceResponse with created mindspace
 
         Raises:
             HTTPError: If the API request fails
@@ -74,14 +76,14 @@ class MindspaceResourceV1(BaseResource):
 
         Example:
             # Create a group mindspace
-            mindspace = client.v1.mindspace.create(
+            response = client.v1.mindspace.create(
                 name="Engineering Team",
-                type="GROUP",
+                type="group",
                 description="Team collaboration space",
                 corpus_ids=["corp-1", "corp-2"],
                 user_ids=["user-1", "user-2"]
             )
-            print(f"Created mindspace: {mindspace.id}")
+            print(f"Created mindspace: {response.mindspace.id}")
         """
         # Build and validate request
         request = CreateMindSpaceRequest(
@@ -98,9 +100,10 @@ class MindspaceResourceV1(BaseResource):
             Routes.MINDSPACES, json=request.model_dump(exclude_none=True)
         )
 
-        return MindSpace.model_validate(response)
+        # Parse and validate response
+        return CreateMindSpaceResponse.model_validate(response)
 
-    def get(self, mindspace_id: str) -> MindSpace:
+    def get(self, mindspace_id: str) -> GetMindSpaceResponse:
         """
         Get a mindspace by ID.
 
@@ -108,19 +111,19 @@ class MindspaceResourceV1(BaseResource):
             mindspace_id: Mindspace ID to retrieve
 
         Returns:
-            MindSpace
+            GetMindSpaceResponse with mindspace data
 
         Raises:
             HTTPError: If the API request fails or mindspace not found
 
         Example:
-            mindspace = client.v1.mindspace.get("mind-123")
-            print(f"Mindspace: {mindspace.name}")
-            print(f"Type: {mindspace.type}")
-            print(f"Corpus: {mindspace.corpus_ids}")
+            response = client.v1.mindspace.get("mind-123")
+            print(f"Mindspace: {response.mindspace.name}")
+            print(f"Type: {response.mindspace.type}")
+            print(f"Corpus: {response.mindspace.corpus_ids}")
         """
-        response_data = self._http.get(Routes.mindspace(mindspace_id))
-        return MindSpace.model_validate(response_data)
+        response = self._http.get(Routes.mindspace(mindspace_id))
+        return GetMindSpaceResponse.model_validate(response)
 
     def list(self, user_id: Optional[str] = None) -> GetMindSpaceListResponse:
         """
@@ -145,8 +148,8 @@ class MindspaceResourceV1(BaseResource):
         if user_id:
             params["user_id"] = user_id
 
-        response_data = self._http.get(Routes.MINDSPACES, params=params)
-        return GetMindSpaceListResponse.model_validate(response_data)
+        response = self._http.get(Routes.MINDSPACES, params=params)
+        return GetMindSpaceListResponse.model_validate(response)
 
     def update(
         self,
@@ -156,7 +159,7 @@ class MindspaceResourceV1(BaseResource):
         project_id: Optional[str] = None,
         corpus_ids: Optional[list[str]] = None,
         user_ids: Optional[list[str]] = None,
-    ) -> MindSpace:
+    ) -> UpdateMindSpaceResponse:
         """
         Update an existing mindspace.
 
@@ -169,7 +172,7 @@ class MindspaceResourceV1(BaseResource):
             user_ids: Updated list of user IDs
 
         Returns:
-            MindSpace
+            UpdateMindSpaceResponse with updated mindspace
 
         Raises:
             HTTPError: If the API request fails or mindspace not found
@@ -177,12 +180,12 @@ class MindspaceResourceV1(BaseResource):
 
         Example:
             # Update mindspace to add more corpus
-            mindspace = client.v1.mindspace.update(
+            response = client.v1.mindspace.update(
                 mindspace_id="mind-123",
                 name="Engineering Team",
                 corpus_ids=["corp-1", "corp-2", "corp-3"]
             )
-            print(f"Updated: {mindspace.corpus_ids}")
+            print(f"Updated: {response.mindspace.corpus_ids}")
         """
         # Build and validate request
         request = UpdateMindSpaceRequest(
@@ -200,7 +203,7 @@ class MindspaceResourceV1(BaseResource):
         )
 
         # Parse and validate response
-        return MindSpace.model_validate(response)
+        return UpdateMindSpaceResponse.model_validate(response)
 
     def delete(self, mindspace_id: str) -> None:
         """
@@ -286,46 +289,7 @@ class MindspaceResourceV1(BaseResource):
             params["before_id"] = before_id
 
         # Make request
-        response_data = self._http.get(Routes.MINDSPACE_MESSAGES, params=params)
+        response = self._http.get(Routes.MINDSPACE_MESSAGES, params=params)
 
         # Parse and return
-        return MindspaceMessagesResponse.model_validate(response_data)
-
-    def add_users(
-        self,
-        mindspace_id: str,
-        user_ids: list[str],
-    ) -> MindSpace:
-        """
-        Add users to an existing mindspace.
-
-        Args:
-            mindspace_id: Mindspace ID to add users to
-            user_ids: List of user IDs to add to the mindspace
-
-        Returns:
-            MindSpace with updated user list
-
-        Raises:
-            HTTPError: If the API request fails or mindspace not found
-            ValidationError: If parameters are invalid
-
-        Example:
-            # Add users to a group mindspace
-            mindspace = client.v1.mindspace.add_users(
-                mindspace_id="mind-123",
-                user_ids=["user-3", "user-4"]
-            )
-            print(f"Updated users: {mindspace.user_ids}")
-        """
-        # Build and validate request
-        request = AddMindSpaceUsersRequest(user_ids=user_ids)
-
-        # Make API call
-        response = self._http.post(
-            Routes.mindspace_users(mindspace_id),
-            json=request.model_dump(exclude_none=True),
-        )
-
-        # Parse and validate response
-        return MindSpace.model_validate(response)
+        return MindspaceMessagesResponse(**response)

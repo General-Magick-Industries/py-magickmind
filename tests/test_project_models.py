@@ -3,12 +3,14 @@
 import pytest
 from pydantic import ValidationError
 
-from magick_mind.models.common import Cursors, PageInfo
 from magick_mind.models.v1.project import (
     CreateProjectRequest,
+    CreateProjectResponse,
     GetProjectListResponse,
+    GetProjectResponse,
     Project,
     UpdateProjectRequest,
+    UpdateProjectResponse,
 )
 
 
@@ -52,7 +54,7 @@ class TestProject:
     def test_missing_required_fields(self):
         """Test that missing required fields raise validation error."""
         with pytest.raises(ValidationError):
-            Project(  # type: ignore[call-arg]
+            Project(
                 id="proj-123",
                 # Missing name, description, created_by, timestamps
             )
@@ -93,7 +95,49 @@ class TestCreateProjectRequest:
     def test_missing_name(self):
         """Test that missing name raises validation error."""
         with pytest.raises(ValidationError):
-            CreateProjectRequest(description="No name")  # type: ignore[call-arg]
+            CreateProjectRequest(description="No name")
+
+
+class TestCreateProjectResponse:
+    """Tests for CreateProjectResponse model."""
+
+    def test_valid_create_response(self):
+        """Test creating a valid project creation response."""
+        project = Project(
+            id="proj-123",
+            name="Created Project",
+            description="New",
+            corpus_ids=[],
+            created_by="user-456",
+            created_at="2024-01-01T10:00:00Z",
+            updated_at="2024-01-01T10:00:00Z",
+        )
+
+        response = CreateProjectResponse(project=project)
+
+        assert response.project.id == "proj-123"
+        assert response.project.name == "Created Project"
+
+
+class TestGetProjectResponse:
+    """Tests for GetProjectResponse model."""
+
+    def test_valid_get_response(self):
+        """Test creating a valid get project response."""
+        project = Project(
+            id="proj-123",
+            name="Retrieved Project",
+            description="Test",
+            corpus_ids=["corpus-1"],
+            created_by="user-456",
+            created_at="2024-01-01T10:00:00Z",
+            updated_at="2024-01-01T10:00:00Z",
+        )
+
+        response = GetProjectResponse(project=project)
+
+        assert response.project.id == "proj-123"
+        assert response.project.corpus_ids == ["corpus-1"]
 
 
 class TestGetProjectListResponse:
@@ -114,32 +158,23 @@ class TestGetProjectListResponse:
             for i in range(3)
         ]
 
-        paging = PageInfo(
-            cursors=Cursors(after="cursor-123", before="cursor-0"),
-            has_more=True,
-            has_previous=False,
-        )
+        response = GetProjectListResponse(projects=projects)
 
-        response = GetProjectListResponse(data=projects, paging=paging)
-
-        assert len(response.data) == 3
-        assert response.data[0].id == "proj-0"
-        assert response.data[2].id == "proj-2"
-        assert response.paging.cursors.after == "cursor-123"
-        assert response.paging.has_more is True
+        assert len(response.projects) == 3
+        assert response.projects[0].id == "proj-0"
+        assert response.projects[2].id == "proj-2"
 
     def test_empty_list_response(self):
         """Test creating an empty project list response."""
-        paging = PageInfo(
-            cursors=Cursors(after=None, before=None),
-            has_more=False,
-            has_previous=False,
-        )
+        response = GetProjectListResponse()
 
-        response = GetProjectListResponse(data=[], paging=paging)
+        assert response.projects == []
 
-        assert response.data == []
-        assert response.paging.has_more is False
+    def test_list_response_with_empty_list(self):
+        """Test explicitly setting empty projects list."""
+        response = GetProjectListResponse(projects=[])
+
+        assert len(response.projects) == 0
 
 
 class TestUpdateProjectRequest:
@@ -158,15 +193,36 @@ class TestUpdateProjectRequest:
         assert request.corpus_ids == ["corpus-1", "corpus-2"]
 
     def test_update_request_minimal(self):
-        """Test update request with minimal required fields."""
-        # Intentionally omitting description to test it's optional
-        request = UpdateProjectRequest(name="Updated Name", corpus_ids=[])  # type: ignore[call-arg]
+        """Test update request with only required fields."""
+        request = UpdateProjectRequest(name="Updated Name")
 
         assert request.name == "Updated Name"
-        assert request.description is None
+        assert request.description == ""
         assert request.corpus_ids == []
 
     def test_missing_name(self):
         """Test that missing name raises validation error."""
         with pytest.raises(ValidationError):
-            UpdateProjectRequest(description="No name")  # type: ignore[call-arg]
+            UpdateProjectRequest(description="No name")
+
+
+class TestUpdateProjectResponse:
+    """Tests for UpdateProjectResponse model."""
+
+    def test_valid_update_response(self):
+        """Test creating a valid project update response."""
+        project = Project(
+            id="proj-123",
+            name="Updated Project",
+            description="Updated",
+            corpus_ids=["corpus-1", "corpus-2"],
+            created_by="user-456",
+            created_at="2024-01-01T10:00:00Z",
+            updated_at="2024-01-01T11:00:00Z",
+        )
+
+        response = UpdateProjectResponse(project=project)
+
+        assert response.project.id == "proj-123"
+        assert response.project.name == "Updated Project"
+        assert len(response.project.corpus_ids) == 2

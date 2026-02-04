@@ -1,7 +1,6 @@
 """Tests for history models."""
 
 from magick_mind.models.v1.history import ChatHistoryMessage, HistoryResponse
-from magick_mind.models.common import Cursors, PageInfo
 
 
 class TestChatHistoryMessage:
@@ -80,111 +79,86 @@ class TestChatHistoryMessage:
 
 
 class TestHistoryResponse:
-    """Tests for HistoryResponse model with standardized {data, paging} structure."""
+    """Tests for HistoryResponse model."""
 
     def test_empty_response(self):
         """Test creating an empty history response."""
         response = HistoryResponse()
 
-        # Test new structure
-        assert response.data == []
-        assert response.paging.has_more is False
-        assert response.paging.has_previous is False
-        assert response.paging.cursors.after is None
-        assert response.paging.cursors.before is None
-
-        # Test backward compatibility properties
         assert response.chat_histories == []
-        assert response.has_more is False
-        assert response.has_older is False
+        assert response.last_id is None
         assert response.next_after_id is None
         assert response.next_before_id is None
+        assert response.has_more is False
+        assert response.has_older is False
 
     def test_latest_mode_response(self):
-        """Test response for latest mode."""
-        msg = ChatHistoryMessage(
-            id="msg-1",
-            mindspace_id="mind-1",
-            sent_by_user_id="user-1",
-            content="Hello",
-            status="sent",
-            create_at="2024-01-01T10:00:00Z",
-            update_at="2024-01-01T10:00:00Z",
-        )
+        """Test response for latest mode with last_id."""
         response = HistoryResponse(
-            data=[msg],
-            paging=PageInfo(
-                cursors=Cursors(after=None, before=None),
-                has_more=False,
-                has_previous=False,
-            ),
+            chat_histories=[
+                ChatHistoryMessage(
+                    id="msg-1",
+                    mindspace_id="mind-1",
+                    sent_by_user_id="user-1",
+                    content="Hello",
+                    status="sent",
+                    create_at="2024-01-01T10:00:00Z",
+                    update_at="2024-01-01T10:00:00Z",
+                )
+            ],
+            last_id="msg-1",
         )
 
-        assert len(response.data) == 1
-        assert response.paging.has_more is False
-
-        # Backward compat
         assert len(response.chat_histories) == 1
+        assert response.last_id == "msg-1"
         assert response.next_after_id is None
         assert response.next_before_id is None
 
     def test_forward_pagination_response(self):
-        """Test response for forward pagination with has_more and after cursor."""
-        msg = ChatHistoryMessage(
-            id="msg-2",
-            mindspace_id="mind-1",
-            sent_by_user_id="user-1",
-            content="World",
-            status="sent",
-            create_at="2024-01-01T10:01:00Z",
-            update_at="2024-01-01T10:01:00Z",
-        )
+        """Test response for forward pagination with next_after_id and has_more."""
         response = HistoryResponse(
-            data=[msg],
-            paging=PageInfo(
-                cursors=Cursors(after="msg-2", before=None),
-                has_more=True,
-                has_previous=False,
-            ),
+            chat_histories=[
+                ChatHistoryMessage(
+                    id="msg-2",
+                    mindspace_id="mind-1",
+                    sent_by_user_id="user-1",
+                    content="World",
+                    status="sent",
+                    create_at="2024-01-01T10:01:00Z",
+                    update_at="2024-01-01T10:01:00Z",
+                )
+            ],
+            next_after_id="msg-2",
+            has_more=True,
         )
 
-        assert len(response.data) == 1
-        assert response.paging.cursors.after == "msg-2"
-        assert response.paging.has_more is True
-
-        # Backward compat
         assert len(response.chat_histories) == 1
         assert response.next_after_id == "msg-2"
         assert response.has_more is True
+        assert response.last_id is None
 
     def test_backward_pagination_response(self):
-        """Test response for backward pagination with has_previous and before cursor."""
-        msg = ChatHistoryMessage(
-            id="msg-0",
-            mindspace_id="mind-1",
-            sent_by_user_id="user-1",
-            content="First",
-            status="sent",
-            create_at="2024-01-01T09:59:00Z",
-            update_at="2024-01-01T09:59:00Z",
-        )
+        """Test response for backward pagination with next_before_id and has_older."""
         response = HistoryResponse(
-            data=[msg],
-            paging=PageInfo(
-                cursors=Cursors(after=None, before="msg-0"),
-                has_more=False,
-                has_previous=True,
-            ),
+            chat_histories=[
+                ChatHistoryMessage(
+                    id="msg-0",
+                    mindspace_id="mind-1",
+                    sent_by_user_id="user-1",
+                    content="First",
+                    status="sent",
+                    create_at="2024-01-01T09:59:00Z",
+                    update_at="2024-01-01T09:59:00Z",
+                )
+            ],
+            next_before_id="msg-0",
+            has_older=True,
         )
 
-        assert len(response.data) == 1
-        assert response.paging.cursors.before == "msg-0"
-        assert response.paging.has_previous is True
-
-        # Backward compat
         assert len(response.chat_histories) == 1
         assert response.next_before_id == "msg-0"
         assert response.has_older is True
+        assert response.last_id is None
 
     def test_multiple_messages(self):
         """Test response with multiple messages."""
@@ -202,19 +176,11 @@ class TestHistoryResponse:
         ]
 
         response = HistoryResponse(
-            data=messages,
-            paging=PageInfo(
-                cursors=Cursors(after="msg-2", before=None),
-                has_more=True,
-                has_previous=False,
-            ),
+            chat_histories=messages,
+            next_after_id="msg-2",
+            has_more=True,
         )
 
-        assert len(response.data) == 3
-        assert response.data[0].id == "msg-0"
-        assert response.data[2].id == "msg-2"
-
-        # Backward compat
         assert len(response.chat_histories) == 3
         assert response.chat_histories[0].id == "msg-0"
         assert response.chat_histories[2].id == "msg-2"

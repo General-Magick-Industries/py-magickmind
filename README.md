@@ -479,8 +479,7 @@ from magick_mind import (
     MagickMind,
     AuthenticationError,
     TokenExpiredError,
-    ProblemDetailsException,
-    ValidationError,
+    APIError,
     RateLimitError
 )
 
@@ -493,32 +492,9 @@ except TokenExpiredError as e:
     print(f"Token expired: {e}")
 except RateLimitError as e:
     print(f"Rate limited: {e}")
-except ValidationError as e:
-    # Handle field-level validation errors (400 Bad Request)
-    print(f"Validation error: {e.detail}")
-    for field, errors in e.get_field_errors().items():
-        print(f"  {field}: {', '.join(errors)}")
-except ProblemDetailsException as e:
-    # Handle other API errors (RFC 7807 Problem Details)
-    print(f"API error: {e.title} - {e.detail}")
-    print(f"Request ID: {e.request_id}")  # For support tickets
+except APIError as e:
+    print(f"API error: {e}")
 ```
-
-### Error Quick Reference
-
-| Exception | Typical Cause | Key Attributes | Recovery Action |
-|-----------|---------------|----------------|-----------------|
-| `AuthenticationError` | Invalid credentials | `message`, `status_code` | Check email/password and re-authenticate |
-| `TokenExpiredError` | Token expired | `message` | Auto-refreshed by SDK transparently |
-| `ValidationError` | Bad request data | `get_field_errors()`, `request_id` | Fix input using field error details |
-| `ProblemDetailsException` | API error (4xx, 5xx) | `status`, `title`, `detail`, `request_id` | Check detail message and request_id |
-| `RateLimitError` | Rate limit exceeded | `status_code` (429) | Retry with exponential backoff |
-
-> [!IMPORTANT]
-> **Always log `request_id`** from `ProblemDetailsException` - it's essential for support tickets and debugging with the Bifrost team.
-
-📖 **[Complete Error Handling Guide](docs/guides/error_handling.md)** - Comprehensive guide with error catalog, retry patterns, and production examples.
-
 
 ## Configuration
 

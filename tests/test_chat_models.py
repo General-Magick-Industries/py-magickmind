@@ -38,7 +38,7 @@ class TestConfigSchema:
     def test_missing_required_fields(self):
         """Test ConfigSchema raises ValidationError for missing fields."""
         with pytest.raises(ValidationError) as exc_info:
-            ConfigSchema()  # type: ignore[call-arg]
+            ConfigSchema()
 
         errors = exc_info.value.errors()
         error_fields = {error["loc"][0] for error in errors}
@@ -97,7 +97,7 @@ class TestChatSendRequest:
     def test_missing_required_field_raises_validation_error(self):
         """Test ChatSendRequest raises ValidationError when required fields are missing."""
         with pytest.raises(ValidationError) as exc_info:
-            ChatSendRequest(api_key="sk-test")  # type: ignore[call-arg]
+            ChatSendRequest(api_key="sk-test")
 
         errors = exc_info.value.errors()
         error_fields = {error["loc"][0] for error in errors}
@@ -153,8 +153,7 @@ class TestChatPayload:
 
     def test_chat_payload_with_relaxed_fields(self):
         """Test ChatPayload validates with optional fields as None (relaxed spec)."""
-        # Intentionally omitting required fields to test default behavior
-        payload = ChatPayload()  # type: ignore[call-arg]
+        payload = ChatPayload()
 
         assert payload.message_id is None
         assert payload.task_id is None
@@ -179,6 +178,8 @@ class TestChatSendResponse:
 
         response = ChatSendResponse.model_validate(response_data)
 
+        assert response.success is True
+        assert response.message == "Chat request processed successfully"
         assert response.content is not None
         assert response.content.message_id == "msg-789"
         assert response.content.task_id == "task-123"
@@ -194,6 +195,8 @@ class TestChatSendResponse:
 
         response = ChatSendResponse.model_validate(response_data)
 
+        assert response.success is False
+        assert response.message == "Invalid API key"
         assert response.content is None
 
     def test_response_with_reply_to(self):
@@ -210,5 +213,4 @@ class TestChatSendResponse:
         }
 
         response = ChatSendResponse.model_validate(response_data)
-        assert response.content is not None
         assert response.content.reply_to == "msg-789"

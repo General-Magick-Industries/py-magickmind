@@ -23,17 +23,20 @@ class TestEndUserResourceV1:
 
     def test_create_end_user(self, end_user_resource, mock_http_client):
         """Test creating a new end user."""
-        # HTTP client returns parsed JSON directly (flat response)
-        mock_http_client.post.return_value = {
-            "id": "user-123",
-            "name": "John Doe",
-            "external_id": "ext-789",
-            "tenant_id": "tenant-456",
-            "created_by": "admin-001",
-            "updated_by": None,
-            "created_at": "2024-01-01T10:00:00Z",
-            "updated_at": "2024-01-01T10:00:00Z",
+        mock_response = Mock()
+        mock_response.json.return_value = {
+            "end_user": {
+                "id": "user-123",
+                "name": "John Doe",
+                "external_id": "ext-789",
+                "tenant_id": "tenant-456",
+                "created_by": "admin-001",
+                "updated_by": None,
+                "created_at": "2024-01-01T10:00:00Z",
+                "updated_at": "2024-01-01T10:00:00Z",
+            }
         }
+        mock_http_client.post.return_value = mock_response
 
         result = end_user_resource.create(
             name="John Doe",
@@ -64,16 +67,20 @@ class TestEndUserResourceV1:
         self, end_user_resource, mock_http_client
     ):
         """Test creating end user without optional external_id."""
-        mock_http_client.post.return_value = {
-            "id": "user-456",
-            "name": "Jane Doe",
-            "external_id": None,
-            "tenant_id": "tenant-789",
-            "created_by": "admin-002",
-            "updated_by": None,
-            "created_at": "2024-01-01T10:00:00Z",
-            "updated_at": "2024-01-01T10:00:00Z",
+        mock_response = Mock()
+        mock_response.json.return_value = {
+            "end_user": {
+                "id": "user-456",
+                "name": "Jane Doe",
+                "external_id": None,
+                "tenant_id": "tenant-789",
+                "created_by": "admin-002",
+                "updated_by": None,
+                "created_at": "2024-01-01T10:00:00Z",
+                "updated_at": "2024-01-01T10:00:00Z",
+            }
         }
+        mock_http_client.post.return_value = mock_response
 
         result = end_user_resource.create(
             name="Jane Doe",
@@ -90,17 +97,20 @@ class TestEndUserResourceV1:
 
     def test_get_end_user(self, end_user_resource, mock_http_client):
         """Test getting an end user by ID."""
-        # HTTP client returns flat response
-        mock_http_client.get.return_value = {
-            "id": "user-123",
-            "name": "Retrieved User",
-            "external_id": "ext-001",
-            "tenant_id": "tenant-456",
-            "created_by": "admin-001",
-            "updated_by": None,
-            "created_at": "2024-01-01T10:00:00Z",
-            "updated_at": "2024-01-01T10:00:00Z",
+        mock_response = Mock()
+        mock_response.json.return_value = {
+            "end_user": {
+                "id": "user-123",
+                "name": "Retrieved User",
+                "external_id": "ext-001",
+                "tenant_id": "tenant-456",
+                "created_by": "admin-001",
+                "updated_by": None,
+                "created_at": "2024-01-01T10:00:00Z",
+                "updated_at": "2024-01-01T10:00:00Z",
+            }
         }
+        mock_http_client.get.return_value = mock_response
 
         result = end_user_resource.get(end_user_id="user-123")
 
@@ -113,9 +123,9 @@ class TestEndUserResourceV1:
 
     def test_query_end_users_all(self, end_user_resource, mock_http_client):
         """Test querying all end users without filters."""
-        # Query returns list response with data and paging
-        mock_http_client.get.return_value = {
-            "data": [
+        mock_response = Mock()
+        mock_response.json.return_value = {
+            "end_users": [
                 {
                     "id": "user-1",
                     "name": "User 1",
@@ -136,13 +146,9 @@ class TestEndUserResourceV1:
                     "created_at": "2024-01-01T11:00:00Z",
                     "updated_at": "2024-01-01T11:00:00Z",
                 },
-            ],
-            "paging": {
-                "cursors": {"after": None, "before": None},
-                "has_more": False,
-                "has_previous": False,
-            },
+            ]
         }
+        mock_http_client.get.return_value = mock_response
 
         result = end_user_resource.query()
 
@@ -157,8 +163,9 @@ class TestEndUserResourceV1:
 
     def test_query_end_users_by_tenant(self, end_user_resource, mock_http_client):
         """Test querying end users filtered by tenant_id."""
-        mock_http_client.get.return_value = {
-            "data": [
+        mock_response = Mock()
+        mock_response.json.return_value = {
+            "end_users": [
                 {
                     "id": "user-1",
                     "name": "Tenant User 1",
@@ -169,13 +176,9 @@ class TestEndUserResourceV1:
                     "created_at": "2024-01-01T10:00:00Z",
                     "updated_at": "2024-01-01T10:00:00Z",
                 }
-            ],
-            "paging": {
-                "cursors": {"after": None, "before": None},
-                "has_more": False,
-                "has_previous": False,
-            },
+            ]
         }
+        mock_http_client.get.return_value = mock_response
 
         result = end_user_resource.query(tenant_id="tenant-123")
 
@@ -189,8 +192,9 @@ class TestEndUserResourceV1:
 
     def test_query_end_users_by_external_id(self, end_user_resource, mock_http_client):
         """Test querying end users filtered by external_id."""
-        mock_http_client.get.return_value = {
-            "data": [
+        mock_response = Mock()
+        mock_response.json.return_value = {
+            "end_users": [
                 {
                     "id": "user-1",
                     "name": "External User",
@@ -201,13 +205,9 @@ class TestEndUserResourceV1:
                     "created_at": "2024-01-01T10:00:00Z",
                     "updated_at": "2024-01-01T10:00:00Z",
                 }
-            ],
-            "paging": {
-                "cursors": {"after": None, "before": None},
-                "has_more": False,
-                "has_previous": False,
-            },
+            ]
         }
+        mock_http_client.get.return_value = mock_response
 
         result = end_user_resource.query(external_id="ext-789")
 
@@ -223,14 +223,9 @@ class TestEndUserResourceV1:
         self, end_user_resource, mock_http_client
     ):
         """Test querying with multiple filters."""
-        mock_http_client.get.return_value = {
-            "data": [],
-            "paging": {
-                "cursors": {"after": None, "before": None},
-                "has_more": False,
-                "has_previous": False,
-            },
-        }
+        mock_response = Mock()
+        mock_response.json.return_value = {"end_users": []}
+        mock_http_client.get.return_value = mock_response
 
         end_user_resource.query(
             name="John Doe", tenant_id="tenant-123", actor_id="admin-456"
@@ -248,14 +243,9 @@ class TestEndUserResourceV1:
 
     def test_query_end_users_empty(self, end_user_resource, mock_http_client):
         """Test querying end users when none match."""
-        mock_http_client.get.return_value = {
-            "data": [],
-            "paging": {
-                "cursors": {"after": None, "before": None},
-                "has_more": False,
-                "has_previous": False,
-            },
-        }
+        mock_response = Mock()
+        mock_response.json.return_value = {"end_users": []}
+        mock_http_client.get.return_value = mock_response
 
         result = end_user_resource.query()
 
@@ -263,17 +253,20 @@ class TestEndUserResourceV1:
 
     def test_update_end_user(self, end_user_resource, mock_http_client):
         """Test updating an end user."""
-        # HTTP client returns flat response
-        mock_http_client.put.return_value = {
-            "id": "user-123",
-            "name": "Updated Name",
-            "external_id": "new-ext-id",
-            "tenant_id": "tenant-456",
-            "created_by": "admin-001",
-            "updated_by": "admin-002",
-            "created_at": "2024-01-01T10:00:00Z",
-            "updated_at": "2024-01-01T11:00:00Z",
+        mock_response = Mock()
+        mock_response.json.return_value = {
+            "end_user": {
+                "id": "user-123",
+                "name": "Updated Name",
+                "external_id": "new-ext-id",
+                "tenant_id": "tenant-456",
+                "created_by": "admin-001",
+                "updated_by": "admin-002",
+                "created_at": "2024-01-01T10:00:00Z",
+                "updated_at": "2024-01-01T11:00:00Z",
+            }
         }
+        mock_http_client.put.return_value = mock_response
 
         result = end_user_resource.update(
             end_user_id="user-123",
@@ -297,16 +290,20 @@ class TestEndUserResourceV1:
 
     def test_update_end_user_partial(self, end_user_resource, mock_http_client):
         """Test updating end user with only some fields."""
-        mock_http_client.put.return_value = {
-            "id": "user-123",
-            "name": "New Name Only",
-            "external_id": "ext-original",
-            "tenant_id": "tenant-456",
-            "created_by": "admin-001",
-            "updated_by": "admin-003",
-            "created_at": "2024-01-01T10:00:00Z",
-            "updated_at": "2024-01-01T11:00:00Z",
+        mock_response = Mock()
+        mock_response.json.return_value = {
+            "end_user": {
+                "id": "user-123",
+                "name": "New Name Only",
+                "external_id": "ext-original",
+                "tenant_id": "tenant-456",
+                "created_by": "admin-001",
+                "updated_by": "admin-003",
+                "created_at": "2024-01-01T10:00:00Z",
+                "updated_at": "2024-01-01T11:00:00Z",
+            }
         }
+        mock_http_client.put.return_value = mock_response
 
         result = end_user_resource.update(end_user_id="user-123", name="New Name Only")
 

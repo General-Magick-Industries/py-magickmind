@@ -123,9 +123,14 @@ class ChatBackendService:
         Note: Requires mindspaces.get_messages() to be implemented
               in the SDK (coming soon!)
         """
-        # Note: Future Feature - Typed history resource will be added to SDK
-        # When available: messages = await self.client.v1.mindspaces.get_messages(...)
-        # For now, use the HTTP client to call the endpoint directly:
+        # TODO: Once history endpoint is added to SDK
+        # messages = await self.client.v1.mindspaces.get_messages(
+        #     mindspace_id=mindspace_id,
+        #     after_id=since_message_id,
+        #     limit=100
+        # )
+        
+        # For now, you'd call the HTTP endpoint directly:
         response = self.client.http.get(
             "/v1/mindspaces/messages",
             params={

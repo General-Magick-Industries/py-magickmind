@@ -16,8 +16,9 @@ from magick_mind.models.v1.artifact import (
     FinalizeArtifactRequest,
 )
 from magick_mind.models.v1.project import (
+    CreateProjectResponse,
+    UpdateProjectResponse,
     CreateProjectRequest,
-    Project,
     UpdateProjectRequest,
 )
 from magick_mind.models.v1.api_keys import (
@@ -30,19 +31,24 @@ from magick_mind.models.v1.api_keys import (
     DeleteApiKeyRequest,
 )
 from magick_mind.models.v1.corpus import (
-    Corpus,
+    CreateCorpusResponse,
+    GetCorpusResponse,
+    UpdateCorpusResponse,
     CreateCorpusRequest,
     UpdateCorpusRequest,
 )
 from magick_mind.models.v1.end_user import (
-    EndUser,
+    CreateEndUserResponse,
+    GetEndUserResponse,
     QueryEndUserResponse,
+    UpdateEndUserResponse,
     CreateEndUserRequest,
     UpdateEndUserRequest,
 )
 from magick_mind.models.v1.mindspace import (
-    MindSpace,
+    CreateMindSpaceResponse,
     GetMindSpaceListResponse,
+    UpdateMindSpaceResponse,
     CreateMindSpaceRequest,
     UpdateMindSpaceRequest,
 )
@@ -201,58 +207,34 @@ RESPONSES = [
     ContractDef("GenericPresignResp", PresignArtifactResponse),
     # Note: PresignArtifactUploadResp removed - duplicate of GenericPresignResp
     # Project
-    ContractDef("CreateProjectResponse", Project),
-    ContractDef("UpdateProjectResponse", Project),
+    ContractDef("CreateProjectResponse", CreateProjectResponse),
+    ContractDef("UpdateProjectResponse", UpdateProjectResponse),
     # API Keys
     ContractDef("UpdateApiKeyResp", UpdateApiKeyResponse),
     ContractDef("CreateApiKeyResponse", CreateApiKeyResponse),
     ContractDef("ListApiKeysResponse", ListApiKeysResponse),
     ContractDef("DeleteApiKeyResponse", DeleteApiKeyResponse),
-    # Corpus - Temporarily skipped (WIP - model validation issues)
-    ContractDef(
-        "CreateCorpusResponse",
-        Corpus,
-        status=SchemaStatus.SKIPPED,
-        reason="WIP - Model validation mismatch",
-    ),
-    ContractDef(
-        "GetCorpusResponse",
-        Corpus,
-        status=SchemaStatus.SKIPPED,
-        reason="WIP - Model validation mismatch",
-    ),
-    ContractDef(
-        "UpdateCorpusResponse",
-        Corpus,
-        status=SchemaStatus.SKIPPED,
-        reason="WIP - Model validation mismatch",
-    ),
+    # Corpus
+    ContractDef("CreateCorpusResponse", CreateCorpusResponse),
+    ContractDef("GetCorpusResponse", GetCorpusResponse),
+    ContractDef("UpdateCorpusResponse", UpdateCorpusResponse),
     # End User
-    ContractDef("CreateEndUserResponse", EndUser),
-    ContractDef("GetEndUserByIdResponse", EndUser),  # lowercase Id per Apidog
-    ContractDef("UpdateEndUserResponse", EndUser),
+    ContractDef("CreateEndUserResponse", CreateEndUserResponse),
+    ContractDef(
+        "GetEndUserByIdResponse", GetEndUserResponse
+    ),  # lowercase Id per Apidog
+    ContractDef("UpdateEndUserResponse", UpdateEndUserResponse),
     # Note: QueryEndUserResponse doesn't exist in Apidog spec (uses GetEndUserListResponse)
     # History
     ContractDef("MindspaceMessagesResponse", HistoryResponse),
-    # MindSpace - Temporarily skipped (WIP - model validation issues)
-    ContractDef(
-        "CreateMindspaceResponse",
-        MindSpace,
-        status=SchemaStatus.SKIPPED,
-        reason="WIP - Model validation mismatch",
-    ),
+    # MindSpace (spec mismatches - tests will fail and expose bugs)
+    ContractDef("CreateMindspaceResponse", CreateMindSpaceResponse),  # Lowercase s
     ContractDef("GetMindSpaceListResponse", GetMindSpaceListResponse),
-    ContractDef(
-        "UpdateMindSpaceResponse",
-        MindSpace,
-        status=SchemaStatus.SKIPPED,
-        reason="WIP - Model validation mismatch",
-    ),
+    ContractDef("UpdateMindSpaceResponse", UpdateMindSpaceResponse),
     # Auth
     ContractDef("LoginResponse", TokenResponse),
     ContractDef("RefreshResponse", TokenResponse),
-    # --- INTENTIONAL SKIPS ---
-    # Internal/Webhook
+    # --- INTENTIONAL SKIPS (Internal/Irrelevant) ---
     ContractDef(
         "ArtifactWebhookResp", status=SchemaStatus.SKIPPED, reason="Internal Webhook"
     ),
@@ -261,11 +243,8 @@ RESPONSES = [
         "ChatCompletionsResp", status=SchemaStatus.SKIPPED, reason="OpenAI Compat"
     ),
     ContractDef(
-        "GetCorpusByIdResponse",
-        Corpus,
-        status=SchemaStatus.SKIPPED,
-        reason="WIP - Model validation mismatch",
-    ),
+        "GetCorpusByIdResponse", GetCorpusResponse
+    ),  # Alias to existing GetCorpusResponse
     # Note: GetEndUserByIdResponse already mapped above
     ContractDef(
         "GetEndUserListResponse",
@@ -436,19 +415,6 @@ SHARED_MODELS = [
     ContractDef("EndUser", status=SchemaStatus.SKIPPED, reason="Component"),
     ContractDef("MindspaceType", status=SchemaStatus.SKIPPED, reason="Component"),
     ContractDef("TokenSchema", status=SchemaStatus.SKIPPED, reason="Component"),
-    # Pagination (internal components)
-    ContractDef("PaginationSchema", status=SchemaStatus.SKIPPED, reason="Component"),
-    ContractDef("CursorSchema", status=SchemaStatus.SKIPPED, reason="Component"),
-    # Error handling (internal components)
-    ContractDef(" RFC7807Schema", status=SchemaStatus.SKIPPED, reason="Component"),
-    ContractDef("ErrorFieldsSchema", status=SchemaStatus.SKIPPED, reason="Component"),
-    ContractDef("ErrorResponse", status=SchemaStatus.SKIPPED, reason="Error wrapper"),
-    # Other
-    ContractDef(
-        "ListProjectResponse",
-        status=SchemaStatus.SKIPPED,
-        reason="Empty schema in spec",
-    ),
 ]
 
 

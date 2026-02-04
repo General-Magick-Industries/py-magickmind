@@ -25,11 +25,6 @@ class Routes:
         """Get path for a specific mindspace."""
         return f"/v1/mindspaces/{mindspace_id}"
 
-    @staticmethod
-    def mindspace_users(mindspace_id: str) -> str:
-        """Get path to add users to a specific mindspace."""
-        return f"/v1/mindspaces/{mindspace_id}/users"
-
     # Project endpoints
     PROJECTS = "/v1/projects"
 

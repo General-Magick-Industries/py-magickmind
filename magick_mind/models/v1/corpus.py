@@ -6,12 +6,9 @@ Corpus represents a collection of artifacts that can be used for
 RAG (Retrieval Augmented Generation) workflows.
 """
 
-from typing import TYPE_CHECKING, Optional
+from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field
-
-if TYPE_CHECKING:
-    from magick_mind.models.v1.end_user import PageInfo
 
 
 class Corpus(BaseModel):
@@ -22,7 +19,9 @@ class Corpus(BaseModel):
     used for semantic search and retrieval augmented generation.
     """
 
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(
+        extra="allow"
+    )  # Allow additional fields from API responses
 
     id: str = Field(..., description="Unique corpus identifier")
     name: str = Field(..., description="Corpus name")
@@ -51,15 +50,30 @@ class CreateCorpusRequest(BaseModel):
     )
 
 
+class CreateCorpusResponse(BaseModel):
+    """Response for corpus creation."""
+
+    success: bool = Field(..., description="Request success status")
+    message: str = Field(..., description="Response message")
+    corpus: Optional[Corpus] = Field(None, description="The created corpus (Relaxed)")
+
+
+class GetCorpusResponse(BaseModel):
+    """Response for getting corpus (single or list per spec variant)."""
+
+    success: Optional[bool] = Field(None, description="Request success status")
+    message: Optional[str] = Field(None, description="Response message")
+    corpus: Optional[Corpus | list[Corpus]] = Field(
+        None, description="Corpus data - single or array depending on endpoint"
+    )
+
+
 class ListCorpusResponse(BaseModel):
-    """
-    Response for listing corpus.
+    """Response for listing corpus."""
 
-    Matches Bifrost's {data: list[Corpus], paging: PageInfo} structure.
-    """
-
-    data: list[Corpus] = Field(..., description="List of corpus")
-    paging: "PageInfo" = Field(..., description="Pagination information")
+    success: bool = Field(..., description="Request success status")
+    message: str = Field(..., description="Response message")
+    corpus: list[Corpus] = Field(..., description="List of corpus")
 
 
 class UpdateCorpusRequest(BaseModel):
@@ -72,11 +86,16 @@ class UpdateCorpusRequest(BaseModel):
     )
 
 
-class DeleteCorpusResponse:
-    """
-    Response for deleting a corpus.
+class UpdateCorpusResponse(BaseModel):
+    """Response for corpus update."""
 
-    Bifrost returns 204 No Content with no response body.
-    """
+    success: bool = Field(..., description="Request success status")
+    message: str = Field(..., description="Response message")
+    corpus: Optional[Corpus] = Field(None, description="The updated corpus (Relaxed)")
 
-    pass
+
+class DeleteCorpusResponse(BaseModel):
+    """Response for deleting a corpus."""
+
+    success: bool = Field(..., description="Request success status")
+    message: str = Field(..., description="Response message")

@@ -7,17 +7,16 @@ Projects organize corpus and resources for agentic SaaS backends.
 
 import os
 
-from magick_mind import MagickMind
+from magick_mind import MagickMindClient
 
 
 def main():
     """Demonstrate project resource operations."""
     # Initialize client
     base_url = os.getenv("MAGICK_MIND_BASE_URL", "http://localhost:8888")
-    email = os.getenv("MAGICK_MIND_EMAIL", "user@example.com")
-    password = os.getenv("MAGICK_MIND_PASSWORD", "your-password")
+    api_key = os.getenv("MAGICK_MIND_API_KEY", "your-api-key")
 
-    client = MagickMind(base_url=base_url, email=email, password=password)
+    client = MagickMindClient(base_url=base_url, api_key=api_key)
 
     print("=" * 60)
     print("Project Resource Example")

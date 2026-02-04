@@ -1,97 +1,104 @@
 """
-Example: Chat History with Pagination
+Simple example demonstrating history resource usage.
 
-Demonstrates the history resource using the new standardized pagination format.
-
-Run setup_resources.py first to configure your .env file.
+This example shows how to fetch chat history with pagination.
 """
 
 import os
-from dotenv import load_dotenv
-
 from magick_mind import MagickMind
-from magick_mind.exceptions import ProblemDetailsException
 
-# Load .env file
-load_dotenv()
+# Initialize client with credentials
+client = MagickMind(
+    base_url=os.getenv("MAGICK_MIND_BASE_URL", "https://api.example.com"),
+    email=os.getenv("MAGICK_MIND_EMAIL"),
+    password=os.getenv("MAGICK_MIND_PASSWORD"),
+)
 
-# Get credentials from environment
-email = os.getenv("BIFROST_EMAIL")
-password = os.getenv("BIFROST_PASSWORD")
-base_url = os.getenv("BIFROST_BASE_URL", "https://dev-bifrost.magickmind.ai")
-mindspace_id = os.getenv("MINDSPACE_ID")
-
-if not email or not password:
-    print("ERROR: Missing BIFROST_EMAIL or BIFROST_PASSWORD in .env")
-    print("Run: python setup_resources.py first")
-    exit(1)
-
-if not mindspace_id:
-    print("ERROR: Missing MINDSPACE_ID in .env")
-    print("Run: python setup_resources.py first")
-    exit(1)
-
-# Initialize client
-client = MagickMind(email=email, password=password, base_url=base_url)
+# Your mindspace ID
+mindspace_id = "your-mindspace-id"
 
 print("=" * 60)
 print("Chat History Example")
 print("=" * 60)
-print(f"Mindspace: {mindspace_id}")
 
-try:
-    # 1. Get latest messages using new pagination format
-    print("\n📜 Fetching latest 10 messages...")
-    history = client.v1.history.get_messages(mindspace_id=mindspace_id, limit=10)
+# 1. Get latest messages
+print("\n📜 Fetching latest 10 messages...")
+history = client.v1.history.get_messages(mindspace_id=mindspace_id, limit=10)
 
-    # Access via new standardized format: data + paging
-    print(f"\nFound {len(history.data)} messages:")
-    for msg in history.data:
-        content = msg.content[:50] if msg.content else "(no content)"
-        print(f"  • [{msg.id}] {msg.sent_by_user_id}: {content}...")
-        if msg.reply_to_message_id:
-            print(f"    ↳ Reply to: {msg.reply_to_message_id}")
+print(f"\nFound {len(history.chat_histories)} messages:")
+for msg in history.chat_histories:
+    print(f"  • [{msg.id}] {msg.sent_by_user_id}: {msg.content[:50]}...")
+    if msg.reply_to_message_id:
+        print(f"    ↳ Reply to: {msg.reply_to_message_id}")
 
-    # Show pagination info
-    print(f"\n📊 Pagination info:")
-    print(f"  has_more: {history.paging.has_more}")
-    print(f"  has_previous: {history.paging.has_previous}")
-    print(f"  cursors.after: {history.paging.cursors.after}")
-    print(f"  cursors.before: {history.paging.cursors.before}")
+# 2. Forward pagination (get newer messages)
+if history.last_id and input("\n\nFetch newer messages? (y/n): ").lower() == "y":
+    print("\n⏩ Fetching messages after latest...")
+    newer = client.v1.history.get_messages(
+        mindspace_id=mindspace_id,
+        after_id=history.last_id,
+        limit=10,
+    )
 
-    # Demo backward-compat properties still work
-    print(f"\n🔄 Backward-compat check:")
-    print(f"  chat_histories length: {len(history.chat_histories)}")
-    print(f"  has_older: {history.has_older}")
-    print(f"  next_after_id: {history.next_after_id}")
+    if newer.chat_histories:
+        print(f"Found {len(newer.chat_histories)} newer messages")
+        print(f"Has more: {newer.has_more}")
+    else:
+        print("No newer messages found")
 
-    # 2. Forward pagination (get newer messages)
-    if history.paging.cursors.after:
-        print("\n⏩ Testing forward pagination...")
-        newer = client.v1.history.get_messages(
-            mindspace_id=mindspace_id,
-            after_id=history.paging.cursors.after,
-            limit=5,
+# 3. Backward pagination (get older messages)
+if history.chat_histories and input("\nFetch older messages? (y/n): ").lower() == "y":
+    print("\n⏪ Fetching messages before first...")
+    oldest_id = history.chat_histories[0].id
+    older = client.v1.history.get_messages(
+        mindspace_id=mindspace_id,
+        before_id=oldest_id,
+        limit=10,
+    )
+
+    if older.chat_histories:
+        print(f"Found {len(older.chat_histories)} older messages")
+        print(f"Has older: {older.has_older}")
+    else:
+        print("No older messages found")
+
+# 4. Pagination loop example
+print("\n\n" + "=" * 60)
+print("Full History Fetch Example (all messages)")
+print("=" * 60)
+
+if input("\nFetch ALL messages? (y/n): ").lower() == "y":
+    all_messages = []
+    cursor = None
+    page = 1
+
+    while True:
+        print(f"\n📄 Fetching page {page}...")
+
+        if cursor:
+            batch = client.v1.history.get_messages(
+                mindspace_id=mindspace_id,
+                after_id=cursor,
+                limit=50,
+            )
+        else:
+            batch = client.v1.history.get_messages(
+                mindspace_id=mindspace_id,
+                limit=50,
+            )
+
+        all_messages.extend(batch.chat_histories)
+        print(
+            f"   Got {len(batch.chat_histories)} messages (total: {len(all_messages)})"
         )
-        print(f"  Got {len(newer.data)} newer messages")
-        print(f"  has_more: {newer.paging.has_more}")
 
-    # 3. Backward pagination (get older messages)
-    if history.data and history.paging.cursors.before:
-        print("\n⏪ Testing backward pagination...")
-        older = client.v1.history.get_messages(
-            mindspace_id=mindspace_id,
-            before_id=history.paging.cursors.before,
-            limit=5,
-        )
-        print(f"  Got {len(older.data)} older messages")
-        print(f"  has_previous: {older.paging.has_previous}")
+        if not batch.has_more:
+            break
 
-except ProblemDetailsException as e:
-    print(f"\n❌ API Error: [{e.status}] {e.title}")
-    print(f"   Detail: {e.detail}")
-    if e.request_id:
-        print(f"   Request ID: {e.request_id}")
+        cursor = batch.next_after_id
+        page += 1
+
+    print(f"\n✅ Total messages fetched: {len(all_messages)}")
 
 print("\n" + "=" * 60)
 print("Done!")

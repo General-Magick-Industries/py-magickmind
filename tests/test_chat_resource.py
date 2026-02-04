@@ -73,7 +73,7 @@ class TestChatResourceV1:
 
         # Verify response
         assert isinstance(response, ChatSendResponse)
-        assert response.content is not None
+        assert response.success is True
         assert response.content.message_id == "msg-789"
         assert response.content.content == "Hello! How can I help you?"
 
@@ -199,8 +199,8 @@ class TestChatResourceIntegration:
         )
 
         # Manually set auth token to bypass auth checks
-        client.auth._access_token = "fake-token"  # type: ignore[attr-defined]
-        client.auth._token_expires_at = time.time() + 3600  # type: ignore[attr-defined]
+        client.auth._access_token = "fake-token"
+        client.auth._token_expires_at = time.time() + 3600
 
         # Send chat message via v1 resource
         response = client.v1.chat.send(
@@ -212,7 +212,7 @@ class TestChatResourceIntegration:
         )
 
         # Verify response
-        assert response.content is not None
+        assert response.success is True
         assert response.content.message_id == "msg-789"
         assert response.content.content == "AI response here"
 
@@ -224,5 +224,4 @@ class TestChatResourceIntegration:
             enduser_id="user-456",
             config=valid_config,
         )
-        assert response2.content is not None
-        assert response2.content.message_id == "msg-789"
+        assert response2.success is True
