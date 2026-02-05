@@ -10,6 +10,8 @@ from magick_mind.models.v1.mindspace import (
     GetMindSpaceListResponse,
     MindSpace,
     MindSpaceType,
+    MindSpace,
+    MindSpaceType,
     MindspaceMessagesResponse,
     UpdateMindSpaceRequest,
 )
@@ -55,10 +57,12 @@ class MindspaceResourceV1(BaseResource):
         corpus_ids: Optional[list[str]] = None,
         user_ids: Optional[list[str]] = None,
     ) -> MindSpace:
+    ) -> MindSpace:
         """
         Create a new mindspace.
         Args:
             name: Mindspace name (max 100 characters)
+            type: Mindspace type - either "PRIVATE" or "GROUP"
             type: Mindspace type - either "PRIVATE" or "GROUP"
             description: Optional description (max 256 characters)
             project_id: Optional associated project ID
@@ -66,6 +70,7 @@ class MindspaceResourceV1(BaseResource):
             user_ids: Optional list of user IDs to grant access
 
         Returns:
+            MindSpace
             MindSpace
 
         Raises:
@@ -75,12 +80,15 @@ class MindspaceResourceV1(BaseResource):
         Example:
             # Create a group mindspace
             mindspace = client.v1.mindspace.create(
+            mindspace = client.v1.mindspace.create(
                 name="Engineering Team",
+                type="GROUP",
                 type="GROUP",
                 description="Team collaboration space",
                 corpus_ids=["corp-1", "corp-2"],
                 user_ids=["user-1", "user-2"]
             )
+            print(f"Created mindspace: {mindspace.id}")
             print(f"Created mindspace: {mindspace.id}")
         """
         # Build and validate request
@@ -101,6 +109,7 @@ class MindspaceResourceV1(BaseResource):
         return MindSpace.model_validate(response)
 
     def get(self, mindspace_id: str) -> MindSpace:
+    def get(self, mindspace_id: str) -> MindSpace:
         """
         Get a mindspace by ID.
 
@@ -109,11 +118,16 @@ class MindspaceResourceV1(BaseResource):
 
         Returns:
             MindSpace
+            MindSpace
 
         Raises:
             HTTPError: If the API request fails or mindspace not found
 
         Example:
+            mindspace = client.v1.mindspace.get("mind-123")
+            print(f"Mindspace: {mindspace.name}")
+            print(f"Type: {mindspace.type}")
+            print(f"Corpus: {mindspace.corpus_ids}")
             mindspace = client.v1.mindspace.get("mind-123")
             print(f"Mindspace: {mindspace.name}")
             print(f"Type: {mindspace.type}")
@@ -157,6 +171,7 @@ class MindspaceResourceV1(BaseResource):
         corpus_ids: Optional[list[str]] = None,
         user_ids: Optional[list[str]] = None,
     ) -> MindSpace:
+    ) -> MindSpace:
         """
         Update an existing mindspace.
 
@@ -170,6 +185,7 @@ class MindspaceResourceV1(BaseResource):
 
         Returns:
             MindSpace
+            MindSpace
 
         Raises:
             HTTPError: If the API request fails or mindspace not found
@@ -178,10 +194,12 @@ class MindspaceResourceV1(BaseResource):
         Example:
             # Update mindspace to add more corpus
             mindspace = client.v1.mindspace.update(
+            mindspace = client.v1.mindspace.update(
                 mindspace_id="mind-123",
                 name="Engineering Team",
                 corpus_ids=["corp-1", "corp-2", "corp-3"]
             )
+            print(f"Updated: {mindspace.corpus_ids}")
             print(f"Updated: {mindspace.corpus_ids}")
         """
         # Build and validate request

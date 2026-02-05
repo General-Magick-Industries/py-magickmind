@@ -49,6 +49,21 @@ class CreateEndUserRequest(BaseModel):
     actor_id: Optional[str] = Field(None, description="Actor ID (Relaxed)")
 
 
+class Cursors(BaseModel):
+    """Pagination cursors."""
+
+    after: Optional[str] = Field(default=None, description="Cursor for next page")
+    before: Optional[str] = Field(default=None, description="Cursor for previous page")
+
+
+class PageInfo(BaseModel):
+    """Pagination information."""
+
+    cursors: Cursors = Field(..., description="Pagination cursors")
+    has_more: bool = Field(..., description="Whether there are more results")
+    has_previous: bool = Field(..., description="Whether there are previous results")
+
+
 class QueryEndUserResponse(BaseModel):
     """
     Response schema for querying end users.

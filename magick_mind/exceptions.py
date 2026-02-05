@@ -8,6 +8,14 @@ from magick_mind.models.errors import ProblemDetails
 
 logger = logging.getLogger(__name__)
 
+from __future__ import annotations
+
+import logging
+
+from magick_mind.models.errors import ProblemDetails
+
+logger = logging.getLogger(__name__)
+
 
 class MagickMindError(Exception):
     """Base exception for all Magick Mind SDK errors."""
@@ -30,6 +38,7 @@ class TokenExpiredError(AuthenticationError):
     pass
 
 
+class RateLimitError(MagickMindError):
 class RateLimitError(MagickMindError):
     """Raised when rate limit is exceeded."""
 

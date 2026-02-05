@@ -31,16 +31,19 @@ from magick_mind.models.v1.api_keys import (
 )
 from magick_mind.models.v1.corpus import (
     Corpus,
+    Corpus,
     CreateCorpusRequest,
     UpdateCorpusRequest,
 )
 from magick_mind.models.v1.end_user import (
+    EndUser,
     EndUser,
     QueryEndUserResponse,
     CreateEndUserRequest,
     UpdateEndUserRequest,
 )
 from magick_mind.models.v1.mindspace import (
+    MindSpace,
     MindSpace,
     GetMindSpaceListResponse,
     CreateMindSpaceRequest,
@@ -241,12 +244,7 @@ RESPONSES = [
         status=SchemaStatus.SKIPPED,
         reason="WIP - Model validation mismatch",
     ),
-    ContractDef(
-        "GetMindSpaceListResponse",
-        GetMindSpaceListResponse,
-        status=SchemaStatus.SKIPPED,
-        reason="OpenAPI spec outdated - uses BaseSchema+mindspaces, SDK uses data+paging (Bifrost reality)",
-    ),
+    ContractDef("GetMindSpaceListResponse", GetMindSpaceListResponse),
     ContractDef(
         "UpdateMindSpaceResponse",
         MindSpace,

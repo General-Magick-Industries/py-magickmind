@@ -51,6 +51,8 @@ class GetProjectListResponse(BaseModel):
     Response schema for listing projects.
 
     Matches Bifrost's {data: list[Project], paging: PageInfo} structure.
+
+    Matches Bifrost's {data: list[Project], paging: PageInfo} structure.
     """
 
     data: list[Project] = Field(..., description="List of projects")
@@ -62,12 +64,17 @@ class UpdateProjectRequest(BaseModel):
     Request schema for updating a project.
 
     Both name and corpus_ids are REQUIRED (matching Bifrost API).
+
+    Both name and corpus_ids are REQUIRED (matching Bifrost API).
     """
 
     name: str = Field(..., description="Project name (required)")
     description: Optional[str] = Field(
         None, description="Project description (optional, max 256 chars)"
+    description: Optional[str] = Field(
+        None, description="Project description (optional, max 256 chars)"
     )
     corpus_ids: list[str] = Field(
+        ..., description="List of corpus IDs to associate with project (required)"
         ..., description="List of corpus IDs to associate with project (required)"
     )

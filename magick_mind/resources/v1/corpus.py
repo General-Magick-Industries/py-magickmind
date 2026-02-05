@@ -137,6 +137,7 @@ class CorpusResourceV1:
         return Corpus(**resp.json())
 
     def delete(self, corpus_id: str) -> None:
+    def delete(self, corpus_id: str) -> None:
         """
         Delete a corpus.
 
@@ -149,8 +150,15 @@ class CorpusResourceV1:
         Example:
             client.v1.corpus.delete(corpus_id="corpus-123")
             print("Corpus deleted successfully")
+            None (Bifrost returns 204 No Content)
+
+        Example:
+            client.v1.corpus.delete(corpus_id="corpus-123")
+            print("Corpus deleted successfully")
 
         Raises:
             httpx.HTTPStatusError: If request fails
+            httpx.HTTPStatusError: If request fails
         """
+        self.http.delete(Routes.corpus(corpus_id))
         self.http.delete(Routes.corpus(corpus_id))

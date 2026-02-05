@@ -10,12 +10,31 @@ Demonstrates:
 - Resource creation with the simplified response models
 """
 
+"""
+Example: Setup Resources for SDK Examples
+
+This script creates the necessary resources (EndUser, Project, Mindspace)
+and updates your .env file with the IDs.
+
+Demonstrates:
+- Proper error handling with ProblemDetailsException
+- Validation error handling with field-level details
+- Resource creation with the simplified response models
+"""
+
 import os
 import logging
 from typing import Dict
 from dotenv import load_dotenv, set_key
 
+
 from magick_mind import MagickMind
+from magick_mind.exceptions import (
+    AuthenticationError,
+    ProblemDetailsException,
+    ValidationError,
+    RateLimitError,
+)
 from magick_mind.exceptions import (
     AuthenticationError,
     ProblemDetailsException,
@@ -49,6 +68,7 @@ def update_env_file(updates: Dict[str, str]):
 def main():
     logger.info("=" * 60)
     logger.info("SDK RESOURCE SETUP")
+    logger.info("SDK RESOURCE SETUP")
     logger.info("=" * 60)
 
     # 1. Validate Credentials
@@ -59,6 +79,7 @@ def main():
 
     if not email or not password:
         logger.error("ERROR: Missing credentials!")
+        logger.error("ERROR: Missing credentials!")
         logger.error(
             "Please ensure BIFROST_EMAIL and BIFROST_PASSWORD are set in your .env file"
         )
@@ -66,9 +87,17 @@ def main():
 
     if not ws_endpoint:
         logger.warning("WARNING: BIFROST_WS_ENDPOINT is not set!")
+        logger.warning("WARNING: BIFROST_WS_ENDPOINT is not set!")
         logger.warning(
             "Realtime examples will fail without it. Please add it to your .env file."
         )
+
+    # Initialize client - authentication happens on first API call
+    try:
+        client = MagickMind(email=email, password=password, base_url=base_url)
+    except AuthenticationError as e:
+        logger.error(f"ERROR: Authentication failed: {e}")
+        return
 
     # Initialize client - authentication happens on first API call
     try:
@@ -109,6 +138,18 @@ def main():
             logger.info(f"EndUser already exists: {user_id}")
         else:
             logger.warning(f"Note on EndUser: [{e.status}] {e.title}: {e.detail}")
+        logger.info(f"EndUser verified: {user_id}")
+    except ValidationError as e:
+        # Handle field-level validation errors
+        logger.warning(f"EndUser validation issue: {e.title}")
+        for field, messages in e.get_field_errors().items():
+            logger.warning(f"  - {field}: {', '.join(messages)}")
+    except ProblemDetailsException as e:
+        # Handle other API errors (e.g., user already exists)
+        if e.status == 409:  # Conflict - already exists
+            logger.info(f"EndUser already exists: {user_id}")
+        else:
+            logger.warning(f"Note on EndUser: [{e.status}] {e.title}: {e.detail}")
 
     # 3. Setup Project
     logger.info("\n--- 2. Project ---")
@@ -123,16 +164,34 @@ def main():
                 project_id = projects[0].id
                 logger.info(
                     f"Found existing Project: {project_id} ({projects[0].name})"
+                    f"Found existing Project: {project_id} ({projects[0].name})"
                 )
             else:
+                # create() returns Project directly (not wrapped)
+                project = client.v1.project.create(
                 # create() returns Project directly (not wrapped)
                 project = client.v1.project.create(
                     name="Test Project", description="Created by SDK Setup"
                 )
                 project_id = project.id
                 logger.info(f"Created new Project: {project_id}")
+                project_id = project.id
+                logger.info(f"Created new Project: {project_id}")
 
             updates["PROJECT_ID"] = project_id
+
+        except ValidationError as e:
+            logger.error(f"Project validation error: {e.title}")
+            for field, messages in e.get_field_errors().items():
+                logger.error(f"  - {field}: {', '.join(messages)}")
+            return
+        except ProblemDetailsException as e:
+            logger.error(f"Failed to setup Project: [{e.status}] {e.detail}")
+            if e.request_id:
+                logger.error(f"  Request ID: {e.request_id}")
+            return
+        except RateLimitError:
+            logger.error("Rate limited! Please wait and try again.")
 
         except ValidationError as e:
             logger.error(f"Project validation error: {e.title}")
@@ -203,7 +262,9 @@ def main():
     if updates:
         update_env_file(updates)
         logger.info("\n.env file updated successfully!")
+        logger.info("\n.env file updated successfully!")
     else:
+        logger.info("\nEnvironment is already fully configured.")
         logger.info("\nEnvironment is already fully configured.")
 
     logger.info("=" * 60)

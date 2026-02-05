@@ -140,6 +140,7 @@ class ProjectResourceV1(BaseResource):
 
         response = self._http.put(Routes.project(project_id), json=request.model_dump())
         return Project(**response)
+        return Project(**response)
 
     def delete(self, project_id: str) -> None:
         """

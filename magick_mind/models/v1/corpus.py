@@ -7,8 +7,12 @@ RAG (Retrieval Augmented Generation) workflows.
 """
 
 from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
+
+if TYPE_CHECKING:
+    from magick_mind.models.v1.end_user import PageInfo
 
 if TYPE_CHECKING:
     from magick_mind.models.v1.end_user import PageInfo
@@ -22,6 +26,7 @@ class Corpus(BaseModel):
     used for semantic search and retrieval augmented generation.
     """
 
+    model_config = ConfigDict(populate_by_name=True)
     model_config = ConfigDict(populate_by_name=True)
 
     id: str = Field(..., description="Unique corpus identifier")
@@ -60,6 +65,14 @@ class ListCorpusResponse(BaseModel):
 
     data: list[Corpus] = Field(..., description="List of corpus")
     paging: "PageInfo" = Field(..., description="Pagination information")
+    """
+    Response for listing corpus.
+
+    Matches Bifrost's {data: list[Corpus], paging: PageInfo} structure.
+    """
+
+    data: list[Corpus] = Field(..., description="List of corpus")
+    paging: "PageInfo" = Field(..., description="Pagination information")
 
 
 class UpdateCorpusRequest(BaseModel):
@@ -72,6 +85,14 @@ class UpdateCorpusRequest(BaseModel):
     )
 
 
+class DeleteCorpusResponse:
+    """
+    Response for deleting a corpus.
+
+    Bifrost returns 204 No Content with no response body.
+    """
+
+    pass
 class DeleteCorpusResponse:
     """
     Response for deleting a corpus.

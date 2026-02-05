@@ -125,6 +125,8 @@ class TestGetProjectListResponse:
         assert len(response.data) == 3
         assert response.data[0].id == "proj-0"
         assert response.data[2].id == "proj-2"
+        assert response.data[0].id == "proj-0"
+        assert response.data[2].id == "proj-2"
         assert response.paging.cursors.after == "cursor-123"
         assert response.paging.has_more is True
 
@@ -138,6 +140,8 @@ class TestGetProjectListResponse:
 
         response = GetProjectListResponse(data=[], paging=paging)
 
+        assert response.data == []
+        assert response.paging.has_more is False
         assert response.data == []
         assert response.paging.has_more is False
 

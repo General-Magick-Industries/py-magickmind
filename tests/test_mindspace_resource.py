@@ -9,6 +9,7 @@ from magick_mind import MagickMind
 from magick_mind.models.v1.mindspace import (
     GetMindSpaceListResponse,
     MindSpace,
+    MindSpace,
     MindspaceMessagesResponse,
 )
 from magick_mind.resources.v1.mindspace import MindspaceResourceV1
@@ -31,6 +32,18 @@ class TestMindspaceResourceV1:
     def test_create_makes_correct_api_call(self, mindspace_resource, mock_http_client):
         """Test create() makes correct POST request."""
         # Mock successful response
+        mock_http_client.post.return_value = {
+            "id": "mind-123",
+            "name": "My Workspace",
+            "description": "Test workspace",
+            "project_id": "proj-456",
+            "corpus_ids": ["corp-1"],
+            "user_ids": ["user-1"],
+            "type": "PRIVATE",
+            "created_by": "user-1",
+            "updated_by": "user-1",
+            "created_at": "2025-12-16T09:00:00Z",
+            "updated_at": "2025-12-16T09:00:00Z",
         mock_http_client.post.return_value = {
             "id": "mind-123",
             "name": "My Workspace",
@@ -69,9 +82,24 @@ class TestMindspaceResourceV1:
         assert isinstance(response, MindSpace)
         assert response.id == "mind-123"
         assert response.type == "PRIVATE"
+        assert isinstance(response, MindSpace)
+        assert response.id == "mind-123"
+        assert response.type == "PRIVATE"
 
     def test_create_group_mindspace(self, mindspace_resource, mock_http_client):
         """Test create() with group mindspace type."""
+        mock_http_client.post.return_value = {
+            "id": "mind-456",
+            "name": "Team Space",
+            "description": "Team workspace",
+            "project_id": "proj-123",
+            "corpus_ids": ["corp-1", "corp-2"],
+            "user_ids": ["user-1", "user-2"],
+            "type": "GROUP",
+            "created_by": "user-1",
+            "updated_by": "user-1",
+            "created_at": "2025-12-16T09:00:00Z",
+            "updated_at": "2025-12-16T09:00:00Z",
         mock_http_client.post.return_value = {
             "id": "mind-456",
             "name": "Team Space",
@@ -94,9 +122,23 @@ class TestMindspaceResourceV1:
 
         assert response.type == "GROUP"
         assert len(response.user_ids) == 2
+        assert response.type == "GROUP"
+        assert len(response.user_ids) == 2
 
     def test_get_makes_correct_api_call(self, mindspace_resource, mock_http_client):
         """Test get() makes correct GET request."""
+        mock_http_client.get.return_value = {
+            "id": "mind-789",
+            "name": "Retrieved Space",
+            "description": "Description",
+            "project_id": "proj-123",
+            "corpus_ids": ["corp-1"],
+            "user_ids": ["user-1"],
+            "type": "PRIVATE",
+            "created_by": "user-1",
+            "updated_by": "user-1",
+            "created_at": "2025-12-16T09:00:00Z",
+            "updated_at": "2025-12-16T09:00:00Z",
         mock_http_client.get.return_value = {
             "id": "mind-789",
             "name": "Retrieved Space",
@@ -117,6 +159,9 @@ class TestMindspaceResourceV1:
         mock_http_client.get.assert_called_once_with("/v1/mindspaces/mind-789")
 
         # Verify response
+        assert isinstance(response, MindSpace)
+        assert response.id == "mind-789"
+        assert response.name == "Retrieved Space"
         assert isinstance(response, MindSpace)
         assert response.id == "mind-789"
         assert response.name == "Retrieved Space"
@@ -201,6 +246,18 @@ class TestMindspaceResourceV1:
             "updated_by": "user-2",
             "created_at": "2025-12-16T08:00:00Z",
             "updated_at": "2025-12-16T10:00:00Z",
+        mock_http_client.put.return_value = {
+            "id": "mind-123",
+            "name": "Updated Name",
+            "description": "Updated description",
+            "project_id": "proj-456",
+            "corpus_ids": ["corp-1", "corp-2"],
+            "user_ids": ["user-1"],
+            "type": "PRIVATE",
+            "created_by": "user-1",
+            "updated_by": "user-2",
+            "created_at": "2025-12-16T08:00:00Z",
+            "updated_at": "2025-12-16T10:00:00Z",
         }
 
         response = mindspace_resource.update(
@@ -222,6 +279,9 @@ class TestMindspaceResourceV1:
         assert len(request_body["corpus_ids"]) == 2
 
         # Verify response
+        assert isinstance(response, MindSpace)
+        assert response.name == "Updated Name"
+        assert response.updated_by == "user-2"
         assert isinstance(response, MindSpace)
         assert response.name == "Updated Name"
         assert response.updated_by == "user-2"
@@ -367,6 +427,18 @@ class TestMindspaceResourceIntegration:
             "updated_by": "user-1",
             "created_at": "2025-12-16T09:00:00Z",
             "updated_at": "2025-12-16T09:00:00Z",
+        mock_post.return_value = {
+            "id": "mind-new",
+            "name": "Test Space",
+            "description": "Test",
+            "project_id": "proj-1",
+            "corpus_ids": [],
+            "user_ids": ["user-1"],
+            "type": "PRIVATE",
+            "created_by": "user-1",
+            "updated_by": "user-1",
+            "created_at": "2025-12-16T09:00:00Z",
+            "updated_at": "2025-12-16T09:00:00Z",
         }
 
         client = MagickMind(
@@ -382,6 +454,7 @@ class TestMindspaceResourceIntegration:
         # Create mindspace via v1 resource
         response = client.v1.mindspace.create(name="Test Space", type="PRIVATE")
 
+        assert response.id == "mind-new"
         assert response.id == "mind-new"
 
         # Verify the same works via alias

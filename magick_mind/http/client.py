@@ -5,9 +5,16 @@ from __future__ import annotations
 import http.client
 import json
 import logging
+from __future__ import annotations
+
+import http.client
+import json
+import logging
 from typing import Any, Dict, Optional
 
+
 import httpx
+from pydantic import ValidationError as PydanticValidationError
 from pydantic import ValidationError as PydanticValidationError
 
 from magick_mind.auth.base import AuthProvider
@@ -93,9 +100,20 @@ class HTTPClient:
         Raises:
             ProblemDetailsException: For RFC 7807 errors
             ValidationError: For 400 Bad Request with field errors
+            ProblemDetailsException: For RFC 7807 errors
+            ValidationError: For 400 Bad Request with field errors
             RateLimitError: For rate limiting
             MagickMindError: For malformed responses
+            MagickMindError: For malformed responses
         """
+        # Success path
+        if response.status_code < 400:
+            try:
+                return response.json()
+            except Exception:
+                return {}
+
+        # Rate limiting (special case)
         # Success path
         if response.status_code < 400:
             try:
@@ -125,11 +143,68 @@ class HTTPClient:
             raise MagickMindError(
                 f"Non-JSON error response: {response.text[:200]}",
                 status_code=response.status_code,
+            # Try RFC 7807 first
+            try:
+                error_response = ErrorResponse.model_validate(response.json())
+                raise RateLimitError(
+                    error_response.error.detail,
+                    status_code=429,
+                )
+            except (json.JSONDecodeError, PydanticValidationError):
+                raise RateLimitError(
+                    "Rate limit exceeded",
+                    status_code=429,
+                )
+
+        # Parse error response
+        try:
+            data = response.json()
+        except json.JSONDecodeError:
+            raise MagickMindError(
+                f"Non-JSON error response: {response.text[:200]}",
+                status_code=response.status_code,
             )
 
         # RFC 7807 format (98% of Bifrost endpoints)
         if "error" in data and isinstance(data["error"], dict):
+        # RFC 7807 format (98% of Bifrost endpoints)
+        if "error" in data and isinstance(data["error"], dict):
             try:
+                error_response = ErrorResponse.model_validate(data)
+                problem = error_response.error
+
+                # Raise ValidationError for 400 with field errors
+                if problem.status == 400 and problem.errors:
+                    raise ValidationError(problem, raw_response=data)
+
+                # Generic ProblemDetailsException
+                raise ProblemDetailsException(problem, raw_response=data)
+
+            except PydanticValidationError as e:
+                # Malformed RFC 7807 response
+                logger.warning("Malformed RFC 7807 response: %s", e)
+                raise MagickMindError(
+                    f"Malformed error response: {data.get('error', {}).get('detail', 'Unknown error')}",
+                    status_code=response.status_code,
+                )
+
+        # Fallback: OpenAI middleware format {"code": 401, "message": "..."}
+        if "code" in data and "message" in data:
+            logger.debug("Received legacy error format from OpenAI middleware")
+            # Convert to RFC 7807 structure
+            problem = ProblemDetails(
+                type="about:blank",
+                title=http.client.responses.get(data["code"], "Error"),
+                status=data["code"],
+                detail=data["message"],
+            )
+            raise ProblemDetailsException(problem, raw_response=data)
+
+        # Unknown format
+        raise MagickMindError(
+            f"Unknown error response format: {data}",
+            status_code=response.status_code,
+        )
                 error_response = ErrorResponse.model_validate(data)
                 problem = error_response.error
 
