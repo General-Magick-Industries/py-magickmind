@@ -5,6 +5,7 @@ This demonstrates:
 - Using RealtimeEventHandler for clean message handling
 - Subscribing to a single user's updates
 - Receiving AI responses in real-time
+- Proper error handling with ProblemDetailsException
 
 For production backend services with multiple users, see:
 - examples/bulk_subscribe.py - Handling many users
@@ -14,17 +15,24 @@ For production backend services with multiple users, see:
 import asyncio
 import os
 import logging
+from typing import List
 from dotenv import load_dotenv
 
 from magick_mind import MagickMind
 from magick_mind.models.v1.chat import ConfigSchema
+from magick_mind.models.v1.model import Model
 from magick_mind.realtime.handler import RealtimeEventHandler
+from magick_mind.exceptions import (
+    AuthenticationError,
+    ProblemDetailsException,
+    ValidationError,
+    RateLimitError,
+)
 
 # Load environment variables
 load_dotenv()
 
 # Setup logging
-# Configure logging
 logging.basicConfig(level=logging.DEBUG, format="%(levelname)s:%(name)s:%(message)s")
 # Enable debug logs for centrifuge to see disconnect reason
 logging.getLogger("centrifuge").setLevel(logging.DEBUG)
@@ -37,10 +45,10 @@ class MyRealtimeHandler(RealtimeEventHandler):
     """
 
     async def on_connected(self, ctx):
-        logger.info(f"✅ Connected to realtime! Client ID: {ctx.client}")
+        logger.info(f"Connected to realtime! Client ID: {ctx.client}")
 
     async def on_disconnected(self, ctx):
-        logger.info(f"⚠️  Disconnected: {ctx}")
+        logger.info(f"Disconnected: {ctx}")
 
     async def on_message(self, user_id: str, payload: dict):
         """
@@ -49,7 +57,7 @@ class MyRealtimeHandler(RealtimeEventHandler):
         The SDK automatically extracts the user_id from the channel.
         You just get clean user_id + payload.
         """
-        logger.info(f"📨 Message for user [{user_id}]:")
+        logger.info(f"Message for user [{user_id}]:")
         logger.info(f"   Content: {payload.get('content', payload)}")
         logger.info(f"   Type: {payload.get('type', 'unknown')}")
 
@@ -68,10 +76,17 @@ async def main():
         )
         return
 
-    # Initialize SDK
-    client = MagickMind(
-        email=email, password=password, base_url=base_url, ws_endpoint=ws_endpoint
-    )
+    # Initialize SDK with error handling
+    try:
+        client = MagickMind(
+            email=email,  # type: ignore (validated above)
+            password=password,  # type: ignore (validated above)
+            base_url=base_url,
+            ws_endpoint=ws_endpoint,
+        )
+    except AuthenticationError as e:
+        logger.error(f"Authentication failed: {e}")
+        return
 
     # Create handler
     handler = MyRealtimeHandler()
@@ -84,39 +99,24 @@ async def main():
 
         # Verify Models (Client-Side)
         logger.info("Fetching available models...")
-        # Note: client.models.list() is a sync call
-        models_resp = await asyncio.to_thread(client.models.list)
-        available_models = models_resp.data
-        available_ids = [m.id for m in available_models]
-        model_id = "openrouter/openrouter/meta-llama/llama-4-maverick"
+        try:
+            # Note: client.models.list() is a sync call
+            available_models: List[Model] = await asyncio.to_thread(client.models.list)
+            available_ids = [m.id for m in available_models]
+            model_id = "openrouter/openrouter/meta-llama/llama-4-maverick"
 
-        # Check if the server explicitly advertises this model or a suitable alternative
-        # But prioritize the user's requested default if valid.
-
-        # (Optional) If we wanted to fallback to 'magickmind' if available:
-        # if "magickmind" in available_ids and model_id not in available_ids:
-        #    ...
-
-        # For now, we trust 'openai/gpt-4o-mini' works via pass-through even if not listed.
-        if model_id not in available_ids:
-            logger.info(
-                f"Model '{model_id}' not in declared list, but using it as default."
-            )
-        # elif available_ids:
-        #     # Use the first available one, attaching provider if present
-        #     m = available_models[0]
-        #     if m.provider:
-        #         model_id = f"{m.provider}/{m.id}"
-        #     else:
-        #         model_id = m.id
-        #     logger.info(f"Default 'magickmind' not found. Using fallback: {model_id}")
-        # else:
-        #     logger.warning("No models found! Using default 'magickmind' anyway.")
+            if model_id not in available_ids:
+                logger.info(
+                    f"Model '{model_id}' not in declared list, but using it as default."
+                )
+        except ProblemDetailsException as e:
+            logger.warning(f"Could not fetch models: [{e.status}] {e.detail}")
+            model_id = "openrouter/openrouter/meta-llama/llama-4-maverick"
 
         # Subscribe to a user's updates
         # Pattern: Service account monitors updates for end users
-        target_user = "user-test-456"  # The end user we're monitoring
-        mindspace_id = "mind-test-123"
+        target_user = os.environ.get("USER_ID", "user-test-456")
+        mindspace_id = os.environ.get("MINDSPACE_ID", "mind-test-123")
 
         # Debug: Show what JWT subject we're using
         import base64
@@ -135,45 +135,63 @@ async def main():
         logger.info(f"Expected channel: personal:{target_user}#{service_user_id}")
 
         await client.realtime.subscribe(target_user_id=target_user)
-        logger.info(f"✅ Subscribed to {target_user}")
+        logger.info(f"Subscribed to {target_user}")
 
-        # Send a trigger message
-        logger.info(f"🚀 Sending chat message with model={model_id}...")
+        # Send a trigger message with proper error handling
+        logger.info(f"Sending chat message with model={model_id}...")
 
-        # CRITICAL: The JWT subject from the WebSocket connection MUST match
-        # the account making the chat request. Otherwise channels won't match!
-        # Using the same authenticated client for both ensures this.
+        try:
+            # Run sync HTTP request in thread to avoid blocking async loop
+            response = await asyncio.to_thread(
+                client.v1.chat.send,
+                api_key=os.getenv("OPENROUTER_API_KEY", "sk-test"),
+                mindspace_id=mindspace_id,
+                message="Hello from Realtime Example! Tell me a one-liner joke.",
+                enduser_id=target_user,
+                config=ConfigSchema(
+                    fast_model_id=model_id,
+                    smart_model_ids=[model_id],
+                    compute_power=50,
+                ),
+            )
 
-        # Run sync HTTP request in thread to avoid blocking async loop
-        response = await asyncio.to_thread(
-            client.v1.chat.send,
-            api_key=os.getenv("OPENROUTER_API_KEY", "sk-test"),
-            mindspace_id=mindspace_id,
-            message="Hello from Realtime Example! Tell me a one-liner joke.",
-            enduser_id=target_user,
-            config=ConfigSchema(
-                fast_model_id=model_id,
-                smart_model_ids=[model_id],
-                compute_power=50,
-            ),
-        )
-        if response.content:
-            logger.info(f"✅ Message sent! ID: {response.content.message_id}")
-            logger.info(f"ℹ️  Sync Response Content: {response.content.content}")
-        else:
-            logger.info("✅ Message sent (no content in response)!")
+            if response.content:
+                logger.info(f"Message sent! ID: {response.content.message_id}")
+                logger.info(f"Sync Response Content: {response.content.content}")
+            else:
+                logger.info("Message sent (no content in response)!")
+
+        except ValidationError as e:
+            # Handle field-level validation errors (400 Bad Request)
+            logger.error(f"Validation error: {e.title}")
+            for field, messages in e.get_field_errors().items():
+                logger.error(f"  - {field}: {', '.join(messages)}")
+            return
+
+        except ProblemDetailsException as e:
+            # Handle other API errors with rich details
+            logger.error(f"Chat API error: [{e.status}] {e.title}")
+            logger.error(f"  Detail: {e.detail}")
+            if e.request_id:
+                logger.error(f"  Request ID: {e.request_id} (save this for support)")
+            if e.instance:
+                logger.error(f"  Instance: {e.instance}")
+            return
+
+        except RateLimitError as e:
+            logger.error(f"Rate limited: {e}")
+            logger.error("Please wait before retrying.")
+            return
+
+        # Keep listening for realtime events
         logger.info("Waiting for realtime events...")
-
-        # Keep listening for a bit longer to receive the response
         logger.info("Listening for events... (Press Ctrl+C to stop)")
-        await asyncio.sleep(
-            60
-        )  # Increased to 60 seconds to ensure we receive the response
+        await asyncio.sleep(60)
 
     except KeyboardInterrupt:
-        logger.info("\n👋 Shutting down gracefully...")
+        logger.info("\nShutting down gracefully...")
     except Exception as e:
-        logger.error(f"❌ Error: {e}", exc_info=True)
+        logger.error(f"Unexpected error: {e}", exc_info=True)
     finally:
         await client.realtime.disconnect()
         client.close()
@@ -188,11 +206,15 @@ if __name__ == "__main__":
         BIFROST_EMAIL       - Your service account email
         BIFROST_PASSWORD    - Your service account password
         BIFROST_BASE_URL    - Bifrost API URL (optional)
-        BIFROST_WS_ENDPOINT - WebSocket endpoint (optional)
+        BIFROST_WS_ENDPOINT - WebSocket endpoint (required)
+        USER_ID             - End user ID (optional, default: user-test-456)
+        MINDSPACE_ID        - Mindspace ID (optional, default: mind-test-123)
+        OPENROUTER_API_KEY  - API key for LLM (optional)
     
     Example:
         export BIFROST_EMAIL="service@example.com"
         export BIFROST_PASSWORD="your-password"
+        export BIFROST_WS_ENDPOINT="wss://dev-bifrost.magickmind.ai/connection/websocket"
         python examples/realtime_chat.py
     """
     asyncio.run(main())

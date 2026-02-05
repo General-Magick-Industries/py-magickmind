@@ -63,8 +63,11 @@ class ChatResourceV1(BaseResource):
             ChatSendResponse with AI-generated response
 
         Raises:
-            HTTPError: If the API request fails
-            ValidationError: If response doesn't match expected schema
+            ValidationError: If message is empty, mindspace_id invalid, or required fields missing
+            ProblemDetailsException: If mindspace not found (404), permission denied (403),
+                or server error (500+). Always includes request_id for support.
+            RateLimitError: If API rate limit exceeded (429)
+            AuthenticationError: If JWT token is invalid or expired (auto-refreshed transparently)
 
         Example:
             # Basic chat with config

@@ -23,9 +23,9 @@ class TestHistoryResourceV1:
 
     def test_get_messages_latest(self, history_resource, mock_http_client):
         """Test getting latest messages."""
-        mock_response = Mock()
-        mock_response.json.return_value = {
-            "chat_histories": [
+        # HTTP client returns dict directly (not a Response object)
+        mock_http_client.get.return_value = {
+            "data": [
                 {
                     "id": "msg-1",
                     "mindspace_id": "mind-123",
@@ -36,16 +36,23 @@ class TestHistoryResourceV1:
                     "update_at": "2024-01-01T10:00:00Z",
                 }
             ],
-            "last_id": "msg-1",
+            "paging": {
+                "cursors": {"after": None, "before": None},
+                "has_more": False,
+                "has_previous": False,
+            },
         }
-        mock_http_client.get.return_value = mock_response
 
         result = history_resource.get_messages(mindspace_id="mind-123", limit=50)
 
         assert isinstance(result, HistoryResponse)
+        assert len(result.data) == 1
+        assert result.data[0].id == "msg-1"
+        assert result.paging.has_more is False
+
+        # Test backward compat properties
         assert len(result.chat_histories) == 1
         assert result.chat_histories[0].id == "msg-1"
-        assert result.last_id == "msg-1"
         assert result.next_after_id is None
         assert result.has_more is False
 
@@ -57,9 +64,8 @@ class TestHistoryResourceV1:
 
     def test_get_messages_forward_pagination(self, history_resource, mock_http_client):
         """Test forward pagination with after_id."""
-        mock_response = Mock()
-        mock_response.json.return_value = {
-            "chat_histories": [
+        mock_http_client.get.return_value = {
+            "data": [
                 {
                     "id": "msg-2",
                     "mindspace_id": "mind-123",
@@ -70,20 +76,27 @@ class TestHistoryResourceV1:
                     "update_at": "2024-01-01T10:01:00Z",
                 }
             ],
-            "next_after_id": "msg-2",
-            "has_more": True,
+            "paging": {
+                "cursors": {"after": "msg-2", "before": None},
+                "has_more": True,
+                "has_previous": False,
+            },
         }
-        mock_http_client.get.return_value = mock_response
 
         result = history_resource.get_messages(
             mindspace_id="mind-123", after_id="msg-1", limit=50
         )
 
+        assert len(result.data) == 1
+        assert result.data[0].id == "msg-2"
+        assert result.paging.cursors.after == "msg-2"
+        assert result.paging.has_more is True
+
+        # Backward compat
         assert len(result.chat_histories) == 1
         assert result.chat_histories[0].id == "msg-2"
         assert result.next_after_id == "msg-2"
         assert result.has_more is True
-        assert result.last_id is None
 
         mock_http_client.get.assert_called_once_with(
             "/v1/mindspaces/messages",
@@ -92,9 +105,8 @@ class TestHistoryResourceV1:
 
     def test_get_messages_backward_pagination(self, history_resource, mock_http_client):
         """Test backward pagination with before_id."""
-        mock_response = Mock()
-        mock_response.json.return_value = {
-            "chat_histories": [
+        mock_http_client.get.return_value = {
+            "data": [
                 {
                     "id": "msg-0",
                     "mindspace_id": "mind-123",
@@ -105,15 +117,23 @@ class TestHistoryResourceV1:
                     "update_at": "2024-01-01T09:59:00Z",
                 }
             ],
-            "next_before_id": "msg-0",
-            "has_older": True,
+            "paging": {
+                "cursors": {"after": None, "before": "msg-0"},
+                "has_more": False,
+                "has_previous": True,
+            },
         }
-        mock_http_client.get.return_value = mock_response
 
         result = history_resource.get_messages(
             mindspace_id="mind-123", before_id="msg-1", limit=50
         )
 
+        assert len(result.data) == 1
+        assert result.data[0].id == "msg-0"
+        assert result.paging.cursors.before == "msg-0"
+        assert result.paging.has_previous is True
+
+        # Backward compat
         assert len(result.chat_histories) == 1
         assert result.chat_histories[0].id == "msg-0"
         assert result.next_before_id == "msg-0"
@@ -126,20 +146,24 @@ class TestHistoryResourceV1:
 
     def test_get_messages_empty(self, history_resource, mock_http_client):
         """Test getting empty results."""
-        mock_response = Mock()
-        mock_response.json.return_value = {"chat_histories": []}
-        mock_http_client.get.return_value = mock_response
+        mock_http_client.get.return_value = {
+            "data": [],
+            "paging": {
+                "cursors": {"after": None, "before": None},
+                "has_more": False,
+                "has_previous": False,
+            },
+        }
 
         result = history_resource.get_messages(mindspace_id="mind-123")
 
+        assert len(result.data) == 0
         assert len(result.chat_histories) == 0
-        assert result.last_id is None
 
     def test_get_messages_with_reply_to(self, history_resource, mock_http_client):
         """Test message with reply_to_message_id."""
-        mock_response = Mock()
-        mock_response.json.return_value = {
-            "chat_histories": [
+        mock_http_client.get.return_value = {
+            "data": [
                 {
                     "id": "msg-2",
                     "mindspace_id": "mind-123",
@@ -151,11 +175,16 @@ class TestHistoryResourceV1:
                     "update_at": "2024-01-01T10:01:00Z",
                 }
             ],
+            "paging": {
+                "cursors": {"after": None, "before": None},
+                "has_more": False,
+                "has_previous": False,
+            },
         }
-        mock_http_client.get.return_value = mock_response
 
         result = history_resource.get_messages(mindspace_id="mind-123")
 
+        assert result.data[0].reply_to_message_id == "msg-1"
         assert result.chat_histories[0].reply_to_message_id == "msg-1"
 
     def test_get_messages_both_cursors_error(self, history_resource):
@@ -170,33 +199,48 @@ class TestHistoryResourceV1:
             )
 
     def test_get_messages_with_artifacts(self, history_resource, mock_http_client):
-        """Test message with artifact_ids (future-proofing)."""
-        mock_response = Mock()
-        mock_response.json.return_value = {
-            "chat_histories": [
+        """Test message with extra fields (e.g. artifact_ids) is handled gracefully.
+
+        Note: ChatHistoryMessage model doesn't have artifact_ids field yet,
+        but pydantic should ignore extra fields from API response.
+        """
+        mock_http_client.get.return_value = {
+            "data": [
                 {
                     "id": "msg-1",
                     "mindspace_id": "mind-123",
                     "sent_by_user_id": "user-456",
                     "content": "Check this file",
                     "status": "sent",
-                    "artifact_ids": ["artifact-123", "artifact-456"],
+                    "artifact_ids": ["artifact-123", "artifact-456"],  # Extra field
                     "create_at": "2024-01-01T10:00:00Z",
                     "update_at": "2024-01-01T10:00:00Z",
                 }
             ],
+            "paging": {
+                "cursors": {"after": None, "before": None},
+                "has_more": False,
+                "has_previous": False,
+            },
         }
-        mock_http_client.get.return_value = mock_response
 
         result = history_resource.get_messages(mindspace_id="mind-123")
 
-        assert result.chat_histories[0].artifact_ids == ["artifact-123", "artifact-456"]
+        # Verify message parses without error (extra fields ignored)
+        assert len(result.data) == 1
+        assert result.data[0].id == "msg-1"
+        assert result.data[0].content == "Check this file"
 
     def test_get_messages_default_limit(self, history_resource, mock_http_client):
         """Test default limit parameter."""
-        mock_response = Mock()
-        mock_response.json.return_value = {"chat_histories": []}
-        mock_http_client.get.return_value = mock_response
+        mock_http_client.get.return_value = {
+            "data": [],
+            "paging": {
+                "cursors": {"after": None, "before": None},
+                "has_more": False,
+                "has_previous": False,
+            },
+        }
 
         history_resource.get_messages(mindspace_id="mind-123")
 

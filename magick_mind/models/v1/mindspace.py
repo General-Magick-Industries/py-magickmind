@@ -9,7 +9,7 @@ from typing import Literal, Optional
 
 from pydantic import BaseModel, Field
 
-from magick_mind.models.common import BaseResponse
+from magick_mind.models.common import BaseResponse, PageInfo
 from magick_mind.models.v1.history import HistoryResponse
 
 
@@ -44,12 +44,12 @@ class MindSpace(BaseModel):
     name: str = Field(..., description="Mindspace name")
     description: Optional[str] = Field(None, description="Mindspace description")
     project_id: str = Field(..., description="Associated project ID")
-    corpus_ids: Optional[list[str]] = Field(
-        None,
+    corpus_ids: list[str] = Field(
+        default_factory=list,
         description="List of corpus IDs attached to this mindspace",
     )
-    user_ids: Optional[list[str]] = Field(
-        None,
+    user_ids: list[str] = Field(
+        default_factory=list,
         description="List of user IDs with access to this mindspace",
     )
     type: MindSpaceType = Field(..., description="Mindspace type: 'PRIVATE' or 'GROUP'")
@@ -86,30 +86,22 @@ class CreateMindSpaceRequest(BaseModel):
     )
 
 
-class CreateMindSpaceResponse(BaseResponse):
-    """
-    Response from creating a mindspace.
-    """
-
-    mindspace: MindSpace = Field(..., description="Created mindspace")
-
-
-class GetMindSpaceResponse(BaseResponse):
-    """
-    Response from getting a mindspace by ID.
-    """
-
-    mindspace: MindSpace = Field(..., description="Retrieved mindspace")
-
-
-class GetMindSpaceListResponse(BaseResponse):
+class GetMindSpaceListResponse(BaseModel):
     """
     Response from listing mindspaces.
+
+    Uses standardized Bifrost pagination format: {data: [], paging: {}}.
     """
 
-    mindspaces: list[MindSpace] = Field(
+    data: list[MindSpace] = Field(
         default_factory=list, description="List of mindspaces"
     )
+    paging: PageInfo = Field(..., description="Pagination information")
+
+    @property
+    def mindspaces(self) -> list[MindSpace]:
+        """Alias for data field (backward compatibility)."""
+        return self.data
 
 
 class UpdateMindSpaceRequest(BaseModel):
@@ -132,19 +124,14 @@ class UpdateMindSpaceRequest(BaseModel):
     )
 
 
-class UpdateMindSpaceResponse(BaseResponse):
+class AddMindSpaceUsersRequest(BaseModel):
     """
-    Response from updating a mindspace.
-
-    Example:
-        {
-            "success": true,
-            "message": "Mindspace updated successfully",
-            "mindspace": { ... }
-        }
+    Request to add users to an existing mindspace.
     """
 
-    mindspace: MindSpace = Field(..., description="Updated mindspace")
+    user_ids: list[str] = Field(
+        ..., description="List of user IDs to add to the mindspace"
+    )
 
 
 # Reuse HistoryResponse for messages endpoint since it's the same structure

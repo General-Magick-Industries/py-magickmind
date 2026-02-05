@@ -4,12 +4,11 @@ import pytest
 
 from magick_mind.models.v1.end_user import (
     CreateEndUserRequest,
-    CreateEndUserResponse,
+    Cursors,
     EndUser,
-    GetEndUserResponse,
+    PageInfo,
     QueryEndUserResponse,
     UpdateEndUserRequest,
-    UpdateEndUserResponse,
 )
 
 
@@ -96,44 +95,6 @@ class TestCreateEndUserRequest:
         assert request.actor_id is None  # Now Optional
 
 
-class TestCreateEndUserResponse:
-    """Tests for CreateEndUserResponse model."""
-
-    def test_create_response(self):
-        """Test CreateEndUserResponse wraps EndUser."""
-        end_user_data = {
-            "id": "user-123",
-            "name": "John Doe",
-            "tenant_id": "tenant-456",
-            "created_at": "2024-01-01T10:00:00Z",
-            "updated_at": "2024-01-01T10:00:00Z",
-        }
-
-        response = CreateEndUserResponse(end_user=EndUser(**end_user_data))
-
-        assert isinstance(response.end_user, EndUser)
-        assert response.end_user.id == "user-123"
-
-
-class TestGetEndUserResponse:
-    """Tests for GetEndUserResponse model."""
-
-    def test_get_response(self):
-        """Test GetEndUserResponse wraps EndUser."""
-        end_user_data = {
-            "id": "user-123",
-            "name": "John Doe",
-            "tenant_id": "tenant-456",
-            "created_at": "2024-01-01T10:00:00Z",
-            "updated_at": "2024-01-01T10:00:00Z",
-        }
-
-        response = GetEndUserResponse(end_user=EndUser(**end_user_data))
-
-        assert isinstance(response.end_user, EndUser)
-        assert response.end_user.name == "John Doe"
-
-
 class TestQueryEndUserResponse:
     """Tests for QueryEndUserResponse model."""
 
@@ -157,19 +118,31 @@ class TestQueryEndUserResponse:
         ]
 
         response = QueryEndUserResponse(
-            end_users=[EndUser(**data) for data in users_data]
+            data=[EndUser(**data) for data in users_data],
+            paging=PageInfo(
+                cursors=Cursors(after=None, before=None),
+                has_more=False,
+                has_previous=False,
+            ),
         )
 
-        assert len(response.end_users) == 2
-        assert all(isinstance(user, EndUser) for user in response.end_users)
-        assert response.end_users[0].id == "user-1"
-        assert response.end_users[1].id == "user-2"
+        assert len(response.data) == 2
+        assert all(isinstance(user, EndUser) for user in response.data)
+        assert response.data[0].id == "user-1"
+        assert response.data[1].id == "user-2"
 
     def test_query_response_empty(self):
         """Test QueryEndUserResponse with empty list."""
-        response = QueryEndUserResponse(end_users=[])
+        response = QueryEndUserResponse(
+            data=[],
+            paging=PageInfo(
+                cursors=Cursors(after=None, before=None),
+                has_more=False,
+                has_previous=False,
+            ),
+        )
 
-        assert response.end_users == []
+        assert response.data == []
 
 
 class TestUpdateEndUserRequest:
@@ -202,22 +175,3 @@ class TestUpdateEndUserRequest:
         assert request.name is None
         assert request.external_id is None
         assert request.tenant_id is None
-
-
-class TestUpdateEndUserResponse:
-    """Tests for UpdateEndUserResponse model."""
-
-    def test_update_response(self):
-        """Test UpdateEndUserResponse wraps EndUser."""
-        end_user_data = {
-            "id": "user-123",
-            "name": "Updated User",
-            "tenant_id": "tenant-456",
-            "created_at": "2024-01-01T10:00:00Z",
-            "updated_at": "2024-01-01T11:00:00Z",
-        }
-
-        response = UpdateEndUserResponse(end_user=EndUser(**end_user_data))
-
-        assert isinstance(response.end_user, EndUser)
-        assert response.end_user.name == "Updated User"
