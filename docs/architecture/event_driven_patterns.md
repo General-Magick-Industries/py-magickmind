@@ -357,7 +357,8 @@ class ChatBackendWithFetch:
         print(f"🔔 Notification from Bifrost: message {message_id} created")
         
         # Fetch complete, authoritative data from Bifrost
-        # TODO: This endpoint doesn't exist yet in SDK
+        # Note: Future Feature - Individual message fetch endpoint will be added to SDK
+        # For now, use HTTP client directly:
         response = self.sdk_client.http.get(f"/v1/messages/{message_id}")
         message = ChatPayload.model_validate(response.json())
         

@@ -18,14 +18,16 @@ async def test_complex_realtime_scenarios():
 
     # Setup Mocks
     mock_auth = MagicMock()
-    mock_auth.get_token.return_value = "token"
+    # Fake JWT with sub field
+    fake_token = f"header.{'eyJzdWIiOiAic2VydmljZS0xMjMifQ'}.signature"
+    mock_auth.get_token_async = AsyncMock(return_value=fake_token)
 
     rt = RealtimeClient(auth=mock_auth, ws_url="ws://test")
-    rt._client = AsyncMock()
-
-    # helper to reset mock calls
-    def reset_mocks():
-        rt._client.rpc.reset_mock()
+    rt._events = MagicMock()
+    rt._client = MagicMock()
+    rt._client.get_subscription.return_value = None
+    mock_sub = AsyncMock()
+    rt._client.new_subscription.return_value = mock_sub
 
     print("1. Testing subscribe_many (Bulk Ops)...")
     users = [f"user_{i}" for i in range(50)]
@@ -33,16 +35,17 @@ async def test_complex_realtime_scenarios():
     await rt.subscribe_many(users)
 
     # Verify 50 calls
-    assert rt._client.rpc.call_count == 50
+    assert rt._client.new_subscription.call_count == 50
     # Check args of first call
-    args, _ = rt._client.rpc.call_args_list[0]
-    assert args[0] == "subscribe"
+    args, _ = rt._client.new_subscription.call_args_list[0]
+    assert args[0].startswith("personal:user_")
     print("   ✅ Validated 50 concurrent subscriptions")
 
     print("2. Testing unsubscribe_many...")
-    reset_mocks()
+    rt._client.get_subscription.reset_mock()
+    rt._client.get_subscription.return_value = AsyncMock()
     await rt.unsubscribe_many(users)
-    assert rt._client.rpc.call_count == 50
+    assert rt._client.get_subscription.call_count == 50
     print("   ✅ Validated 50 concurrent unsubscriptions")
 
     print("\n🎉 All Complex Realtime Tests Passed!")
