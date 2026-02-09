@@ -1,13 +1,6 @@
 # Magick Mind SDK
 
-Python SDK for seamless integration with the Magick Mind platform (Bifrost). Provides type-safe, validated access to chat, mindspace, and realtime features.
-
-> [!IMPORTANT]
-> **Backend-Only SDK**  
-> This SDK is designed for **server-side applications only** and requires service-level authentication. It cannot be used directly by end users in browsers or mobile apps.
-> 
-> **Architecture:** End Users → Your Backend (+ SDK) → Bifrost  
-> See [Backend Architecture Guide](docs/architecture/backend_architecture.md) for details.
+Python SDK for backend services integrating with the Magick Mind platform (Bifrost). Provides type-safe, validated access to chat, mindspace, and realtime features.
 
 ## Installation
 
