@@ -1,21 +1,33 @@
 # Magick Mind SDK
 
-Python SDK for the Magick Mind platform (Bifrost). Type-safe access to chat, mindspace, and realtime features.
+Python SDK for seamless integration with the Magick Mind platform (Bifrost). Provides type-safe, validated access to chat, mindspace, and realtime features.
 
-> **Backend-Only SDK** — Designed for server-side applications with service-level authentication.  
-> Architecture: `End Users → Your Backend (+ SDK) → Bifrost`
+> [!IMPORTANT]
+> **Backend-Only SDK**  
+> This SDK is designed for **server-side applications only** and requires service-level authentication. It cannot be used directly by end users in browsers or mobile apps.
+> 
+> **Architecture:** End Users → Your Backend (+ SDK) → Bifrost  
+> See [Backend Architecture Guide](docs/architecture/backend_architecture.md) for details.
 
 ## Installation
 
+Using `uv` (recommended):
+
 ```bash
-# Using uv (recommended)
 uv add magick-mind
+```
 
-# Using pip
+Using pip:
+
+```bash
 pip install magick-mind
+```
 
-# For development
-git clone <repository-url> && cd magick-mind-sdk
+For development:
+
+```bash
+git clone <repository-url>
+cd magick-mind-sdk
 uv sync --all-extras
 ```
 
@@ -26,30 +38,41 @@ uv sync --all-extras
 ```python
 from magick_mind import MagickMind
 
+# Create client with email/password
 client = MagickMind(
     email="user@example.com",
     password="your_password",
     base_url="https://bifrost.example.com"
 )
-# Tokens refresh automatically
+
+# Authentication happens automatically on first API call
+# Tokens are automatically refreshed when needed
+print(f"Authenticated: {client.is_authenticated()}")
 ```
 
-### Send a Chat Message
+> **Note**: The `api_key` you might see in chat requests is **not for SDK authentication**. 
+> It's a parameter you pass when calling LLM endpoints (for tracking/billing). 
+> The SDK itself authenticates with JWT tokens from `/v1/auth/login`.
+
+### Basic Chat
 
 ```python
+# Make a chat request
 response = client.http.post(
     "/v1/magickmind/chat",
     json={
         "api_key": "sk-your-llm-key",
         "message": "Hello!",
-        "mindspace_id": "mind-123",
-        "sender_id": "user-456"
+        "chat_id": "chat-123",
+        "sender_id": "user-456",
+        "mindspace_id": "mind-789"
     }
 )
-# Response streams via Centrifugo WebSocket
+
+# Response streams via Centrifugo WebSocket (see Realtime section)
 ```
 
-### Realtime Listener
+### Realtime (Simple Listener)
 
 ```python
 import asyncio
@@ -58,17 +81,21 @@ from magick_mind.realtime.handler import RealtimeEventHandler
 
 class MyHandler(RealtimeEventHandler):
     async def on_message(self, user_id: str, payload):
-        print(f"Message for {user_id}: {payload}")
+        print(f"Update for {user_id}: {payload}")
 
 async def main():
     client = MagickMind(
         email="user@example.com",
-        password="password",
+        password="password", 
         base_url="https://bifrost.example.com",
         ws_endpoint="wss://bifrost.example.com/connection/websocket"
     )
+    
+    # Connect and subscribe
     await client.realtime.connect(events=MyHandler())
     await client.realtime.subscribe_many(["user-1", "user-2"])
+    
+    # Keep listening...
     await asyncio.sleep(60)
 
 asyncio.run(main())
@@ -76,40 +103,131 @@ asyncio.run(main())
 
 ## Key Concepts
 
-**Mindspaces** — Central organizing concept. All conversations happen within a mindspace. Knowledge (corpus) attaches to mindspaces to provide AI context.
+### Mindspaces
 
-**Service Users** — This SDK authenticates as a service user (your backend). Your backend acts on behalf of end users via `sender_id`.
+**Mindspace is the central organizing concept in Bifrost** - it's where conversations, knowledge, and collaboration converge:
+
+- All chat conversations happen within a mindspace
+- Knowledge (corpus) attaches to mindspaces to provide context for AI responses  
+- Users collaborate through mindspaces (private for individuals, group for teams)
+- Most operations reference a `mindspace_id`
+
+📖 **Learn more:** [Mindspace Resource Guide](docs/resources/mindspace.md)
+
+### Service Users
+
+This SDK is designed for **service-level authentication** (email/password). Your backend authenticates as a service user and acts on behalf of end users.
+
+**Common architecture:**
+```
+[Your Frontend/App] ←→ [Your Backend + This SDK] ←→ [Bifrost SaaS]
+```
+
+For direct device-to-Bifrost patterns (robotics/IoT), see [Event-Driven Patterns](docs/architecture/event_driven_patterns.md#self-service-pattern-roboticsiot).
 
 ## Documentation
 
-| Category | Guides |
-|----------|--------|
-| **Architecture** | [Backend Architecture](docs/architecture/backend_architecture.md) · [Event-Driven Patterns](docs/architecture/event_driven_patterns.md) · [Realtime Patterns](docs/architecture/realtime_patterns.md) |
-| **Guides** | [Backend Integration](docs/guides/backend_integration.md) · [Error Handling](docs/guides/error_handling.md) · [Advanced Usage](docs/guides/advanced_usage.md) · [Realtime Guide](docs/realtime_guide.md) |
-| **Resources** | [Mindspace](docs/resources/mindspace.md) · [Corpus](docs/resources/corpus.md) · [Artifact](docs/resources/artifact.md) · [End User](docs/resources/end_user.md) · [Project](docs/resources/project.md) |
-| **Contributing** | [Contributing Guide](docs/contributing/README.md) · [Resource Implementation](docs/contributing/resource_implementation_guide/README.md) |
+### Architecture
+
+- [Backend Architecture](docs/architecture/backend_architecture.md) - Service-level integration patterns
+- [Event-Driven Patterns](docs/architecture/event_driven_patterns.md) - Events as source of truth vs. notifications
+- [Realtime Patterns](docs/architecture/realtime_patterns.md) - WebSocket subscription patterns
+
+### Guides
+
+- [Backend Integration](docs/guides/backend_integration.md) - Production patterns for message deduplication, hybrid sync, recovery
+- [Error Handling](docs/guides/error_handling.md) - Exception types, retry patterns, production examples
+- [Advanced Usage](docs/guides/advanced_usage.md) - Direct HTTP client access for power users
+- [Realtime Guide](docs/realtime_guide.md) - Complete WebSocket guide with bulk operations and relay architecture
+
+### Resources
+
+- [Mindspace](docs/resources/mindspace.md) - Central organizing concept
+- [Corpus](docs/resources/corpus.md) - Knowledge base management
+- [Artifact](docs/resources/artifact.md) - Document/blob storage
+- [End User](docs/resources/end_user.md) - User identity management
+- [Project](docs/resources/project.md) - Project organization
+
+### Contributing
+
+- [Contributing Guide](docs/contributing/README.md) - How to extend the SDK
+- [Resource Implementation Guide](docs/contributing/resource_implementation_guide/README.md) - Template for adding typed resources
+
+## Development
+
+### Setup
+
+```bash
+# Clone repository
+git clone <repository-url>
+cd magick-mind-sdk
+
+# Install dependencies
+uv sync --all-extras
+```
+
+### Testing
+
+```bash
+# Run all tests
+uv run pytest tests/ -v
+
+# Run specific test file
+uv run pytest tests/test_auth.py -v
+
+# Run with coverage
+uv run pytest tests/ --cov=magick_mind --cov-report=html
+```
+
+### Type Checking
+
+```bash
+uv run pyright
+```
+
+### Formatting
+
+```bash
+uv run ruff format .
+```
 
 ## Examples
 
+The `examples/` directory contains 7 working examples demonstrating key SDK patterns:
+
+| Example | Description |
+|---------|-------------|
+| **authentication.py** | Email/password authentication with auto-refresh |
+| **resource_management.py** | CRUD operations for End Users, Projects, and Mindspaces |
+| **chat_workflow.py** | Complete chat workflow with realtime streaming |
+| **bulk_subscribe.py** | Bulk subscriptions with message deduplication |
+| **backend_service.py** | Production-ready backend service pattern |
+| **error_handling_patterns.py** | Comprehensive error handling patterns |
+| **setup_resources.py** | Setup script for creating test resources |
+
+📖 **See [examples/README.md](examples/README.md) for detailed descriptions and usage.**
+
+Quick start:
+
 ```bash
+# 1. Set environment variables
 export BIFROST_BASE_URL="http://localhost:8888"
 export BIFROST_EMAIL="user@example.com"
 export BIFROST_PASSWORD="your_password"
 
-uv run python examples/email_password_auth.py
-uv run python examples/chat_example.py
-uv run python examples/realtime_chat.py
-```
+# 2. Create test resources
+uv run python examples/setup_resources.py
 
-## Development
-
-```bash
-uv sync --all-extras      # Install dependencies
-uv run pytest tests/ -v   # Run tests
-uv run pyright            # Type check
-uv run ruff format .      # Format
+# 3. Run an example
+uv run python examples/authentication.py
 ```
 
 ## License
 
-MIT License — see LICENSE file.
+MIT License - see LICENSE file for details.
+
+## Authors
+
+- Adrian (minoak@globalmagicko.com)
+- Turtle (turtle@globalmagicko.com)
+- Min Thu Wai (minthu@globalmagicko.com)
