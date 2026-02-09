@@ -10,12 +10,18 @@ If you're looking to **use** the SDK, see the main [README](../../README.md).
 
 This section is for developers who want to **extend** the SDK by adding new resources, features, or improvements.
 
-### Adding Resources
+### Extending the SDK
 
-See [Resource Implementation Guide](resource_implementation_guide/) for a complete working example of adding a chat resource with:
-- Pydantic models (v1, v2)
-- Resource classes
-- Version handling
+Want to add typed resource clients (e.g., `client.chat.send(...)`)? The SDK provides authentication and HTTP client foundation - you can build on top of it.
+
+See **[Resource Implementation Guide](resource_implementation_guide/)** for a complete reference implementation showing:
+
+- ✅ Pydantic models for request/response validation
+- ✅ Version-aware resource classes (v1, v2)
+- ✅ Clean namespace pattern (`client.v1.chat`, `client.v2.chat`)
+- ✅ Working usage examples
+
+This serves as a template for adding chat, history, users, or any other resources to the SDK.
 
 ### Project Structure
 
