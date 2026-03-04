@@ -5,6 +5,7 @@ Demonstrates CRUD operations for core resources using the Magick Mind SDK:
 - End Users: User identity management in multi-tenant architecture
 - Projects: Organize corpus and resources for agentic SaaS backends
 - Mindspaces: Central organizing concept for conversations and collaboration
+- Corpus: Knowledge base and artifact management for RAG workflows
 
 This example consolidates patterns from end_user_example.py, project_example.py,
 and mindspace_example.py into a single comprehensive resource management guide.
@@ -238,11 +239,87 @@ def main():
         print("  (No messages in this mindspace yet)")
 
     # ========================================================================
+    # PART 4: CORPUS & ARTIFACT MANAGEMENT
+    # ========================================================================
+    print("\n" + "=" * 60)
+    print("PART 4: Corpus & Artifact Management")
+    print("=" * 60)
+
+    # 1. Create a corpus
+    print("\n1. Creating a corpus...")
+    corpus = client.v1.corpus.create(
+        name="SDK Example Knowledge Base",
+        description="Documents for testing artifact management",
+    )
+    corpus_id = corpus.id
+    print(f"✓ Created corpus: {corpus_id}")
+    print(f"  Name: {corpus.name}")
+
+    # 2. Add artifacts to corpus (triggers ingestion)
+    # Note: These artifact IDs would come from prior uploads via artifact.presign()
+    print("\n2. Adding artifacts to corpus...")
+    try:
+        result = client.v1.corpus.add_artifacts(
+            corpus_id, ["artifact-001", "artifact-002"]
+        )
+        print(f"✓ Added {result.added_count} artifact(s)")
+        if result.failed_artifact_ids:
+            print(f"  Failed: {result.failed_artifact_ids}")
+    except Exception as e:
+        print(f"  Skipped (no real artifacts): {e}")
+
+    # 3. Add a single artifact
+    print("\n3. Adding a single artifact...")
+    try:
+        result = client.v1.corpus.add_artifact(corpus_id, "artifact-003")
+        print(f"✓ Added {result.added_count} artifact(s)")
+    except Exception as e:
+        print(f"  Skipped (no real artifact): {e}")
+
+    # 4. List artifact statuses
+    print("\n4. Listing artifact statuses...")
+    try:
+        statuses = client.v1.corpus.list_artifact_statuses(corpus_id)
+        print(f"✓ Found {len(statuses)} artifact status(es):")
+        for s in statuses[:5]:
+            print(f"  - {s.artifact_id}: {s.status}")
+            if s.error:
+                print(f"    Error: {s.error}")
+    except Exception as e:
+        print(f"  Skipped: {e}")
+
+    # 5. Get single artifact status
+    print("\n5. Getting single artifact status...")
+    try:
+        status = client.v1.corpus.get_artifact_status(corpus_id, "artifact-001")
+        print(f"✓ Status: {status.status}")
+        print(f"  Content length: {status.content_length}")
+        print(f"  Updated at: {status.updated_at}")
+    except Exception as e:
+        print(f"  Skipped: {e}")
+
+    # 6. Remove artifact from corpus
+    print("\n6. Removing artifact from corpus...")
+    try:
+        client.v1.corpus.remove_artifact(corpus_id, "artifact-001")
+        print("✓ Artifact removed")
+    except Exception as e:
+        print(f"  Skipped: {e}")
+
+    # ========================================================================
     # CLEANUP
     # ========================================================================
     print("\n" + "=" * 60)
     print("CLEANUP")
     print("=" * 60)
+
+    # Delete corpus
+    print(f"\n0. Deleting corpus {corpus_id}...")
+    try:
+        client.v1.corpus.delete(corpus_id)
+        print(f"✓ Deleted corpus: {corpus_id}")
+    except Exception as e:
+        print(f"✗ Failed to delete corpus: {e}")
 
     # Delete mindspace
     print(f"\n1. Deleting mindspace {mindspace_id}...")

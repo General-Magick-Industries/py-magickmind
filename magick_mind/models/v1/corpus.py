@@ -80,3 +80,34 @@ class DeleteCorpusResponse:
     """
 
     pass
+
+
+class AddArtifactsRequest(BaseModel):
+    """Request for adding artifacts to a corpus."""
+
+    artifact_ids: list[str] = Field(..., min_length=1, max_length=20)
+
+
+class AddArtifactsResponse(BaseModel):
+    """Response for adding artifacts to a corpus."""
+
+    added_count: int
+    failed_artifact_ids: list[str] = Field(default_factory=list)
+
+
+class ArtifactStatus(BaseModel):
+    """Status of an artifact in a corpus."""
+
+    artifact_id: str
+    status: str  # PENDING, PROCESSING, PROCESSED, FAILED
+    content_summary: Optional[str] = None
+    content_length: Optional[int] = None
+    created_at: Optional[str] = None
+    updated_at: Optional[str] = None
+    error: Optional[str] = None
+
+
+class ListArtifactStatusesResponse(BaseModel):
+    """Response for listing artifact statuses."""
+
+    statuses: list[ArtifactStatus]

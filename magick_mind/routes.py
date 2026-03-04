@@ -59,6 +59,26 @@ class Routes:
         """Get path for corpus artifact finalization."""
         return f"/v1/corpus/{corpus_id}/artifacts/finalize"
 
+    @staticmethod
+    def corpus_artifacts(corpus_id: str) -> str:
+        """Get path for corpus artifacts management."""
+        return f"/v1/corpus/{corpus_id}/artifacts"
+
+    @staticmethod
+    def corpus_artifact(corpus_id: str, artifact_id: str) -> str:
+        """Get path for a specific corpus artifact."""
+        return f"/v1/corpus/{corpus_id}/artifacts/{artifact_id}"
+
+    @staticmethod
+    def corpus_artifact_status(corpus_id: str, artifact_id: str) -> str:
+        """Get path for corpus artifact status."""
+        return f"/v1/corpus/{corpus_id}/artifacts/{artifact_id}/status"
+
+    @staticmethod
+    def corpus_artifacts_status(corpus_id: str) -> str:
+        """Get path for listing corpus artifacts status."""
+        return f"/v1/corpus/{corpus_id}/artifacts/status"
+
     # Artifact endpoints
     ARTIFACTS = "/v1/artifacts"
     ARTIFACTS_PRESIGN = "/v1/artifacts/presign"
