@@ -6,8 +6,14 @@ from typing import TYPE_CHECKING, Optional
 
 from magick_mind.models.v1.mindspace import (
     AddMindSpaceUsersRequest,
+    ChatHistoryParams,
+    ContextPrepareResponse,
+    CorpusParams,
     CreateMindSpaceRequest,
+    FetcherParams,
     GetMindSpaceListResponse,
+    LivekitJoinResponse,
+    LivekitTokenResponse,
     MindSpace,
     MindSpaceType,
     MindspaceMessagesResponse,
@@ -53,7 +59,7 @@ class MindspaceResourceV1(BaseResource):
         description: Optional[str] = None,
         project_id: Optional[str] = None,
         corpus_ids: Optional[list[str]] = None,
-        user_ids: Optional[list[str]] = None,
+        participant_ids: Optional[list[str]] = None,
     ) -> MindSpace:
         """
         Create a new mindspace.
@@ -63,7 +69,7 @@ class MindspaceResourceV1(BaseResource):
             description: Optional description (max 256 characters)
             project_id: Optional associated project ID
             corpus_ids: Optional list of corpus IDs to attach
-            user_ids: Optional list of user IDs to grant access
+            participant_ids: Optional list of participant IDs to grant access
 
         Returns:
             MindSpace
@@ -79,7 +85,7 @@ class MindspaceResourceV1(BaseResource):
                 type="GROUP",
                 description="Team collaboration space",
                 corpus_ids=["corp-1", "corp-2"],
-                user_ids=["user-1", "user-2"]
+                participant_ids=["user-1", "user-2"]
             )
             print(f"Created mindspace: {mindspace.id}")
         """
@@ -90,7 +96,7 @@ class MindspaceResourceV1(BaseResource):
             description=description,
             project_id=project_id,
             corpus_ids=corpus_ids or [],
-            user_ids=user_ids or [],
+            participant_ids=participant_ids or [],
         )
 
         # Make API call
@@ -122,12 +128,27 @@ class MindspaceResourceV1(BaseResource):
         response_data = self._http.get(Routes.mindspace(mindspace_id))
         return MindSpace.model_validate(response_data)
 
-    def list(self, user_id: Optional[str] = None) -> GetMindSpaceListResponse:
+    def list(
+        self,
+        participant_id: Optional[str] = None,
+        project_id: Optional[str] = None,
+        type: Optional[MindSpaceType] = None,
+        name: Optional[str] = None,
+        cursor: Optional[str] = None,
+        limit: Optional[int] = None,
+        order: Optional[str] = None,
+    ) -> GetMindSpaceListResponse:
         """
-        List mindspaces, optionally filtered by user.
+        List mindspaces, optionally filtered by various parameters.
 
         Args:
-            user_id: Optional user ID to filter mindspaces
+            participant_id: Optional participant ID to filter mindspaces
+            project_id: Optional project ID to filter mindspaces
+            type: Optional mindspace type filter ("PRIVATE" or "GROUP")
+            name: Optional name filter
+            cursor: Optional pagination cursor
+            limit: Optional maximum number of results to return
+            order: Optional sort order
 
         Returns:
             GetMindSpaceListResponse with list of mindspaces
@@ -136,14 +157,26 @@ class MindspaceResourceV1(BaseResource):
             HTTPError: If the API request fails
 
         Example:
-            # List all mindspaces for a user
-            response = client.v1.mindspace.list(user_id="user-456")
+            # List all mindspaces for a participant
+            response = client.v1.mindspace.list(participant_id="user-456")
             for ms in response.mindspaces:
                 print(f"- {ms.name} ({ms.type})")
         """
-        params = {}
-        if user_id:
-            params["user_id"] = user_id
+        params: dict[str, object] = {}
+        if participant_id is not None:
+            params["participant_id"] = participant_id
+        if project_id is not None:
+            params["project_id"] = project_id
+        if type is not None:
+            params["type"] = type
+        if name is not None:
+            params["name"] = name
+        if cursor is not None:
+            params["cursor"] = cursor
+        if limit is not None:
+            params["limit"] = limit
+        if order is not None:
+            params["order"] = order
 
         response_data = self._http.get(Routes.MINDSPACES, params=params)
         return GetMindSpaceListResponse.model_validate(response_data)
@@ -155,7 +188,7 @@ class MindspaceResourceV1(BaseResource):
         description: Optional[str] = None,
         project_id: Optional[str] = None,
         corpus_ids: Optional[list[str]] = None,
-        user_ids: Optional[list[str]] = None,
+        participant_ids: Optional[list[str]] = None,
     ) -> MindSpace:
         """
         Update an existing mindspace.
@@ -166,7 +199,7 @@ class MindspaceResourceV1(BaseResource):
             description: Updated description (max 256 characters)
             project_id: Updated associated project ID
             corpus_ids: Updated list of corpus IDs
-            user_ids: Updated list of user IDs
+            participant_ids: Updated list of participant IDs
 
         Returns:
             MindSpace
@@ -190,7 +223,7 @@ class MindspaceResourceV1(BaseResource):
             description=description,
             project_id=project_id,
             corpus_ids=corpus_ids or [],
-            user_ids=user_ids or [],
+            participant_ids=participant_ids or [],
         )
 
         # Make API call
@@ -291,35 +324,35 @@ class MindspaceResourceV1(BaseResource):
         # Parse and return
         return MindspaceMessagesResponse.model_validate(response_data)
 
-    def add_users(
+    def add_participants(
         self,
         mindspace_id: str,
-        user_ids: list[str],
+        participant_ids: list[str],
     ) -> MindSpace:
         """
-        Add users to an existing mindspace.
+        Add participants to an existing mindspace.
 
         Args:
-            mindspace_id: Mindspace ID to add users to
-            user_ids: List of user IDs to add to the mindspace
+            mindspace_id: Mindspace ID to add participants to
+            participant_ids: List of participant IDs to add to the mindspace
 
         Returns:
-            MindSpace with updated user list
+            MindSpace with updated participant list
 
         Raises:
             HTTPError: If the API request fails or mindspace not found
             ValidationError: If parameters are invalid
 
         Example:
-            # Add users to a group mindspace
-            mindspace = client.v1.mindspace.add_users(
+            # Add participants to a group mindspace
+            mindspace = client.v1.mindspace.add_participants(
                 mindspace_id="mind-123",
-                user_ids=["user-3", "user-4"]
+                participant_ids=["user-3", "user-4"]
             )
-            print(f"Updated users: {mindspace.user_ids}")
+            print(f"Updated participants: {mindspace.participant_ids}")
         """
         # Build and validate request
-        request = AddMindSpaceUsersRequest(user_ids=user_ids)
+        request = AddMindSpaceUsersRequest(participant_ids=participant_ids)
 
         # Make API call
         response = self._http.post(
@@ -329,3 +362,109 @@ class MindspaceResourceV1(BaseResource):
 
         # Parse and validate response
         return MindSpace.model_validate(response)
+
+    def add_users(
+        self,
+        mindspace_id: str,
+        user_ids: list[str],
+    ) -> MindSpace:
+        """
+        Add users to an existing mindspace.
+
+        .. deprecated::
+            Use :meth:`add_participants` instead. This method will be removed in a future version.
+
+        Args:
+            mindspace_id: Mindspace ID to add users to
+            user_ids: List of user IDs to add to the mindspace
+
+        Returns:
+            MindSpace with updated participant list
+        """
+        return self.add_participants(mindspace_id, participant_ids=user_ids)
+
+    def prepare_context(
+        self,
+        mindspace_id: str,
+        participant_id: str,
+        chat_history: Optional[ChatHistoryParams] = None,
+        corpus: Optional[CorpusParams] = None,
+        pelican: Optional[FetcherParams] = None,
+        api_key: Optional[str] = None,
+    ) -> ContextPrepareResponse:
+        """
+        Retrieve multiple memory sources for a mindspace in a single call.
+
+        Sources are queried in parallel on the server and bundled into one response.
+
+        Args:
+            mindspace_id: Mindspace ID
+            participant_id: Participant ID (required)
+            chat_history: Chat history params (limit)
+            corpus: Corpus search params (query)
+            pelican: Pelican episodic memory params (query). Requires api_key.
+            api_key: API key required when using pelican fetcher (sent as x-api-key header)
+
+        Returns:
+            ContextPrepareResponse
+        """
+        body: dict[str, object] = {"participant_id": participant_id}
+        if chat_history:
+            body["chat_history"] = chat_history.model_dump(exclude_none=True)
+        if corpus:
+            body["corpus"] = corpus.model_dump()
+        if pelican:
+            body["pelican"] = pelican.model_dump()
+
+        headers = {}
+        if api_key:
+            headers["x-api-key"] = api_key
+
+        response = self._http.post(
+            Routes.mindspace_context(mindspace_id),
+            json=body,
+            headers=headers if headers else None,
+        )
+        return ContextPrepareResponse.model_validate(response)
+
+    def get_livekit_token(
+        self,
+        mindspace_id: str,
+        participant_id: str,
+    ) -> LivekitTokenResponse:
+        """
+        Get a LiveKit access token for joining the mindspace room.
+
+        Args:
+            mindspace_id: Mindspace ID (used as room name)
+            participant_id: Participant identity for the token
+
+        Returns:
+            LivekitTokenResponse with token and URL
+        """
+        response = self._http.post(
+            Routes.mindspace_livekit_token(mindspace_id),
+            json={"participant_id": participant_id},
+        )
+        return LivekitTokenResponse.model_validate(response)
+
+    def livekit_join(
+        self,
+        mindspace_id: str,
+        participant_ids: list[str],
+    ) -> LivekitJoinResponse:
+        """
+        Signal agents to join the LiveKit room for this mindspace.
+
+        Args:
+            mindspace_id: Mindspace ID
+            participant_ids: List of participant IDs to signal
+
+        Returns:
+            LivekitJoinResponse with list of signaled participants
+        """
+        response = self._http.post(
+            Routes.mindspace_livekit_join(mindspace_id),
+            json={"participant_ids": participant_ids},
+        )
+        return LivekitJoinResponse.model_validate(response)

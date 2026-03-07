@@ -20,23 +20,29 @@ class V1Resources:
         """
         from magick_mind.resources.v1.artifact import ArtifactResourceV1
         from magick_mind.resources.v1.api_keys import ApiKeysResourceV1
+        from magick_mind.resources.v1.blueprint import BlueprintResourceV1
         from magick_mind.resources.v1.chat import ChatResourceV1
         from magick_mind.resources.v1.corpus import CorpusResourceV1
         from magick_mind.resources.v1.end_user import EndUserResourceV1
         from magick_mind.resources.v1.history import HistoryResourceV1
         from magick_mind.resources.v1.mindspace import MindspaceResourceV1
+        from magick_mind.resources.v1.persona import PersonaResourceV1
         from magick_mind.resources.v1.project import ProjectResourceV1
         from magick_mind.resources.v1.model import ModelsResourceV1
+        from magick_mind.resources.v1.runtime import RuntimeResourceV1
 
         self.artifact = ArtifactResourceV1(http_client)
         self.api_keys = ApiKeysResourceV1(http_client)
+        self.blueprint = BlueprintResourceV1(http_client)
         self.chat = ChatResourceV1(http_client)
         self.corpus = CorpusResourceV1(http_client)
         self.end_user = EndUserResourceV1(http_client)
         self.history = HistoryResourceV1(http_client)
         self.mindspace = MindspaceResourceV1(http_client)
+        self.persona = PersonaResourceV1(http_client)
         self.project = ProjectResourceV1(http_client)
         self.models = ModelsResourceV1(http_client)
+        self.runtime = RuntimeResourceV1(http_client)
 
 
 __all__ = ["BaseResource", "V1Resources"]

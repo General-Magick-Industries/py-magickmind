@@ -30,6 +30,73 @@ class Routes:
         """Get path to add users to a specific mindspace."""
         return f"/v1/mindspaces/{mindspace_id}/users"
 
+    @staticmethod
+    def mindspace_context(mindspace_id: str) -> str:
+        """Get path for mindspace context preparation."""
+        return f"/v1/mindspaces/{mindspace_id}/context"
+
+    @staticmethod
+    def mindspace_livekit_token(mindspace_id: str) -> str:
+        """Get path for LiveKit token generation."""
+        return f"/v1/mindspaces/{mindspace_id}/livekit-token"
+
+    @staticmethod
+    def mindspace_livekit_join(mindspace_id: str) -> str:
+        """Get path for LiveKit agent join signalling."""
+        return f"/v1/mindspaces/{mindspace_id}/livekit-join"
+
+    # Runtime endpoints
+    RUNTIME_INVALIDATE_CACHE = "/v1/runtime/invalidate-cache"
+
+    @staticmethod
+    def runtime_effective_personality(persona_id: str) -> str:
+        """Get path for effective personality."""
+        return f"/v1/runtime/effective-personality/{persona_id}"
+
+    # Blueprint endpoints
+    BLUEPRINTS = "/v1/blueprints"
+    BLUEPRINTS_VALIDATE = "/v1/blueprints/validate"
+    BLUEPRINTS_BY_KEY = "/v1/blueprints/by-key"
+
+    @staticmethod
+    def blueprint(blueprint_id: str) -> str:
+        """Get path for a specific blueprint."""
+        return f"/v1/blueprints/{blueprint_id}"
+
+    @staticmethod
+    def blueprint_clone(blueprint_id: str) -> str:
+        """Get path to clone a blueprint."""
+        return f"/v1/blueprints/{blueprint_id}/clone"
+
+    @staticmethod
+    def blueprint_hydrate(blueprint_id: str) -> str:
+        """Get path to hydrate a blueprint."""
+        return f"/v1/blueprints/{blueprint_id}/hydrate"
+
+    # Persona endpoints
+    PERSONAS = "/v1/persona"
+    PERSONA_FROM_BLUEPRINT = "/v1/persona/from-blueprint"
+
+    @staticmethod
+    def persona(persona_id: str) -> str:
+        """Get path for a specific persona."""
+        return f"/v1/persona/{persona_id}"
+
+    @staticmethod
+    def persona_versions(persona_id: str) -> str:
+        """Get path for persona versions."""
+        return f"/v1/persona/{persona_id}/version"
+
+    @staticmethod
+    def persona_version(persona_id: str, version: str) -> str:
+        """Get path for a specific persona version."""
+        return f"/v1/persona/{persona_id}/version/{version}"
+
+    @staticmethod
+    def persona_active_version(persona_id: str) -> str:
+        """Get path for persona active version."""
+        return f"/v1/persona/{persona_id}/version/active"
+
     # Project endpoints
     PROJECTS = "/v1/projects"
 

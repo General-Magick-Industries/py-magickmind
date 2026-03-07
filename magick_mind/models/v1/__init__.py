@@ -42,6 +42,18 @@ from magick_mind.models.v1.project import (
     UpdateProjectRequest,
 )
 from magick_mind.models.v1.model import Model, ModelsListResponse
+from magick_mind.models.v1.personality import (
+    BlueprintTrait,
+    Boundary,
+    Constraint,
+    DomainRates,
+    DyadicConfig,
+    GoalState,
+    GrowthConfig,
+    GrowthTrigger,
+    TraitConstraint,
+    TraitValue,
+)
 
 
 __all__ = [
@@ -80,4 +92,14 @@ __all__ = [
     "DeleteApiKeyResponse",
     "Model",
     "ModelsListResponse",
+    "BlueprintTrait",
+    "Boundary",
+    "Constraint",
+    "DomainRates",
+    "DyadicConfig",
+    "GoalState",
+    "GrowthConfig",
+    "GrowthTrigger",
+    "TraitConstraint",
+    "TraitValue",
 ]

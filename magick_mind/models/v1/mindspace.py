@@ -31,7 +31,7 @@ class MindSpace(BaseModel):
             "description": "Team workspace",
             "project_id": "proj-456",
             "corpus_ids": ["corp-1", "corp-2"],
-            "user_ids": ["user-1", "user-2"],
+            "participant_ids": ["user-1", "user-2"],
             "type": "GROUP",
             "created_by": "user-1",
             "updated_by": "user-1",
@@ -48,9 +48,9 @@ class MindSpace(BaseModel):
         default_factory=list,
         description="List of corpus IDs attached to this mindspace",
     )
-    user_ids: list[str] = Field(
+    participant_ids: list[str] = Field(
         default_factory=list,
-        description="List of user IDs with access to this mindspace",
+        description="List of participant IDs with access to this mindspace",
     )
     type: MindSpaceType = Field(..., description="Mindspace type: 'PRIVATE' or 'GROUP'")
     created_by: Optional[str] = Field(
@@ -81,8 +81,8 @@ class CreateMindSpaceRequest(BaseModel):
     corpus_ids: list[str] = Field(
         default_factory=list, description="List of corpus IDs to attach"
     )
-    user_ids: list[str] = Field(
-        default_factory=list, description="List of user IDs to grant access"
+    participant_ids: list[str] = Field(
+        default_factory=list, description="List of participant IDs to grant access"
     )
 
 
@@ -119,20 +119,81 @@ class UpdateMindSpaceRequest(BaseModel):
     corpus_ids: list[str] = Field(
         default_factory=list, description="List of corpus IDs to attach"
     )
-    user_ids: list[str] = Field(
-        default_factory=list, description="List of user IDs to grant access"
+    participant_ids: list[str] = Field(
+        default_factory=list, description="List of participant IDs to grant access"
     )
 
 
 class AddMindSpaceUsersRequest(BaseModel):
     """
-    Request to add users to an existing mindspace.
+    Request to add participants to an existing mindspace.
     """
 
-    user_ids: list[str] = Field(
-        ..., description="List of user IDs to add to the mindspace"
+    participant_ids: list[str] = Field(
+        ..., description="List of participant IDs to add to the mindspace"
     )
 
 
 # Reuse HistoryResponse for messages endpoint since it's the same structure
 MindspaceMessagesResponse = HistoryResponse
+
+
+class ChatHistoryParams(BaseModel):
+    """Parameters for chat history retrieval."""
+
+    limit: Optional[int] = 20
+
+
+class CorpusParams(BaseModel):
+    """Parameters for corpus search."""
+
+    query: str
+
+
+class FetcherParams(BaseModel):
+    """Parameters for Pelican episodic memory search."""
+
+    query: str
+
+
+class CorpusChunk(BaseModel):
+    """A chunk of corpus content."""
+
+    content: str
+
+
+class ChatHistoryItem(BaseModel):
+    """A single chat history message."""
+
+    id: str
+    mindspace_id: str
+    sent_by_user_id: str
+    content: str
+    reply_to_message_id: Optional[str] = None
+    status: str = ""
+    message_type: str = ""
+    create_at: Optional[str] = None
+    update_at: Optional[str] = None
+
+
+class ContextPrepareResponse(BaseModel):
+    """Response from composable context retrieval."""
+
+    mindspace_id: str
+    participant_id: str
+    chat_history: list[ChatHistoryItem] = Field(default_factory=list)
+    corpus: list[CorpusChunk] = Field(default_factory=list)
+    fetcher: str = ""
+
+
+class LivekitTokenResponse(BaseModel):
+    """Response containing a LiveKit access token."""
+
+    token: str
+    url: str
+
+
+class LivekitJoinResponse(BaseModel):
+    """Response from signalling agents to join LiveKit room."""
+
+    signaled: list[str] = Field(default_factory=list)
