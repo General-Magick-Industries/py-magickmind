@@ -76,118 +76,83 @@ class ContractDef:
 # FACTORIES (Requests Only)
 # =============================================================================
 
+from polyfactory.factories.pydantic_factory import ModelFactory
 
-def _chat_request_factory() -> ChatSendRequest:
-    return ChatSendRequest(
-        api_key="sk-test",
-        mindspace_id="ms-1",
-        message="hello",
-        enduser_id="u-1",
-        config=ConfigSchema(
-            fast_model_id="gpt-4",
-            smart_model_ids=["gpt-4"],
-            compute_power=50,
-        ),
+
+class ChatSendRequestFactory(ModelFactory):
+    __model__ = ChatSendRequest
+    config = ConfigSchema(
+        fast_model_id="gpt-4", smart_model_ids=["gpt-4"], compute_power=50
     )
 
 
-def _create_project_factory() -> CreateProjectRequest:
-    return CreateProjectRequest(
-        name="Test Project",
-        api_key="sk-test",
-        description="Project Desc",
-        corpus_ids=[],
-    )
+class CreateProjectRequestFactory(ModelFactory):
+    __model__ = CreateProjectRequest
 
 
-def _update_project_factory() -> UpdateProjectRequest:
-    return UpdateProjectRequest(
-        name="Updated Project", description="Updated Desc", corpus_ids=[]
-    )
+class UpdateProjectRequestFactory(ModelFactory):
+    __model__ = UpdateProjectRequest
 
 
-def _create_corpus_factory() -> CreateCorpusRequest:
-    return CreateCorpusRequest(
-        name="Test Corpus",
-        project_id="proj-1",
-        description="Corpus Desc",
-        artifact_ids=[],
-    )
+class CreateCorpusRequestFactory(ModelFactory):
+    __model__ = CreateCorpusRequest
+    name = "Test Corpus"
+    description = "Corpus Desc"
+    artifact_ids = []
 
 
-def _update_corpus_factory() -> UpdateCorpusRequest:
-    return UpdateCorpusRequest(
-        name="Updated Corpus", description="Updated Desc", artifact_ids=[]
-    )
+class UpdateCorpusRequestFactory(ModelFactory):
+    __model__ = UpdateCorpusRequest
 
 
-def _create_end_user_factory() -> CreateEndUserRequest:
-    return CreateEndUserRequest(
-        external_id="ext-123", name="Test User", tenant_id="t-1", actor_id="a-1"
-    )
+class CreateEndUserRequestFactory(ModelFactory):
+    __model__ = CreateEndUserRequest
 
 
-def _update_end_user_factory() -> UpdateEndUserRequest:
-    return UpdateEndUserRequest(
-        name="Updated User", external_id="ext-456", tenant_id="t-1"
-    )
+class UpdateEndUserRequestFactory(ModelFactory):
+    __model__ = UpdateEndUserRequest
+    name = "Updated User"
+    external_id = "ext-456"
 
 
-def _create_mindspace_factory() -> CreateMindSpaceRequest:
-    return CreateMindSpaceRequest(
-        project_id="proj-1",
-        name="Test MindSpace",
-        type="PRIVATE",
-        description="Mindspace Desc",
-    )
+class CreateMindSpaceRequestFactory(ModelFactory):
+    __model__ = CreateMindSpaceRequest
+    type = "PRIVATE"  # Constrained Literal field
 
 
-def _update_mindspace_factory() -> UpdateMindSpaceRequest:
-    return UpdateMindSpaceRequest(
-        name="Updated MindSpace", description="Updated Desc", project_id="proj-1"
-    )
+class UpdateMindSpaceRequestFactory(ModelFactory):
+    __model__ = UpdateMindSpaceRequest
 
 
-def _create_api_key_factory() -> CreateApiKeyRequest:
-    return CreateApiKeyRequest(
-        project_id="proj-1",
-        key_alias="Test Key",
-        models=["gpt-4"],
-        user_id="u-1",
-    )
+class CreateApiKeyRequestFactory(ModelFactory):
+    __model__ = CreateApiKeyRequest
 
 
-def _update_api_key_factory() -> UpdateApiKeyRequest:
-    return UpdateApiKeyRequest(key_alias="Updated Key", models=["gpt-4"], key="key-1")
+class UpdateApiKeyRequestFactory(ModelFactory):
+    __model__ = UpdateApiKeyRequest
+    key = "key-1"
+    models = ["gpt-4"]
+    key_alias = "Updated Key"
 
 
-def _delete_api_key_factory() -> DeleteApiKeyRequest:
-    return DeleteApiKeyRequest(key_id="key-1")
+class DeleteApiKeyRequestFactory(ModelFactory):
+    __model__ = DeleteApiKeyRequest
 
 
-def _presign_artifact_factory() -> PresignArtifactRequest:
-    return PresignArtifactRequest(
-        file_name="test.pdf",
-        content_type="application/pdf",
-        size_bytes=1024,
-        project_id="proj-1",
-    )
+class PresignArtifactRequestFactory(ModelFactory):
+    __model__ = PresignArtifactRequest
 
 
-def _finalize_artifact_factory() -> FinalizeArtifactRequest:
-    return FinalizeArtifactRequest(
-        artifact_id="art-1",
-        bucket="test-bucket",
-        key="uploads/test.pdf",
-    )
+class FinalizeArtifactRequestFactory(ModelFactory):
+    __model__ = FinalizeArtifactRequest
 
 
-def _login_request_factory() -> LoginRequest:
-    return LoginRequest(email="test@example.com", password="password123")
+class LoginRequestFactory(ModelFactory):
+    __model__ = LoginRequest
 
 
-def _refresh_request_factory() -> RefreshRequest:
-    return RefreshRequest(refresh_token="eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...")
+class RefreshRequestFactory(ModelFactory):
+    __model__ = RefreshRequest
 
 
 # =============================================================================
@@ -286,65 +251,79 @@ RESPONSES = [
 REQUESTS = [
     # --- TESTED ---
     # Chat
-    ContractDef("ChatRequest", ChatSendRequest, factory=_chat_request_factory),
+    ContractDef("ChatRequest", ChatSendRequest, factory=ChatSendRequestFactory.build),
     ContractDef(
-        "CreateProjectRequest", CreateProjectRequest, factory=_create_project_factory
+        "CreateProjectRequest",
+        CreateProjectRequest,
+        factory=CreateProjectRequestFactory.build,
     ),
     ContractDef(
-        "UpdateProjectRequest", UpdateProjectRequest, factory=_update_project_factory
+        "UpdateProjectRequest",
+        UpdateProjectRequest,
+        factory=UpdateProjectRequestFactory.build,
     ),
     # Corpus
     ContractDef(
-        "CreateCorpusRequest", CreateCorpusRequest, factory=_create_corpus_factory
+        "CreateCorpusRequest",
+        CreateCorpusRequest,
+        factory=CreateCorpusRequestFactory.build,
     ),
     ContractDef(
-        "UpdateCorpusRequest", UpdateCorpusRequest, factory=_update_corpus_factory
+        "UpdateCorpusRequest",
+        UpdateCorpusRequest,
+        factory=UpdateCorpusRequestFactory.build,
     ),
     # End User
     ContractDef(
-        "CreateEndUserRequest", CreateEndUserRequest, factory=_create_end_user_factory
+        "CreateEndUserRequest",
+        CreateEndUserRequest,
+        factory=CreateEndUserRequestFactory.build,
     ),
     ContractDef(
-        "UpdateEndUserRequest", UpdateEndUserRequest, factory=_update_end_user_factory
+        "UpdateEndUserRequest",
+        UpdateEndUserRequest,
+        factory=UpdateEndUserRequestFactory.build,
     ),
     # MindSpace
     ContractDef(
         "CreateMindspaceRequest",
         CreateMindSpaceRequest,
-        factory=_create_mindspace_factory,
+        factory=CreateMindSpaceRequestFactory.build,
     ),
     ContractDef(
         "UpdateMindSpaceRequest",
         UpdateMindSpaceRequest,
-        factory=_update_mindspace_factory,
+        factory=UpdateMindSpaceRequestFactory.build,
     ),
     # API Keys
     ContractDef(
-        "CreateApiKeyReq", CreateApiKeyRequest, factory=_create_api_key_factory
+        "CreateApiKeyReq", CreateApiKeyRequest, factory=CreateApiKeyRequestFactory.build
     ),
     ContractDef(
-        "UpdateApiKeyReq", UpdateApiKeyRequest, factory=_update_api_key_factory
+        "UpdateApiKeyReq", UpdateApiKeyRequest, factory=UpdateApiKeyRequestFactory.build
     ),
     ContractDef(
-        "DeleteApiKeyReq", DeleteApiKeyRequest, factory=_delete_api_key_factory
+        "DeleteApiKeyReq", DeleteApiKeyRequest, factory=DeleteApiKeyRequestFactory.build
     ),
     # Artifact
     ContractDef(
-        "GenericPresignReq", PresignArtifactRequest, factory=_presign_artifact_factory
+        "GenericPresignReq",
+        PresignArtifactRequest,
+        factory=PresignArtifactRequestFactory.build,
     ),
     ContractDef(
         "PresignArtifactUploadReq",
         PresignArtifactRequest,
-        factory=_presign_artifact_factory,
+        factory=PresignArtifactRequestFactory.build,
     ),
     ContractDef(
         "ClientFinalizeArtifactUploadReq",
         FinalizeArtifactRequest,
-        factory=_finalize_artifact_factory,
+        factory=FinalizeArtifactRequestFactory.build,
     ),
     # Auth
-    ContractDef("LoginRequest", LoginRequest, factory=_login_request_factory),
-    ContractDef("RefreshRequest", RefreshRequest, factory=_refresh_request_factory),
+    ContractDef("LoginRequest", LoginRequest, factory=LoginRequestFactory.build),
+    ContractDef("RefreshRequest", RefreshRequest, factory=RefreshRequestFactory.build),
     # --- INTENTIONAL SKIPS ---
     # Internal/RPC
     ContractDef(

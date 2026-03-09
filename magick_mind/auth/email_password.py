@@ -15,6 +15,24 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+def compute_token_expiry(
+    expires_in: int,
+    refresh_expires_in: int,
+    current_time: float,
+    buffer_seconds: float = 10.0,
+) -> tuple[float, float]:
+    """Compute token expiry timestamps with safety buffer.
+
+    Pure function — no side effects, easily testable.
+
+    Returns:
+        (access_expires_at, refresh_expires_at)
+    """
+    access_exp = current_time + max(expires_in - buffer_seconds, 0)
+    refresh_exp = current_time + max(refresh_expires_in - buffer_seconds, 0)
+    return access_exp, refresh_exp
+
+
 class EmailPasswordAuth(AuthProvider):
     """
     Email/password authentication using bifrost's /v1/auth/login endpoint.
@@ -167,21 +185,13 @@ class EmailPasswordAuth(AuthProvider):
 
     def _store_tokens(self, token_data: TokenResponse) -> None:
         """Store tokens and calculate expiration times."""
-        current_time = time.time()
-
-        # Access via attributes (Pydantic model)
         self._access_token = token_data.access_token
         self._refresh_token = token_data.refresh_token
-
-        # Add buffer of 10 seconds to avoid edge cases
-        # Default fallback values handled by Pydantic model structure if strict
-        # But here fields are required except options.
-        # API should ensure these exist.
-        expires_in = token_data.expires_in - 10
-        self._token_expires_at = current_time + max(expires_in, 0)
-
-        refresh_expires_in = token_data.refresh_expires_in - 10
-        self._refresh_expires_at = current_time + max(refresh_expires_in, 0)
+        self._token_expires_at, self._refresh_expires_at = compute_token_expiry(
+            expires_in=token_data.expires_in,
+            refresh_expires_in=token_data.refresh_expires_in,
+            current_time=time.time(),
+        )
 
     async def get_token_async(self) -> str:
         """Get raw access token asynchronously, refreshing if needed."""

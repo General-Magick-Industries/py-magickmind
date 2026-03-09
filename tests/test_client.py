@@ -1,7 +1,7 @@
 """Basic smoke tests for SDK structure."""
 
 import pytest
-from magick_mind import MagickMind, AuthenticationError
+from magick_mind import MagickMind
 
 
 def test_client_requires_credentials():

@@ -128,7 +128,7 @@ def test_schema_coverage(contract):
                     print(f"    🔴 [TODO] {name}")
             else:
                 # For other reasons, just show count (they're intentionally skipped)
-                print(f"    ✓ Intentionally skipped")
+                print("    ✓ Intentionally skipped")
 
         print("\n==================================================")
         print(
