@@ -22,7 +22,6 @@ from magick_mind.exceptions import (
     ValidationError,
 )
 from magick_mind.http.client import HTTPClient
-from magick_mind.models.errors import ProblemDetails
 
 
 class TestHTTPClientSuccessPath:

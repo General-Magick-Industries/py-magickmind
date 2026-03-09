@@ -275,6 +275,39 @@ class HTTPClient:
         response = self._client.put(url, json=json, headers=request_headers)
         return self._handle_response(response)
 
+    def patch(
+        self,
+        path: str,
+        json: Optional[Dict[str, Any]] = None,
+        headers: Optional[Dict[str, str]] = None,
+    ) -> JSONResponse:
+        """
+        Make a PATCH request.
+
+        Args:
+            path: API endpoint path
+            json: Request body as dictionary
+            headers: Additional headers
+
+        Returns:
+            Response data as dictionary
+
+        Raises:
+            AuthenticationError: If JWT token is invalid (auto-refreshed if expired)
+            ProblemDetailsException: For API errors (4xx, 5xx) following RFC 7807
+            ValidationError: For 400 Bad Request with field-level validation errors
+            RateLimitError: For 429 Too Many Requests
+            MagickMindError: For unexpected errors or malformed responses
+        """
+        # Refresh auth if needed
+        self.auth.refresh_if_needed()
+
+        url = self._build_url(path)
+        request_headers = self._get_headers(headers)
+
+        response = self._client.patch(url, json=json, headers=request_headers)
+        return self._handle_response(response)
+
     def delete(
         self, path: str, headers: Optional[Dict[str, str]] = None
     ) -> JSONResponse:
