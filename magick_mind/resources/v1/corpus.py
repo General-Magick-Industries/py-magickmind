@@ -9,8 +9,12 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Optional
 
 from magick_mind.models.v1.corpus import (
+    AddArtifactsRequest,
+    AddArtifactsResponse,
+    ArtifactStatus,
     Corpus,
     CreateCorpusRequest,
+    ListArtifactStatusesResponse,
     ListCorpusResponse,
     UpdateCorpusRequest,
 )
@@ -154,3 +158,108 @@ class CorpusResourceV1:
             httpx.HTTPStatusError: If request fails
         """
         self.http.delete(Routes.corpus(corpus_id))
+
+    def add_artifact(self, corpus_id: str, artifact_id: str) -> AddArtifactsResponse:
+        """
+        Add a single artifact to corpus and trigger ingestion.
+
+        Args:
+            corpus_id: The corpus ID
+            artifact_id: The artifact ID to add
+
+        Returns:
+            AddArtifactsResponse with result
+
+        Raises:
+            httpx.HTTPStatusError: If the request fails
+        """
+        return self.add_artifacts(corpus_id, [artifact_id])
+
+    def add_artifacts(
+        self, corpus_id: str, artifact_ids: list[str]
+    ) -> AddArtifactsResponse:
+        """
+        Add multiple artifacts to corpus (max 20) and trigger batch ingestion.
+
+        Note: Only text-based formats (text/*, JSON, XML) and PDF are supported.
+
+        Args:
+            corpus_id: The corpus ID
+            artifact_ids: List of artifact IDs to add (max 20)
+
+        Returns:
+            AddArtifactsResponse with result
+
+        Raises:
+            httpx.HTTPStatusError: If the request fails
+        """
+        payload = AddArtifactsRequest(artifact_ids=artifact_ids)
+
+        resp = self.http.post(
+            Routes.corpus_artifacts(corpus_id), json=payload.model_dump()
+        )
+        resp.raise_for_status()
+
+        return AddArtifactsResponse(**resp.json())
+
+    def remove_artifact(self, corpus_id: str, artifact_id: str) -> None:
+        """
+        Remove artifact from corpus.
+
+        Args:
+            corpus_id: The corpus ID
+            artifact_id: The artifact ID to remove
+
+        Returns:
+            None
+
+        Raises:
+            httpx.HTTPStatusError: If the request fails
+        """
+        resp = self.http.delete(Routes.corpus_artifact(corpus_id, artifact_id))
+        resp.raise_for_status()
+
+    def get_artifact_status(self, corpus_id: str, artifact_id: str) -> ArtifactStatus:
+        """
+        Get ingestion status for a single artifact.
+
+        Args:
+            corpus_id: The corpus ID
+            artifact_id: The artifact ID
+
+        Returns:
+            ArtifactStatus object
+
+        Raises:
+            httpx.HTTPStatusError: If the request fails
+        """
+        resp = self.http.get(Routes.corpus_artifact_status(corpus_id, artifact_id))
+        resp.raise_for_status()
+
+        return ArtifactStatus(**resp.json())
+
+    def list_artifact_statuses(
+        self, corpus_id: str, artifact_ids: Optional[list[str]] = None
+    ) -> list[ArtifactStatus]:
+        """
+        List ingestion statuses for artifacts in corpus.
+
+        Args:
+            corpus_id: The corpus ID
+            artifact_ids: Optional list of specific artifact IDs to filter
+
+        Returns:
+            List of ArtifactStatus objects
+
+        Raises:
+            httpx.HTTPStatusError: If the request fails
+        """
+        params = {}
+        if artifact_ids:
+            params["artifact_ids"] = artifact_ids
+
+        resp = self.http.get(Routes.corpus_artifacts_status(corpus_id), params=params)
+        resp.raise_for_status()
+
+        data = ListArtifactStatusesResponse(**resp.json())
+        return data.statuses

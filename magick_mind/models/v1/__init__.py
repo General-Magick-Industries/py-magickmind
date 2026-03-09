@@ -13,8 +13,12 @@ from magick_mind.models.v1.artifact import (
 )
 from magick_mind.models.v1.chat import ChatPayload, ChatSendRequest, ChatSendResponse
 from magick_mind.models.v1.corpus import (
+    AddArtifactsRequest,
+    AddArtifactsResponse,
+    ArtifactStatus,
     Corpus,
     CreateCorpusRequest,
+    ListArtifactStatusesResponse,
     ListCorpusResponse,
     UpdateCorpusRequest,
 )
@@ -70,6 +74,10 @@ __all__ = [
     "CreateCorpusRequest",
     "ListCorpusResponse",
     "UpdateCorpusRequest",
+    "AddArtifactsRequest",
+    "AddArtifactsResponse",
+    "ArtifactStatus",
+    "ListArtifactStatusesResponse",
     "ApiKey",
     "KeyResponse",
     "CreateApiKeyRequest",

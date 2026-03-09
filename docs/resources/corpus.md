@@ -109,7 +109,9 @@ print(response.message)
 
 ## Working with Artifacts
 
-Corpus contain **artifacts** (uploaded files). Here's the complete workflow:
+Corpus contain **artifacts** (uploaded files). The SDK provides dedicated methods for managing artifacts within a corpus — no need to manually read-modify-update the artifact list.
+
+**Supported formats:** text-based files (`text/*`, JSON, XML) and PDF. Other formats will be rejected during ingestion.
 
 ### 1. Upload Files to Create Artifacts
 
@@ -149,40 +151,46 @@ print(f"Uploaded artifact: {artifact_id}")
 ### 2. Add Artifacts to Corpus
 
 ```python
-# Get current corpus state
-corpus = client.v1.corpus.get("corp-123")
+# Add a single artifact (triggers ingestion automatically)
+result = client.v1.corpus.add_artifact("corp-123", artifact_id)
+print(f"Added: {result.added_count}, Failed: {result.failed_artifact_ids}")
 
-# Add new artifact while preserving existing ones
-updated_artifacts = corpus.corpus.artifact_ids + [artifact_id]
-
-# Update corpus
-client.v1.corpus.update(
-    corpus_id="corp-123",
-    name=corpus.corpus.name,
-    description=corpus.corpus.description,
-    artifact_ids=updated_artifacts
-)
+# Add multiple artifacts in batch (max 20 per call)
+result = client.v1.corpus.add_artifacts("corp-123", [
+    "art-001", "art-002", "art-003"
+])
+print(f"Added: {result.added_count}")
+if result.failed_artifact_ids:
+    print(f"Failed: {result.failed_artifact_ids}")
 ```
 
 ### 3. Remove Artifacts from Corpus
 
 ```python
-# Get current state
-corpus = client.v1.corpus.get("corp-123")
+# Remove a single artifact by ID
+client.v1.corpus.remove_artifact("corp-123", "art-old-001")
+```
 
-# Remove specific artifact
-artifact_to_remove = "art-old-001"
-updated_artifacts = [
-    aid for aid in corpus.corpus.artifact_ids 
-    if aid != artifact_to_remove
-]
+### 4. Track Ingestion Status
 
-# Update
-client.v1.corpus.update(
-    corpus_id="corp-123",
-    name=corpus.corpus.name,
-    description=corpus.corpus.description,
-    artifact_ids=updated_artifacts
+After adding artifacts, they go through an ingestion pipeline: `PENDING → PROCESSING → PROCESSED` (or `FAILED`).
+
+```python
+# Check status of a single artifact
+status = client.v1.corpus.get_artifact_status("corp-123", "art-001")
+print(f"{status.artifact_id}: {status.status}")  # e.g. "PROCESSING"
+if status.error:
+    print(f"Error: {status.error}")
+
+# List statuses for all artifacts in a corpus
+statuses = client.v1.corpus.list_artifact_statuses("corp-123")
+for s in statuses:
+    print(f"  {s.artifact_id}: {s.status} ({s.content_length or '?'} bytes)")
+
+# Filter to specific artifacts
+statuses = client.v1.corpus.list_artifact_statuses(
+    "corp-123",
+    artifact_ids=["art-001", "art-002"]
 )
 ```
 
@@ -197,30 +205,26 @@ def build_knowledge_base(name: str, description: str, file_paths: list[str]):
     """Create a corpus from local files."""
     
     # 1. Create empty corpus
-    corpus_resp = client.v1.corpus.create(
+    corpus = client.v1.corpus.create(
         name=name,
         description=description,
-        artifact_ids=[]
     )
-    corpus_id = corpus_resp.corpus.id
+    corpus_id = corpus.id
     print(f"Created corpus: {corpus_id}")
     
     # 2. Upload all files
     artifact_ids = []
     for file_path in file_paths:
-        # Get file info
         file_size = os.path.getsize(file_path)
         file_name = os.path.basename(file_path)
         content_type = guess_content_type(file_name)
         
-        # Presign
         presign = client.v1.artifact.presign(
             file_name=file_name,
             content_type=content_type,
             size_bytes=file_size
         )
         
-        # Upload to S3
         with open(file_path, "rb") as f:
             httpx.put(
                 presign.upload_url,
@@ -231,15 +235,12 @@ def build_knowledge_base(name: str, description: str, file_paths: list[str]):
         artifact_ids.append(presign.id)
         print(f"  Uploaded: {file_name}")
     
-    # 3. Associate artifacts with corpus
-    client.v1.corpus.update(
-        corpus_id=corpus_id,
-        name=name,
-        description=description,
-        artifact_ids=artifact_ids
-    )
+    # 3. Add artifacts to corpus (triggers ingestion)
+    result = client.v1.corpus.add_artifacts(corpus_id, artifact_ids)
+    print(f"✓ Added {result.added_count} files to corpus")
+    if result.failed_artifact_ids:
+        print(f"  Failed: {result.failed_artifact_ids}")
     
-    print(f"✓ Knowledge base ready with {len(artifact_ids)} files")
     return corpus_id
 
 # Usage
@@ -342,20 +343,8 @@ def add_document_to_corpus(corpus_id: str, file_path: str):
             headers=presign.required_headers
         ).raise_for_status()
     
-    # Get current corpus
-    corpus = client.v1.corpus.get(corpus_id)
-    
-    # Add to artifact list
-    updated_artifacts = corpus.corpus.artifact_ids + [presign.id]
-    
-    # Update corpus
-    client.v1.corpus.update(
-        corpus_id=corpus_id,
-        name=corpus.corpus.name,
-        description=corpus.corpus.description,
-        artifact_ids=updated_artifacts
-    )
-    
+    # Add to corpus (triggers ingestion automatically)
+    client.v1.corpus.add_artifact(corpus_id, presign.id)
     print(f"Added {file_name} to corpus {corpus_id}")
 
 # Usage
@@ -470,24 +459,19 @@ Make it clear what knowledge the corpus contains:
 
 ### 3. Manage Artifact Lifecycles
 
-Clean up outdated documents:
+Clean up outdated documents and monitor ingestion:
 
 ```python
-# Regularly review and remove outdated artifacts
-corpus = client.v1.corpus.get("corp-123")
+# Review artifact statuses
+statuses = client.v1.corpus.list_artifact_statuses("corp-123")
 
-# Filter out expired/deprecated artifacts
-updated_artifacts = [
-    aid for aid in corpus.corpus.artifact_ids
-    if not is_deprecated(aid)
-]
-
-client.v1.corpus.update(
-    corpus_id="corp-123",
-    name=corpus.corpus.name,
-    description=corpus.corpus.description,
-    artifact_ids=updated_artifacts
-)
+for s in statuses:
+    if s.status == "FAILED":
+        print(f"Removing failed artifact {s.artifact_id}: {s.error}")
+        client.v1.corpus.remove_artifact("corp-123", s.artifact_id)
+    elif is_deprecated(s.artifact_id):
+        print(f"Removing deprecated artifact {s.artifact_id}")
+        client.v1.corpus.remove_artifact("corp-123", s.artifact_id)
 ```
 
 ### 4. Consider Access Patterns
@@ -568,8 +552,71 @@ Delete a corpus.
 
 **Returns:** `DeleteCorpusResponse`
 
+---
+
+### `add_artifact()`
+
+Add a single artifact to a corpus and trigger ingestion.
+
+**Parameters:**
+- `corpus_id` (str, required): Corpus ID
+- `artifact_id` (str, required): Artifact ID to add
+
+**Returns:** `AddArtifactsResponse` (`added_count`, `failed_artifact_ids`)
+
+---
+
+### `add_artifacts()`
+
+Add multiple artifacts to a corpus in batch (max 20) and trigger ingestion.
+
+**Supported formats:** text-based (`text/*`, JSON, XML) and PDF.
+
+**Parameters:**
+- `corpus_id` (str, required): Corpus ID
+- `artifact_ids` (list[str], required): Artifact IDs to add (1-20)
+
+**Returns:** `AddArtifactsResponse` (`added_count`, `failed_artifact_ids`)
+
+---
+
+### `remove_artifact()`
+
+Remove an artifact from a corpus.
+
+**Parameters:**
+- `corpus_id` (str, required): Corpus ID
+- `artifact_id` (str, required): Artifact ID to remove
+
+**Returns:** None
+
+---
+
+### `get_artifact_status()`
+
+Get ingestion status for a single artifact in a corpus.
+
+**Parameters:**
+- `corpus_id` (str, required): Corpus ID
+- `artifact_id` (str, required): Artifact ID
+
+**Returns:** `ArtifactStatus` (`artifact_id`, `status`, `content_summary`, `content_length`, `created_at`, `updated_at`, `error`)
+
+Status values: `PENDING`, `PROCESSING`, `PROCESSED`, `FAILED`
+
+---
+
+### `list_artifact_statuses()`
+
+List ingestion statuses for artifacts in a corpus.
+
+**Parameters:**
+- `corpus_id` (str, required): Corpus ID
+- `artifact_ids` (list[str], optional): Filter to specific artifact IDs
+
+**Returns:** `list[ArtifactStatus]`
+
 ## Related Resources
 
-- [Artifact Resource Guide](file:///Users/berry/centrifugo/AGD_Magick_Mind_SDK/docs/resources/artifact.md) - Uploading and managing files
-- [Mindspace Resource Guide](file:///Users/berry/centrifugo/AGD_Magick_Mind_SDK/docs/resources/mindspace.md) - Attaching corpus to conversations
-- [Corpus Example](file:///Users/berry/centrifugo/AGD_Magick_Mind_SDK/examples/corpus_example.py) - Complete usage examples
+- [Artifact Resource Guide](./artifact.md) - Uploading and managing files
+- [Mindspace Resource Guide](./mindspace.md) - Attaching corpus to conversations
