@@ -11,6 +11,8 @@ from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from magick_mind.models.common import PageInfo
+
 
 class Artifact(BaseModel):
     """
@@ -128,6 +130,25 @@ class FinalizeArtifactResponse(BaseModel):
 
     success: Optional[bool] = Field(None, description="Request success status")
     message: Optional[str] = Field(None, description="Response message")
+
+
+class ArtifactStatus(BaseModel):
+    """Status of an artifact within a corpus."""
+
+    artifact_id: str = Field(..., description="Artifact ID")
+    status: str = Field(..., description="Processing status")
+    content_summary: Optional[str] = Field(None, description="Content summary")
+    content_length: Optional[int] = Field(None, description="Content length")
+    created_at: Optional[str] = Field(None, description="Creation timestamp")
+    updated_at: Optional[str] = Field(None, description="Update timestamp")
+    error: Optional[str] = Field(None, description="Error message if failed")
+
+
+class ListArtifactStatusesResponse(BaseModel):
+    """Response for listing artifact statuses with pagination."""
+
+    statuses: list[ArtifactStatus] = Field(..., description="List of artifact statuses")
+    paging: PageInfo = Field(..., description="Pagination information")
 
 
 class ArtifactWebhookPayload(BaseModel):

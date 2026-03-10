@@ -6,12 +6,11 @@ Corpus represents a collection of artifacts that can be used for
 RAG (Retrieval Augmented Generation) workflows.
 """
 
-from typing import TYPE_CHECKING, Optional
+from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
-if TYPE_CHECKING:
-    from magick_mind.models.v1.end_user import PageInfo
+from magick_mind.models.common import PageInfo
 
 
 class Corpus(BaseModel):
@@ -59,7 +58,7 @@ class ListCorpusResponse(BaseModel):
     """
 
     data: list[Corpus] = Field(..., description="List of corpus")
-    paging: "PageInfo" = Field(..., description="Pagination information")
+    paging: PageInfo = Field(..., description="Pagination information")
 
 
 class UpdateCorpusRequest(BaseModel):
