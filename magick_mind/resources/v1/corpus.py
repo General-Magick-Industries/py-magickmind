@@ -85,15 +85,22 @@ class CorpusResourceV1:
 
         return Corpus(**resp.json())
 
-    def list(self, user_id: Optional[str] = None) -> ListCorpusResponse:
+    def list(
+        self,
+        user_id: Optional[str] = None,
+        cursor: Optional[str] = None,
+        limit: Optional[int] = None,
+    ) -> ListCorpusResponse:
         """
         List all corpus, optionally filtered by user_id.
 
         Args:
             user_id: Optional user ID to filter by
+            cursor: Pagination cursor (opaque string from PageInfo.cursors.after/before)
+            limit: Maximum number of results per page (default 20, max 100)
 
         Returns:
-            ListCorpusResponse with list of corpus
+            ListCorpusResponse with list of corpus and pagination info
 
         Raises:
             httpx.HTTPStatusError: If the request fails
@@ -101,6 +108,10 @@ class CorpusResourceV1:
         params = {}
         if user_id:
             params["user_id"] = user_id
+        if cursor is not None:
+            params["cursor"] = cursor
+        if limit is not None:
+            params["limit"] = str(limit)
 
         resp = self.http.get(Routes.CORPUS, params=params)
         resp.raise_for_status()

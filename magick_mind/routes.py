@@ -137,13 +137,8 @@ class Routes:
         return f"/v1/corpus/{corpus_id}/artifacts/{artifact_id}"
 
     @staticmethod
-    def corpus_artifact_status(corpus_id: str, artifact_id: str) -> str:
-        """Get path for corpus artifact status."""
-        return f"/v1/corpus/{corpus_id}/artifacts/{artifact_id}/status"
-
-    @staticmethod
     def corpus_artifacts_status(corpus_id: str) -> str:
-        """Get path for listing corpus artifacts status."""
+        """Get path for listing artifact statuses within a corpus."""
         return f"/v1/corpus/{corpus_id}/artifacts/status"
 
     # Artifact endpoints
