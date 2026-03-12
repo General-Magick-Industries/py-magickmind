@@ -141,6 +141,16 @@ class Routes:
         """Get path for listing artifact statuses within a corpus."""
         return f"/v1/corpus/{corpus_id}/artifacts/status"
 
+    @staticmethod
+    def corpus_artifact_status(corpus_id: str, artifact_id: str) -> str:
+        """Get path for a single artifact's ingestion status within a corpus."""
+        return f"/v1/corpus/{corpus_id}/artifacts/{artifact_id}/status"
+
+    @staticmethod
+    def corpus_query(corpus_id: str) -> str:
+        """Get path for querying a corpus."""
+        return f"/v1/corpus/{corpus_id}/query"
+
     # Artifact endpoints
     ARTIFACTS = "/v1/artifacts"
     ARTIFACTS_PRESIGN = "/v1/artifacts/presign"
