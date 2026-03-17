@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from typing import Literal, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from magick_mind.models.common import BaseResponse, PageInfo
 from magick_mind.models.v1.history import HistoryResponse
@@ -15,6 +15,15 @@ from magick_mind.models.v1.history import HistoryResponse
 
 # Type alias for mindspace type enum (uppercase to match apidog)
 MindSpaceType = Literal["PRIVATE", "GROUP"]
+
+# Bifrost returns proto enum .String() values with MINDSPACE_TYPE_ prefix.
+# We normalize to short form for SDK consumers.
+_TYPE_NORMALIZE: dict[str, MindSpaceType] = {
+    "PRIVATE": "PRIVATE",
+    "GROUP": "GROUP",
+    "MINDSPACE_TYPE_PRIVATE": "PRIVATE",
+    "MINDSPACE_TYPE_GROUP": "GROUP",
+}
 
 
 class MindSpace(BaseModel):
@@ -63,6 +72,20 @@ class MindSpace(BaseModel):
     updated_at: Optional[str] = Field(
         None, description="Last update timestamp (RFC3339)"
     )
+
+    @field_validator("corpus_ids", "participant_ids", mode="before")
+    @classmethod
+    def _coerce_null_list(cls, v: object) -> object:
+        """Bifrost returns null for empty Go slices; coerce to []."""
+        return v if v is not None else []
+
+    @field_validator("type", mode="before")
+    @classmethod
+    def _normalize_type(cls, v: object) -> object:
+        """Normalize proto enum names (MINDSPACE_TYPE_PRIVATE → PRIVATE)."""
+        if isinstance(v, str) and v in _TYPE_NORMALIZE:
+            return _TYPE_NORMALIZE[v]
+        return v
 
 
 class CreateMindSpaceRequest(BaseModel):

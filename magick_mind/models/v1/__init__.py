@@ -49,7 +49,6 @@ from magick_mind.models.v1.project import (
     Project,
     UpdateProjectRequest,
 )
-from magick_mind.models.v1.model import Model, ModelsListResponse
 from magick_mind.models.v1.personality import (
     BlueprintTrait,
     Boundary,
@@ -116,8 +115,6 @@ __all__ = [
     "UpdateApiKeyRequest",
     "UpdateApiKeyResponse",
     "DeleteApiKeyResponse",
-    "Model",
-    "ModelsListResponse",
     "BlueprintTrait",
     "Boundary",
     "Constraint",
