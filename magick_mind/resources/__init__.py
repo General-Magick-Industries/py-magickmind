@@ -30,6 +30,7 @@ class V1Resources:
         from magick_mind.resources.v1.project import ProjectResourceV1
         from magick_mind.resources.v1.model import ModelsResourceV1
         from magick_mind.resources.v1.runtime import RuntimeResourceV1
+        from magick_mind.resources.v1.trait import TraitResourceV1
 
         self.artifact = ArtifactResourceV1(http_client)
         self.api_keys = ApiKeysResourceV1(http_client)
@@ -43,6 +44,7 @@ class V1Resources:
         self.project = ProjectResourceV1(http_client)
         self.models = ModelsResourceV1(http_client)
         self.runtime = RuntimeResourceV1(http_client)
+        self.trait = TraitResourceV1(http_client)
 
 
 __all__ = ["BaseResource", "V1Resources"]

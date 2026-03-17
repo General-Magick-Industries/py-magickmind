@@ -1,19 +1,15 @@
 """V1 chat API models.
 
-These models mirror the bifrost API types for /v1/magickmind/chat endpoint.
+REST models only. Realtime event models live in magick_mind.realtime.events.
 """
 
-from typing import Optional
+from __future__ import annotations
 
 from pydantic import BaseModel, Field, field_serializer
 
 
 class ConfigSchema(BaseModel):
-    """
-    Configuration for chat request.
-
-    Contains model selection and compute settings.
-    """
+    """Configuration for chat request."""
 
     fast_model_id: str = Field(..., description="Model ID for fast brain")
     smart_model_ids: list[str] = Field(..., description="Model IDs for smart brain")
@@ -43,20 +39,15 @@ class ChatSendRequest(BaseModel):
     message: str = Field(..., description="User message text to send")
     enduser_id: str = Field(..., description="End-user identifier")
     config: ConfigSchema = Field(..., description="Model configuration")
-    reply_to_message_id: Optional[str] = Field(
+    reply_to_message_id: str | None = Field(
         default=None, description="ID of message being replied to"
     )
-    additional_context: Optional[str] = Field(
+    additional_context: str | None = Field(
         default=None, description="Additional context for the message"
     )
-    artifact_ids: Optional[list[str]] = Field(
+    artifact_ids: list[str] | None = Field(
         default=None, description="List of artifact IDs to attach to message"
     )
-
-    # =========================================================================
-    # Serializers: Transform None → default values for API contract compliance
-    # SDK users can omit these fields, but API expects them in the payload
-    # =========================================================================
 
     @field_serializer("artifact_ids")
     def serialize_artifact_ids(self, v: list[str] | None) -> list[str]:
@@ -64,41 +55,40 @@ class ChatSendRequest(BaseModel):
         return v or []
 
 
-class ChatPayload(BaseModel):
-    """
-    Chat response payload schema.
+# ---------------------------------------------------------------------------
+# REST response models (Bifrost /v1/chat/magickmind)
+# ---------------------------------------------------------------------------
 
-    Flexible data container for chat response with message metadata.
-    Can be extended to support various response formats.
+
+class ChatAck(BaseModel):
+    """
+    REST acknowledgement payload from Bifrost POST /v1/chat/magickmind.
+
+    Bifrost ChatSchema: { message_id, content, reply_to }
+
+    The message_id is useful for registering reply anchors before the
+    realtime event arrives via Centrifugo.
+
+    NOTE: This does NOT contain the AI response text — that arrives via
+    Centrifugo realtime as a WsEvent/ChatMessagePayload.
     """
 
-    message_id: Optional[str] = Field(
-        None, description="Generated message ID (Relaxed)"
-    )
-    task_id: Optional[str] = Field(None, description="Associated task ID (Relaxed)")
-    content: Optional[str] = Field(None, description="AI response text (Relaxed)")
-    reply_to: Optional[str] = Field(
+    message_id: str | None = Field(None, description="Generated message ID")
+    content: str | None = Field(None, description="Placeholder content field")
+    reply_to: str | None = Field(
         default=None, description="ID of message being replied to"
     )
 
 
 class ChatSendResponse(BaseModel):
     """
-    Response from sending a chat message.
+    Response from Bifrost POST /v1/chat/magickmind.
 
-    Matches Bifrost ChatResponse structure with only content field.
-
-    Example:
-        {
-            "content": {
-                "message_id": "msg-789",
-                "task_id": "task-123",
-                "content": "Hello! How can I help you?",
-                "reply_to": null
-            }
-        }
+    This is an acknowledgement only. The actual AI response text arrives
+    via Centrifugo realtime — subscribe via client.realtime and handle
+    WsEvent events with type="chat_message".
     """
 
-    content: Optional[ChatPayload] = Field(
-        default=None, description="Chat response payload"
+    content: ChatAck | None = Field(
+        default=None, description="REST acknowledgement payload"
     )

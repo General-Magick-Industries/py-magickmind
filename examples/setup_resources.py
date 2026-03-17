@@ -10,6 +10,7 @@ Demonstrates:
 - Resource creation with the simplified response models
 """
 
+import asyncio
 import os
 import logging
 from typing import Dict
@@ -46,7 +47,7 @@ def update_env_file(updates: Dict[str, str]):
             logger.info(f"  - Set {key}={value}")
 
 
-def main():
+async def main():
     logger.info("=" * 60)
     logger.info("SDK RESOURCE SETUP")
     logger.info("=" * 60)
@@ -91,10 +92,8 @@ def main():
 
     try:
         # Create/Verify EndUser
-        client.v1.end_user.create(
+        await client.v1.end_user.create(
             name="Test User",
-            tenant_id="tenant-test-1",
-            actor_id="actor-test-1",
             external_id=user_id,
         )
         logger.info(f"EndUser verified: {user_id}")
@@ -118,7 +117,7 @@ def main():
     else:
         logger.info("PROJECT_ID not set. Searching/Creating...")
         try:
-            projects = client.v1.project.list()
+            projects = await client.v1.project.list()
             if projects:
                 project_id = projects[0].id
                 logger.info(
@@ -126,7 +125,7 @@ def main():
                 )
             else:
                 # create() returns Project directly (not wrapped)
-                project = client.v1.project.create(
+                project = await client.v1.project.create(
                     name="Test Project", description="Created by SDK Setup"
                 )
                 project_id = project.id
@@ -162,7 +161,7 @@ def main():
         try:
             # Test mindspace.list() with the new pagination format
             logger.info(f"Listing mindspaces for user: {user_id}")
-            mindspace_list = client.v1.mindspace.list(user_id=user_id)
+            mindspace_list = await client.v1.mindspace.list(participant_id=user_id)
 
             # Test new data+paging structure
             logger.info(f"  Found {len(mindspace_list.data)} mindspace(s)")
@@ -177,12 +176,12 @@ def main():
                 updates["MINDSPACE_ID"] = mindspace_id
             else:
                 # create() returns MindSpace directly (not wrapped)
-                mindspace = client.v1.mindspace.create(
+                mindspace = await client.v1.mindspace.create(
                     name="Test Mindspace",
                     type="PRIVATE",
                     description="Realtime Test Mindspace",
                     project_id=project_id,
-                    user_ids=[user_id],
+                    participant_ids=[user_id],
                 )
                 mindspace_id = mindspace.id
                 logger.info(f"Created new Mindspace: {mindspace_id}")
@@ -212,4 +211,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())

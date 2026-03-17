@@ -31,22 +31,22 @@ import os
 import logging
 from typing import Set
 from magick_mind import MagickMind
-from magick_mind.realtime.handler import RealtimeEventHandler
+from magick_mind.realtime.events import ChatMessageEvent
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("bulk_subscribe")
 
 
-class DeduplicatingHandler(RealtimeEventHandler):
+class DeduplicatingProcessor:
     """
-    Handler with message deduplication.
+    Message processor with deduplication.
 
     CRITICAL: When subscribing to multiple users in the same group,
     you'll receive duplicate messages. Always deduplicate!
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.processed_ids: Set[str] = set()  # In production: use Redis!
         self.metrics = {
             "total_received": 0,
@@ -54,43 +54,29 @@ class DeduplicatingHandler(RealtimeEventHandler):
             "messages_processed": 0,
         }
 
-    async def on_connected(self, ctx):
-        logger.info(f"✅ Connected! Client ID: {ctx.client}")
-
-    async def on_message(self, user_id: str, payload: dict):
-        """Handle incoming message with deduplication."""
+    async def handle_chat(self, event: ChatMessageEvent) -> None:
+        """Handle incoming chat_message event with deduplication."""
         self.metrics["total_received"] += 1
-
-        # Extract message ID
-        message_id = payload.get("message_id") or payload.get("id")
-        if not message_id:
-            logger.warning(f"Message from {user_id} has no ID, can't deduplicate")
-            return
+        payload = event.payload
 
         # Deduplicate - CRITICAL for production!
-        if message_id in self.processed_ids:
+        if payload.message_id in self.processed_ids:
             self.metrics["duplicates_skipped"] += 1
-            logger.debug(
-                f"⏭️  Skipping duplicate {message_id} "
-                f"(from {user_id}, already processed)"
-            )
+            logger.debug(f"⏭️  Skipping duplicate {payload.message_id}")
             return
 
         # Process the message
         self.metrics["messages_processed"] += 1
-        logger.info(
-            f"📨 Message {message_id} from [{user_id}]: "
-            f"{payload.get('content', str(payload)[:50])}"
-        )
+        logger.info(f"📨 Message {payload.message_id}: {payload.message[:50]}")
 
         # Mark as processed
-        self.processed_ids.add(message_id)
+        self.processed_ids.add(payload.message_id)
 
         # Log metrics periodically
         if self.metrics["total_received"] % 10 == 0:
             self.log_metrics()
 
-    def log_metrics(self):
+    def log_metrics(self) -> None:
         """Log deduplication metrics."""
         total = self.metrics["total_received"]
         dupes = self.metrics["duplicates_skipped"]
@@ -122,13 +108,18 @@ async def main():
         base_url=base_url, email=email, password=password, ws_endpoint=ws_endpoint
     )
 
-    # Create deduplicating handler
-    handler = DeduplicatingHandler()
+    # Create deduplicating processor
+    processor = DeduplicatingProcessor()
+
+    # Register event handler using decorator API
+    @client.realtime.on("chat_message")
+    async def handle_chat(event: ChatMessageEvent) -> None:
+        await processor.handle_chat(event)
 
     try:
         # Connect to realtime
         logger.info("Connecting to realtime...")
-        await client.realtime.connect(events=handler)
+        await client.realtime.connect()
         logger.info("✅ Connected!")
 
         # Simulate subscribing to many users (e.g., relay service, admin dashboard)
@@ -149,9 +140,9 @@ async def main():
         await asyncio.sleep(30)
 
         # Show final metrics
-        handler.log_metrics()
+        processor.log_metrics()
         logger.info(
-            f"Processed IDs count: {len(handler.processed_ids)} unique messages"
+            f"Processed IDs count: {len(processor.processed_ids)} unique messages"
         )
 
         # Bulk unsubscribe
@@ -165,7 +156,7 @@ async def main():
         logger.error(f"❌ Error: {e}", exc_info=True)
     finally:
         await client.realtime.disconnect()
-        client.close()
+        await client.close()
 
 
 if __name__ == "__main__":

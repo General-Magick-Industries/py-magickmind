@@ -6,7 +6,7 @@ Provides methods for managing API keys for authenticated requests.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Optional
+from typing import Optional
 
 from magick_mind.models.v1.api_keys import (
     CreateApiKeyRequest,
@@ -16,25 +16,14 @@ from magick_mind.models.v1.api_keys import (
     UpdateApiKeyRequest,
     UpdateApiKeyResponse,
 )
+from magick_mind.resources.base import BaseResource
 from magick_mind.routes import Routes
 
-if TYPE_CHECKING:
-    import httpx
 
-
-class ApiKeysResourceV1:
+class ApiKeysResourceV1(BaseResource):
     """Resource client for API key operations."""
 
-    def __init__(self, http_client: httpx.Client):
-        """
-        Initialize the API keys resource.
-
-        Args:
-            http_client: Authenticated httpx client
-        """
-        self.http = http_client
-
-    def create(
+    async def create(
         self,
         user_id: str,
         project_id: str,
@@ -60,10 +49,10 @@ class ApiKeysResourceV1:
             CreateApiKeyResponse with the new API key
 
         Raises:
-            httpx.HTTPStatusError: If the request fails
+            ProblemDetailsException: If the request fails
 
         Example:
-            >>> response = client.v1.api_keys.create(
+            >>> response = await client.v1.api_keys.create(
             ...     user_id="user-123",
             ...     project_id="proj-456",
             ...     models=["gpt-4", "gpt-3.5-turbo"],
@@ -83,12 +72,13 @@ class ApiKeysResourceV1:
             max_budget=max_budget,
         )
 
-        resp = self.http.post(Routes.KEYS, json=payload.model_dump(exclude_none=True))
-        resp.raise_for_status()
+        resp = await self._http.post(
+            Routes.KEYS, json=payload.model_dump(exclude_none=True)
+        )
 
-        return CreateApiKeyResponse(**resp.json())
+        return CreateApiKeyResponse(**resp)
 
-    def list(self, user_id: str) -> ListApiKeysResponse:
+    async def list(self, user_id: str) -> ListApiKeysResponse:
         """
         List all API keys for a user.
 
@@ -99,19 +89,18 @@ class ApiKeysResourceV1:
             ListApiKeysResponse with list of API keys
 
         Raises:
-            httpx.HTTPStatusError: If the request fails
+            ProblemDetailsException: If the request fails
 
         Example:
-            >>> response = client.v1.api_keys.list(user_id="user-123")
+            >>> response = await client.v1.api_keys.list(user_id="user-123")
             >>> for key in response.keys:
             ...     print(f"{key.key_alias}: {key.key_id}")
         """
-        resp = self.http.get(Routes.KEYS, params={"user_id": user_id})
-        resp.raise_for_status()
+        resp = await self._http.get(Routes.KEYS, params={"user_id": user_id})
 
-        return ListApiKeysResponse(**resp.json())
+        return ListApiKeysResponse(**resp)
 
-    def update(
+    async def update(
         self,
         key: str,
         models: list[str],
@@ -133,10 +122,10 @@ class ApiKeysResourceV1:
             UpdateApiKeyResponse with updated key details
 
         Raises:
-            httpx.HTTPStatusError: If the request fails
+            ProblemDetailsException: If the request fails
 
         Example:
-            >>> response = client.v1.api_keys.update(
+            >>> response = await client.v1.api_keys.update(
             ...     key="sk-...",
             ...     models=["gpt-4", "claude-3"],
             ...     key_alias="Updated Production Key",
@@ -151,12 +140,13 @@ class ApiKeysResourceV1:
             max_budget=max_budget,
         )
 
-        resp = self.http.put(Routes.KEYS, json=payload.model_dump(exclude_none=True))
-        resp.raise_for_status()
+        resp = await self._http.put(
+            Routes.KEYS, json=payload.model_dump(exclude_none=True)
+        )
 
-        return UpdateApiKeyResponse(**resp.json())
+        return UpdateApiKeyResponse(**resp)
 
-    def delete(self, key_id: str) -> DeleteApiKeyResponse:
+    async def delete(self, key_id: str) -> DeleteApiKeyResponse:
         """
         Delete an API key.
 
@@ -167,15 +157,23 @@ class ApiKeysResourceV1:
             DeleteApiKeyResponse with confirmation
 
         Raises:
-            httpx.HTTPStatusError: If the request fails
+            ProblemDetailsException: If the request fails
 
         Example:
-            >>> response = client.v1.api_keys.delete(key_id="key-abc-123")
+            >>> response = await client.v1.api_keys.delete(key_id="key-abc-123")
             >>> print(response.message)
         """
-        payload = {"key_id": key_id}
+        # DELETE with a JSON body — HTTPClient.delete() doesn't support a body,
+        # so we drop down to the underlying httpx client and use _handle_response.
+        await self._http.auth.refresh_if_needed_async()
+        url = self._http._build_url(Routes.KEYS)
+        headers = await self._http._get_headers()
+        raw = await self._http._client.request(
+            "DELETE",
+            url,
+            json={"key_id": key_id},
+            headers=headers,
+        )
+        resp = self._http._handle_response(raw)
 
-        resp = self.http.delete(Routes.KEYS, json=payload)
-        resp.raise_for_status()
-
-        return DeleteApiKeyResponse(**resp.json())
+        return DeleteApiKeyResponse(**resp)

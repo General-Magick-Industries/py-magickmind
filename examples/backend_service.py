@@ -18,27 +18,14 @@ import os
 from datetime import datetime
 from typing import Optional, Set
 
-from magick_mind import MagickMind, ChatPayload
-from magick_mind.realtime.handler import RealtimeEventHandler
+from magick_mind import MagickMind
+from magick_mind.realtime.events import ChatMessageEvent, ChatMessagePayload
 
 # Configure logging
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
-
-
-class ServiceEventHandler(RealtimeEventHandler):
-    """Bridge between SDK events and Backend Service logic."""
-
-    def __init__(self, service):
-        self.service = service
-
-    async def on_message(self, user_id: str, payload: dict):
-        # We construct a channel name for logging context if needed,
-        # but on_message gives us the parsed user_id and payload directly.
-        channel = f"personal:{user_id}"
-        await self.service.handle_realtime_event(channel, payload)
 
 
 class ChatBackendService:
@@ -72,17 +59,16 @@ class ChatBackendService:
             "errors": 0,
         }
 
-    async def handle_realtime_event(self, channel: str, data: dict):
+    async def handle_chat_event(self, event: ChatMessageEvent) -> None:
         """
-        Handle incoming realtime event from WebSocket.
+        Handle incoming chat_message realtime event.
 
         This is the fast path - processes events as they arrive.
         """
         self.metrics["received"] += 1
+        payload = event.payload
 
         try:
-            # Parse event data
-            payload = ChatPayload.model_validate(data)
             logger.info(f"Received event: {payload.message_id}")
 
             # Deduplicate - critical for backends!
@@ -102,7 +88,7 @@ class ChatBackendService:
             logger.error(f"Failed to handle event: {e}", exc_info=True)
             self.metrics["errors"] += 1
 
-    async def _process_message(self, payload: ChatPayload):
+    async def _process_message(self, payload: ChatMessagePayload) -> None:
         """
         Core business logic for processing a chat message.
 
@@ -113,15 +99,14 @@ class ChatBackendService:
         - Update analytics
         - etc.
         """
-        logger.info(
-            f"Processing message {payload.message_id}: {payload.content[:50]}..."
-        )
+        content_preview = payload.message[:50]
+        logger.info(f"Processing message {payload.message_id}: {content_preview}...")
 
         # Example: Store in your database
         message_data = {
             "message_id": payload.message_id,
             "task_id": payload.task_id,
-            "content": payload.content,
+            "content": payload.message,
             "reply_to": payload.reply_to,
             "processed_at": datetime.utcnow().isoformat(),
         }
@@ -136,16 +121,16 @@ class ChatBackendService:
         #     "type": "new_message",
         #     "payload": payload.model_dump(),
         # })
-        logger.info(f"Would broadcast to frontend")
+        logger.info("Would broadcast to frontend")
 
         # Example: Trigger webhook
         # TODO: Replace with your actual webhook
         # await httpx.post("https://your-app.com/webhook", json=message_data)
-        logger.info(f"Would trigger webhook")
+        logger.info("Would trigger webhook")
 
     async def sync_history(
         self, mindspace_id: str, since_message_id: Optional[str] = None
-    ):
+    ) -> None:
         """
         Sync chat history from Bifrost.
 
@@ -162,7 +147,7 @@ class ChatBackendService:
             # TEMP: Direct HTTP call until history resource is added to SDK
             # In future: messages = await self.client.v1.mindspaces.get_messages(...)
 
-            response = self.client.http.get(
+            response = await self.client.http.get(
                 "/v1/mindspaces/messages",
                 params={
                     "mindspace_id": mindspace_id,
@@ -171,19 +156,19 @@ class ChatBackendService:
                 },
             )
 
-            data = response.json()
-            messages = data.get("chat_histories", [])
+            messages = response.get("chat_histories", [])
 
             logger.info(f"Fetched {len(messages)} messages from history")
 
             # Process each message
             for msg_data in messages:
-                # Map history format to ChatPayload
+                # Map history format to ChatMessagePayload
                 # Note: History might have different field names than realtime events
-                payload = ChatPayload(
+                payload = ChatMessagePayload(
+                    mindspace_id=msg_data.get("mindspace_id", ""),
                     message_id=msg_data["id"],
-                    task_id="",  # May not be in history response
-                    content=msg_data["content"],
+                    task_id=msg_data.get("task_id", ""),
+                    message=msg_data["content"],
                     reply_to=msg_data.get("reply_to_message_id"),
                 )
 
@@ -201,7 +186,7 @@ class ChatBackendService:
             logger.error(f"History sync failed: {e}", exc_info=True)
             self.metrics["errors"] += 1
 
-    async def periodic_sync(self, mindspace_id: str, interval: int = 300):
+    async def periodic_sync(self, mindspace_id: str, interval: int = 300) -> None:
         """
         Run periodic sync in background to catch missed events.
 
@@ -224,7 +209,7 @@ class ChatBackendService:
             except Exception as e:
                 logger.error(f"Periodic sync failed: {e}", exc_info=True)
 
-    async def start(self, mindspace_id: str, user_id: str):
+    async def start(self, mindspace_id: str, user_id: str) -> None:
         """
         Start the backend service.
 
@@ -238,20 +223,24 @@ class ChatBackendService:
         logger.info("Starting Chat Backend Service")
         logger.info("=" * 60)
 
-        # 1. Initial history sync
+        # 1. Register event handlers using decorator API
+        @self.client.realtime.on("chat_message")
+        async def handle_chat(event: ChatMessageEvent) -> None:
+            await self.handle_chat_event(event)
+
+        # 2. Initial history sync
         logger.info("Step 1: Syncing initial history...")
         await self.sync_history(mindspace_id=mindspace_id)
 
-        # 2. Connect to realtime WebSocket with Handler
+        # 3. Connect to realtime WebSocket
         logger.info("Step 2: Connecting to realtime...")
-        handler = ServiceEventHandler(self)
-        await self.client.realtime.connect(events=handler)
+        await self.client.realtime.connect()
 
-        # 3. Subscribe to chat events
+        # 4. Subscribe to chat events
         logger.info("Step 3: Subscribing to events...")
         await self.client.realtime.subscribe(target_user_id=user_id)
 
-        # 4. Start periodic sync in background
+        # 5. Start periodic sync in background
         logger.info("Step 4: Starting periodic sync...")
         asyncio.create_task(self.periodic_sync(mindspace_id))
 
@@ -262,7 +251,7 @@ class ChatBackendService:
         logger.info("=" * 60)
 
 
-async def main():
+async def main() -> None:
     """Main entry point for the backend service."""
 
     # Load configuration from environment
@@ -299,28 +288,28 @@ async def main():
         logger.error(f"Fatal error: {e}", exc_info=True)
     finally:
         # Cleanup
-        client.close()
+        await client.close()
         logger.info(f"Final metrics: {service.metrics}")
 
 
 if __name__ == "__main__":
     """
     Run the backend service.
-    
+
     Environment variables:
         BIFROST_URL         - Bifrost API URL
         BIFROST_EMAIL       - Service account email
         BIFROST_PASSWORD    - Service account password
         MINDSPACE_ID        - Mindspace to monitor
         USER_ID             - Service user ID
-    
+
     Example:
         export BIFROST_URL="https://bifrost.yourcompany.com"
         export BIFROST_EMAIL="service@yourcompany.com"
         export BIFROST_PASSWORD="your-password"
         export MINDSPACE_ID="mind-123"
         export USER_ID="service-user-456"
-        
+
         python examples/backend_service.py
     """
     asyncio.run(main())

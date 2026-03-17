@@ -32,7 +32,7 @@ from magick_mind.exceptions import (
     RateLimitError,
     ValidationError,
 )
-from magick_mind.models.v1.chat import ConfigSchema
+from magick_mind.models.v1.chat import ChatSendResponse
 
 # Load environment
 load_dotenv()
@@ -50,7 +50,7 @@ logger = logging.getLogger(__name__)
 # ============================================================================
 
 
-def handle_validation_error(e: ValidationError) -> None:
+def handle_validation_error(e: ValidationError) -> dict:
     """
     Extract and log field-level validation errors.
 
@@ -107,7 +107,7 @@ def is_retryable_error(exception: Exception) -> bool:
 
 async def send_with_retry(
     client: MagickMind, mindspace_id: str, message: str, max_retries: int = 3
-) -> Optional[dict]:
+) -> Optional[ChatSendResponse]:
     """
     Send chat message with retry logic for transient errors.
 
@@ -115,21 +115,18 @@ async def send_with_retry(
     """
     for attempt in range(max_retries):
         try:
-            response = await asyncio.to_thread(
-                client.v1.chat.send,
+            response = await client.v1.chat.send(
                 api_key=os.getenv("OPENROUTER_API_KEY", "sk-test"),
                 mindspace_id=mindspace_id,
                 message=message,
                 enduser_id=os.getenv("USER_ID", "user-test"),
-                config=ConfigSchema(
-                    fast_model_id="openrouter/openrouter/meta-llama/llama-4-maverick",
-                    smart_model_ids=[
-                        "openrouter/openrouter/meta-llama/llama-4-maverick"
-                    ],
-                    compute_power=50,
-                ),
+                fast_model_id="openrouter/openrouter/meta-llama/llama-4-maverick",
+                smart_model_ids=["openrouter/openrouter/meta-llama/llama-4-maverick"],
+                compute_power=50,
             )
-            logger.info(f"✓ Message sent successfully: {response.content.message_id}")
+            logger.info(
+                f"✓ Message sent successfully: {response.content and response.content.message_id}"
+            )
             return response
 
         except RateLimitError as e:
@@ -185,7 +182,7 @@ async def example_1_authentication_errors():
             base_url=os.getenv("BIFROST_BASE_URL", "https://dev-bifrost.magickmind.ai"),
         )
         # Try to make a request
-        await asyncio.to_thread(client.http.get, "/v1/mindspaces")
+        await client.http.get("/v1/mindspaces")
 
     except AuthenticationError as e:
         logger.error(f"❌ Authentication failed: {e.message}")
@@ -201,16 +198,13 @@ async def example_2_validation_errors(client: MagickMind):
 
     try:
         # Send invalid request - empty required fields
-        response = await asyncio.to_thread(
-            client.v1.chat.send,
+        response = await client.v1.chat.send(
             api_key="",  # Invalid: empty
             mindspace_id="",  # Invalid: empty
             message="",  # Invalid: empty
             enduser_id="user-123",
-            config=ConfigSchema(
-                fast_model_id="gpt-4",
-                smart_model_ids=["gpt-4"],
-            ),
+            fast_model_id="gpt-4",
+            smart_model_ids=["gpt-4"],
         )
     except ValidationError as e:
         logger.error(f"❌ Validation failed: {e.title}")
@@ -235,16 +229,13 @@ async def example_3_problem_details_with_request_id(client: MagickMind):
 
     try:
         # Try to access non-existent mindspace
-        response = await asyncio.to_thread(
-            client.v1.chat.send,
+        response = await client.v1.chat.send(
             api_key="sk-test",
             mindspace_id="nonexistent-mindspace-id",
             message="Hello",
             enduser_id="user-123",
-            config=ConfigSchema(
-                fast_model_id="gpt-4",
-                smart_model_ids=["gpt-4"],
-            ),
+            fast_model_id="gpt-4",
+            smart_model_ids=["gpt-4"],
         )
     except ProblemDetailsException as e:
         logger.error(f"❌ API Error: [{e.status}] {e.title}")
@@ -274,7 +265,9 @@ async def example_4_retry_pattern(client: MagickMind):
         )
 
         if response:
-            logger.info(f"✓ Message sent: {response.content.message_id}")
+            logger.info(
+                f"✓ Message sent: {response.content and response.content.message_id}"
+            )
 
     except Exception as e:
         logger.error(f"❌ Failed after retries: {type(e).__name__}: {e}")
@@ -290,20 +283,17 @@ async def example_5_production_error_handling(client: MagickMind):
     mindspace_id = os.getenv("MINDSPACE_ID", "mind-test-123")
 
     try:
-        response = await asyncio.to_thread(
-            client.v1.chat.send,
+        response = await client.v1.chat.send(
             api_key=os.getenv("OPENROUTER_API_KEY", "sk-test"),
             mindspace_id=mindspace_id,
             message="Production example message",
             enduser_id=os.getenv("USER_ID", "user-test"),
-            config=ConfigSchema(
-                fast_model_id="openrouter/openrouter/meta-llama/llama-4-maverick",
-                smart_model_ids=["openrouter/openrouter/meta-llama/llama-4-maverick"],
-                compute_power=50,
-            ),
+            fast_model_id="openrouter/openrouter/meta-llama/llama-4-maverick",
+            smart_model_ids=["openrouter/openrouter/meta-llama/llama-4-maverick"],
+            compute_power=50,
         )
 
-        logger.info(f"✓ Success: {response.content.message_id}")
+        logger.info(f"✓ Success: {response.content and response.content.message_id}")
 
     except ValidationError as e:
         # Handle field errors - show to user
@@ -372,7 +362,7 @@ async def main():
     password = os.getenv("BIFROST_PASSWORD")
     base_url = os.getenv("BIFROST_BASE_URL", "https://dev-bifrost.magickmind.ai")
 
-    if not all([email, password]):
+    if not email or not password:
         logger.warning(
             "\n⚠️  Set BIFROST_EMAIL and BIFROST_PASSWORD to run remaining examples"
         )
@@ -405,7 +395,7 @@ async def main():
         await example_5_production_error_handling(client)
 
     finally:
-        client.close()
+        await client.close()
         logger.info("\n" + "=" * 70)
         logger.info("All examples completed!")
         logger.info("=" * 70)

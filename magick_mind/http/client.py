@@ -29,7 +29,7 @@ JSONResponse = Dict[str, Any]
 
 class HTTPClient:
     """
-    HTTP client wrapper for making authenticated API requests.
+    Async HTTP client wrapper for making authenticated API requests.
 
     Handles:
     - Authentication header injection
@@ -48,12 +48,12 @@ class HTTPClient:
         """
         self.config = config
         self.auth = auth
-        self._client = httpx.Client(
+        self._client = httpx.AsyncClient(
             timeout=config.timeout,
             verify=config.verify_ssl,
         )
 
-    def _get_headers(
+    async def _get_headers(
         self, extra_headers: Optional[Dict[str, str]] = None
     ) -> Dict[str, str]:
         """Build request headers with authentication."""
@@ -63,7 +63,7 @@ class HTTPClient:
         }
 
         # Add auth headers
-        auth_headers = self.auth.get_headers()
+        auth_headers = await self.auth.get_headers_async()
         headers.update(auth_headers)
 
         # Add any extra headers
@@ -166,7 +166,7 @@ class HTTPClient:
             status_code=response.status_code,
         )
 
-    def get(
+    async def get(
         self,
         path: str,
         params: Optional[Dict[str, Any]] = None,
@@ -191,19 +191,19 @@ class HTTPClient:
             MagickMindError: For unexpected errors or malformed responses
 
         Example:
-            >>> response = client.http.get("/v1/mindspaces")
+            >>> response = await client.http.get("/v1/mindspaces")
             >>> print(response['data'])
         """
         # Refresh auth if needed
-        self.auth.refresh_if_needed()
+        await self.auth.refresh_if_needed_async()
 
         url = self._build_url(path)
-        request_headers = self._get_headers(headers)
+        request_headers = await self._get_headers(headers)
 
-        response = self._client.get(url, params=params, headers=request_headers)
+        response = await self._client.get(url, params=params, headers=request_headers)
         return self._handle_response(response)
 
-    def post(
+    async def post(
         self,
         path: str,
         json: Optional[Dict[str, Any]] = None,
@@ -228,21 +228,21 @@ class HTTPClient:
             MagickMindError: For unexpected errors or malformed responses
 
         Example:
-            >>> response = client.http.post(
+            >>> response = await client.http.post(
             ...     "/v1/magickmind/chat",
             ...     json={"message": "Hello", "mindspace_id": "mind-123"}
             ... )
         """
         # Refresh auth if needed
-        self.auth.refresh_if_needed()
+        await self.auth.refresh_if_needed_async()
 
         url = self._build_url(path)
-        request_headers = self._get_headers(headers)
+        request_headers = await self._get_headers(headers)
 
-        response = self._client.post(url, json=json, headers=request_headers)
+        response = await self._client.post(url, json=json, headers=request_headers)
         return self._handle_response(response)
 
-    def put(
+    async def put(
         self,
         path: str,
         json: Optional[Dict[str, Any]] = None,
@@ -267,15 +267,15 @@ class HTTPClient:
             MagickMindError: For unexpected errors or malformed responses
         """
         # Refresh auth if needed
-        self.auth.refresh_if_needed()
+        await self.auth.refresh_if_needed_async()
 
         url = self._build_url(path)
-        request_headers = self._get_headers(headers)
+        request_headers = await self._get_headers(headers)
 
-        response = self._client.put(url, json=json, headers=request_headers)
+        response = await self._client.put(url, json=json, headers=request_headers)
         return self._handle_response(response)
 
-    def patch(
+    async def patch(
         self,
         path: str,
         json: Optional[Dict[str, Any]] = None,
@@ -300,15 +300,15 @@ class HTTPClient:
             MagickMindError: For unexpected errors or malformed responses
         """
         # Refresh auth if needed
-        self.auth.refresh_if_needed()
+        await self.auth.refresh_if_needed_async()
 
         url = self._build_url(path)
-        request_headers = self._get_headers(headers)
+        request_headers = await self._get_headers(headers)
 
-        response = self._client.patch(url, json=json, headers=request_headers)
+        response = await self._client.patch(url, json=json, headers=request_headers)
         return self._handle_response(response)
 
-    def delete(
+    async def delete(
         self, path: str, headers: Optional[Dict[str, str]] = None
     ) -> JSONResponse:
         """
@@ -329,22 +329,27 @@ class HTTPClient:
             MagickMindError: For unexpected errors or malformed responses
         """
         # Refresh auth if needed
-        self.auth.refresh_if_needed()
+        await self.auth.refresh_if_needed_async()
 
         url = self._build_url(path)
-        request_headers = self._get_headers(headers)
+        request_headers = await self._get_headers(headers)
 
-        response = self._client.delete(url, headers=request_headers)
+        response = await self._client.delete(url, headers=request_headers)
         return self._handle_response(response)
 
-    def close(self) -> None:
+    async def close(self) -> None:
         """Close the HTTP client."""
-        self._client.close()
+        await self._client.aclose()
 
-    def __enter__(self):
-        """Context manager entry."""
+    async def __aenter__(self) -> HTTPClient:
+        """Async context manager entry."""
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        """Context manager exit."""
-        self.close()
+    async def __aexit__(
+        self,
+        exc_type: object,
+        exc_val: object,
+        exc_tb: object,
+    ) -> None:
+        """Async context manager exit."""
+        await self.close()

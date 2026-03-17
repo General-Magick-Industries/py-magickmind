@@ -113,6 +113,14 @@ class Routes:
         """Get path for a specific end user."""
         return f"/v1/end-users/{end_user_id}"
 
+    # Trait endpoints
+    TRAITS = "/v1/traits"
+
+    @staticmethod
+    def trait(trait_id: str) -> str:
+        """Get path for a specific trait."""
+        return f"/v1/traits/{trait_id}"
+
     # Corpus endpoints
     CORPUS = "/v1/corpus"
 

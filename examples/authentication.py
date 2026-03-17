@@ -9,11 +9,12 @@ Usage:
     python examples/email_password_auth.py
 """
 
+import asyncio
 import os
 from magick_mind import MagickMind
 
 
-def main():
+async def main():
     # Get config from environment
     base_url = os.getenv("BIFROST_BASE_URL", "http://localhost:8888")
     email = os.getenv("BIFROST_EMAIL")
@@ -30,7 +31,7 @@ def main():
 
     # Create client with email/password
     # Login happens automatically on first API call
-    with MagickMind(base_url=base_url, email=email, password=password) as client:
+    async with MagickMind(base_url=base_url, email=email, password=password) as client:
         print(f"\nClient: {client}")
 
         # Check authentication status
@@ -38,11 +39,11 @@ def main():
 
         # The client will automatically refresh tokens when they expire
         # You can now use the client to make API calls
-        # Example: client.http.get("/v1/some-endpoint")
+        # Example: await client.http.get("/v1/some-endpoint")
 
         print("\n✅ Authentication successful!")
         print("✅ Token refresh is automatic - no need to manually refresh!")
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())

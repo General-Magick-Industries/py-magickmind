@@ -6,7 +6,7 @@ Provides methods for managing corpus (knowledge base) resources.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Optional
+from typing import Optional
 
 from magick_mind.models.v1.corpus import (
     AddArtifactsRequest,
@@ -18,25 +18,14 @@ from magick_mind.models.v1.corpus import (
     ListCorpusResponse,
     UpdateCorpusRequest,
 )
+from magick_mind.resources.base import BaseResource
 from magick_mind.routes import Routes
 
-if TYPE_CHECKING:
-    import httpx
 
-
-class CorpusResourceV1:
+class CorpusResourceV1(BaseResource):
     """Resource client for corpus operations."""
 
-    def __init__(self, http_client: httpx.Client):
-        """
-        Initialize the corpus resource.
-
-        Args:
-            http_client: Authenticated httpx client
-        """
-        self.http = http_client
-
-    def create(
+    async def create(
         self,
         name: str,
         description: str,
@@ -54,7 +43,7 @@ class CorpusResourceV1:
             Corpus object
 
         Raises:
-            httpx.HTTPStatusError: If the request fails
+            ProblemDetailsException: If the request fails
         """
         payload = CreateCorpusRequest(
             name=name,
@@ -62,12 +51,11 @@ class CorpusResourceV1:
             artifact_ids=artifact_ids or [],
         )
 
-        resp = self.http.post(Routes.CORPUS, json=payload.model_dump())
-        resp.raise_for_status()
+        resp = await self._http.post(Routes.CORPUS, json=payload.model_dump())
 
-        return Corpus(**resp.json())
+        return Corpus(**resp)
 
-    def get(self, corpus_id: str) -> Corpus:
+    async def get(self, corpus_id: str) -> Corpus:
         """
         Get a corpus by ID.
 
@@ -78,14 +66,13 @@ class CorpusResourceV1:
             Corpus object
 
         Raises:
-            httpx.HTTPStatusError: If the request fails
+            ProblemDetailsException: If the request fails
         """
-        resp = self.http.get(Routes.corpus(corpus_id))
-        resp.raise_for_status()
+        resp = await self._http.get(Routes.corpus(corpus_id))
 
-        return Corpus(**resp.json())
+        return Corpus(**resp)
 
-    def list(
+    async def list(
         self,
         user_id: Optional[str] = None,
         cursor: Optional[str] = None,
@@ -103,7 +90,7 @@ class CorpusResourceV1:
             ListCorpusResponse with list of corpus and pagination info
 
         Raises:
-            httpx.HTTPStatusError: If the request fails
+            ProblemDetailsException: If the request fails
         """
         params = {}
         if user_id:
@@ -113,12 +100,11 @@ class CorpusResourceV1:
         if limit is not None:
             params["limit"] = str(limit)
 
-        resp = self.http.get(Routes.CORPUS, params=params)
-        resp.raise_for_status()
+        resp = await self._http.get(Routes.CORPUS, params=params)
 
-        return ListCorpusResponse(**resp.json())
+        return ListCorpusResponse(**resp)
 
-    def update(
+    async def update(
         self,
         corpus_id: str,
         name: str,
@@ -138,7 +124,7 @@ class CorpusResourceV1:
             Corpus object
 
         Raises:
-            httpx.HTTPStatusError: If the request fails
+            ProblemDetailsException: If the request fails
         """
         payload = UpdateCorpusRequest(
             name=name,
@@ -146,12 +132,11 @@ class CorpusResourceV1:
             artifact_ids=artifact_ids,
         )
 
-        resp = self.http.put(Routes.corpus(corpus_id), json=payload.model_dump())
-        resp.raise_for_status()
+        resp = await self._http.put(Routes.corpus(corpus_id), json=payload.model_dump())
 
-        return Corpus(**resp.json())
+        return Corpus(**resp)
 
-    def delete(self, corpus_id: str) -> None:
+    async def delete(self, corpus_id: str) -> None:
         """
         Delete a corpus.
 
@@ -162,15 +147,17 @@ class CorpusResourceV1:
             None (Bifrost returns 204 No Content)
 
         Example:
-            client.v1.corpus.delete(corpus_id="corpus-123")
+            await client.v1.corpus.delete(corpus_id="corpus-123")
             print("Corpus deleted successfully")
 
         Raises:
-            httpx.HTTPStatusError: If request fails
+            ProblemDetailsException: If request fails
         """
-        self.http.delete(Routes.corpus(corpus_id))
+        await self._http.delete(Routes.corpus(corpus_id))
 
-    def add_artifact(self, corpus_id: str, artifact_id: str) -> AddArtifactsResponse:
+    async def add_artifact(
+        self, corpus_id: str, artifact_id: str
+    ) -> AddArtifactsResponse:
         """
         Add a single artifact to corpus and trigger ingestion.
 
@@ -182,11 +169,11 @@ class CorpusResourceV1:
             AddArtifactsResponse with result
 
         Raises:
-            httpx.HTTPStatusError: If the request fails
+            ProblemDetailsException: If the request fails
         """
-        return self.add_artifacts(corpus_id, [artifact_id])
+        return await self.add_artifacts(corpus_id, [artifact_id])
 
-    def add_artifacts(
+    async def add_artifacts(
         self, corpus_id: str, artifact_ids: list[str]
     ) -> AddArtifactsResponse:
         """
@@ -202,18 +189,17 @@ class CorpusResourceV1:
             AddArtifactsResponse with result
 
         Raises:
-            httpx.HTTPStatusError: If the request fails
+            ProblemDetailsException: If the request fails
         """
         payload = AddArtifactsRequest(artifact_ids=artifact_ids)
 
-        resp = self.http.post(
+        resp = await self._http.post(
             Routes.corpus_artifacts(corpus_id), json=payload.model_dump()
         )
-        resp.raise_for_status()
 
-        return AddArtifactsResponse(**resp.json())
+        return AddArtifactsResponse(**resp)
 
-    def remove_artifact(self, corpus_id: str, artifact_id: str) -> None:
+    async def remove_artifact(self, corpus_id: str, artifact_id: str) -> None:
         """
         Remove artifact from corpus.
 
@@ -225,12 +211,13 @@ class CorpusResourceV1:
             None
 
         Raises:
-            httpx.HTTPStatusError: If the request fails
+            ProblemDetailsException: If the request fails
         """
-        resp = self.http.delete(Routes.corpus_artifact(corpus_id, artifact_id))
-        resp.raise_for_status()
+        await self._http.delete(Routes.corpus_artifact(corpus_id, artifact_id))
 
-    def get_artifact_status(self, corpus_id: str, artifact_id: str) -> ArtifactStatus:
+    async def get_artifact_status(
+        self, corpus_id: str, artifact_id: str
+    ) -> ArtifactStatus:
         """
         Get ingestion status for a single artifact.
 
@@ -242,14 +229,16 @@ class CorpusResourceV1:
             ArtifactStatus object
 
         Raises:
-            httpx.HTTPStatusError: If the request fails
+            ProblemDetailsException: If the request fails
         """
-        resp = self.http.get(Routes.corpus_artifact_status(corpus_id, artifact_id))
-        resp.raise_for_status()
+        resp = await self._http.get(
+            Routes.corpus_artifacts_status(corpus_id),
+            params={"artifact_ids": [artifact_id]},
+        )
+        data = ListArtifactStatusesResponse(**resp)
+        return data.statuses[0]
 
-        return ArtifactStatus(**resp.json())
-
-    def list_artifact_statuses(
+    async def list_artifact_statuses(
         self, corpus_id: str, artifact_ids: Optional[list[str]] = None
     ) -> list[ArtifactStatus]:
         """
@@ -263,14 +252,15 @@ class CorpusResourceV1:
             List of ArtifactStatus objects
 
         Raises:
-            httpx.HTTPStatusError: If the request fails
+            ProblemDetailsException: If the request fails
         """
         params = {}
         if artifact_ids:
             params["artifact_ids"] = artifact_ids
 
-        resp = self.http.get(Routes.corpus_artifacts_status(corpus_id), params=params)
-        resp.raise_for_status()
+        resp = await self._http.get(
+            Routes.corpus_artifacts_status(corpus_id), params=params
+        )
 
-        data = ListArtifactStatusesResponse(**resp.json())
+        data = ListArtifactStatusesResponse(**resp)
         return data.statuses

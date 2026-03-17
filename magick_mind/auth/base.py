@@ -8,14 +8,22 @@ class AuthProvider(ABC):
     """Base class for authentication providers."""
 
     @abstractmethod
-    def get_headers(self) -> Dict[str, str]:
+    async def get_headers_async(self) -> Dict[str, str]:
         """
-        Get authentication headers for API requests.
+        Get authentication headers for API requests (async).
 
         Returns:
             Dictionary of HTTP headers to include in requests
         """
-        pass
+        ...
+
+    @abstractmethod
+    async def refresh_if_needed_async(self) -> None:
+        """
+        Refresh authentication credentials if needed (async).
+        Implementations should handle login and token refresh logic.
+        """
+        ...
 
     @abstractmethod
     def is_authenticated(self) -> bool:
@@ -25,22 +33,15 @@ class AuthProvider(ABC):
         Returns:
             True if authenticated, False otherwise
         """
-        pass
+        ...
 
     @abstractmethod
-    def get_token(self) -> str:
+    async def get_token_async(self) -> str:
         """
-        Get the raw access token.
+        Get the raw access token asynchronously.
         Should handle refresh if needed.
 
         Returns:
             Raw access token string
         """
-        pass
-
-    def refresh_if_needed(self) -> None:
-        """
-        Refresh authentication credentials if needed.
-        Override this method in subclasses that support token refresh.
-        """
-        pass
+        ...

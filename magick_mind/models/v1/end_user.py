@@ -45,8 +45,6 @@ class CreateEndUserRequest(BaseModel):
         default=None,
         description="Optional external ID for mapping to external systems",
     )
-    tenant_id: Optional[str] = Field(None, description="Tenant ID (Relaxed)")
-    actor_id: Optional[str] = Field(None, description="Actor ID (Relaxed)")
 
 
 class QueryEndUserResponse(BaseModel):
@@ -72,4 +70,3 @@ class UpdateEndUserRequest(BaseModel):
         default=None,
         description="External ID for mapping to external systems (optional)",
     )
-    tenant_id: Optional[str] = Field(None, description="Tenant ID (Relaxed)")

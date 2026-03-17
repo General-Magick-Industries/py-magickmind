@@ -2,7 +2,7 @@
 Example: Basic Realtime Chat Integration
 
 This demonstrates:
-- Using RealtimeEventHandler for clean message handling
+- Using the decorator-based EventRouter for clean message handling
 - Subscribing to a single user's updates
 - Receiving AI responses in real-time
 - Proper error handling with ProblemDetailsException
@@ -21,7 +21,11 @@ from dotenv import load_dotenv
 from magick_mind import MagickMind
 from magick_mind.models.v1.chat import ConfigSchema
 from magick_mind.models.v1.model import Model
-from magick_mind.realtime.handler import RealtimeEventHandler
+from magick_mind.realtime.events import (
+    ChatMessageEvent,
+    ImageGenerationEvent,
+    UnknownEvent,
+)
 from magick_mind.exceptions import (
     AuthenticationError,
     ProblemDetailsException,
@@ -37,29 +41,6 @@ logging.basicConfig(level=logging.DEBUG, format="%(levelname)s:%(name)s:%(messag
 # Enable debug logs for centrifuge to see disconnect reason
 logging.getLogger("centrifuge").setLevel(logging.DEBUG)
 logger = logging.getLogger("realtime_chat")
-
-
-class MyRealtimeHandler(RealtimeEventHandler):
-    """
-    High-level event handler with automatic user ID parsing.
-    """
-
-    async def on_connected(self, ctx):
-        logger.info(f"Connected to realtime! Client ID: {ctx.client}")
-
-    async def on_disconnected(self, ctx):
-        logger.info(f"Disconnected: {ctx}")
-
-    async def on_message(self, user_id: str, payload: dict):
-        """
-        Called when a message is received.
-
-        The SDK automatically extracts the user_id from the channel.
-        You just get clean user_id + payload.
-        """
-        logger.info(f"Message for user [{user_id}]:")
-        logger.info(f"   Content: {payload.get('content', payload)}")
-        logger.info(f"   Type: {payload.get('type', 'unknown')}")
 
 
 async def main():
@@ -88,20 +69,32 @@ async def main():
         logger.error(f"Authentication failed: {e}")
         return
 
-    # Create handler
-    handler = MyRealtimeHandler()
-
     try:
-        # Connect to realtime with our handler
+        # Register event handlers using decorator API
+        @client.realtime.on("chat_message")
+        async def handle_chat(event: ChatMessageEvent) -> None:
+            logger.info(f"Chat message received: {event.payload.message_id}")
+            logger.info(f"   Content: {event.payload.message[:80]}")
+
+        @client.realtime.on("image_generation")
+        async def handle_image(event: ImageGenerationEvent) -> None:
+            logger.info(f"Image generated: {event.payload.message_id}")
+            if event.payload.data:
+                logger.info(f"   Artifact: {event.payload.data.id}")
+
+        @client.realtime.on_unknown
+        async def handle_unknown(event: UnknownEvent) -> None:
+            logger.warning(f"Unknown event type: {event.type}")
+
+        # Connect to realtime
         logger.info("Connecting to realtime...")
-        await client.realtime.connect(events=handler)
+        await client.realtime.connect()
         logger.info("Realtime client ready!")
 
         # Verify Models (Client-Side)
         logger.info("Fetching available models...")
         try:
-            # Note: client.models.list() is a sync call
-            available_models: List[Model] = await asyncio.to_thread(client.models.list)
+            available_models: List[Model] = await client.models.list()
             available_ids = [m.id for m in available_models]
             model_id = "openrouter/openrouter/meta-llama/llama-4-maverick"
 
@@ -118,17 +111,8 @@ async def main():
         target_user = os.environ.get("USER_ID", "user-test-456")
         mindspace_id = os.environ.get("MINDSPACE_ID", "mind-test-123")
 
-        # Debug: Show what JWT subject we're using
-        import base64
-        import json
-
-        token = client.auth.get_token()
-        payload = token.split(".")[1]
-        padding = 4 - len(payload) % 4
-        if padding != 4:
-            payload += "=" * padding
-        decoded = json.loads(base64.urlsafe_b64decode(payload))
-        service_user_id = decoded["sub"]
+        # Show which service account we're connecting as
+        service_user_id = await client.get_user_id()
 
         logger.info(f"Service account JWT sub: {service_user_id}")
         logger.info(f"Subscribing to end user: {target_user}")
@@ -141,9 +125,7 @@ async def main():
         logger.info(f"Sending chat message with model={model_id}...")
 
         try:
-            # Run sync HTTP request in thread to avoid blocking async loop
-            response = await asyncio.to_thread(
-                client.v1.chat.send,
+            response = await client.v1.chat.send(
                 api_key=os.getenv("OPENROUTER_API_KEY", "sk-test"),
                 mindspace_id=mindspace_id,
                 message="Hello from Realtime Example! Tell me a one-liner joke.",
@@ -194,7 +176,7 @@ async def main():
         logger.error(f"Unexpected error: {e}", exc_info=True)
     finally:
         await client.realtime.disconnect()
-        client.close()
+        await client.close()
         logger.info("Disconnected")
 
 

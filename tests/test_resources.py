@@ -24,6 +24,7 @@ from magick_mind.models.v1.mindspace import (
     MindspaceMessagesResponse,
 )
 from magick_mind.models.v1.project import Project
+from magick_mind.models.v1.trait import Trait
 
 BASE_URL = "https://api.test"
 
@@ -90,6 +91,26 @@ PAGING_EMPTY = {
     "has_previous": False,
 }
 
+TRAIT_PAYLOAD = {
+    "id": "tr-123",
+    "name": "openness",
+    "namespace": "SYSTEM",
+    "owner_id": None,
+    "category": "personality",
+    "display_name": "Openness",
+    "description": "Openness to experience",
+    "type": "NUMERIC",
+    "numeric_config": {"min": 0.0, "max": 1.0, "default": 0.5},
+    "categorical_config": None,
+    "multilabel_config": None,
+    "default_lock": None,
+    "default_learning_rate": 0.1,
+    "supports_dyadic": False,
+    "visibility": "PUBLIC",
+    "created_at": "2024-01-01T00:00:00Z",
+    "updated_at": "2024-01-01T00:00:00Z",
+}
+
 ERROR_ENVELOPE = {
     "error": {
         "type": "https://example.com/not-found",
@@ -108,29 +129,19 @@ ERROR_ENVELOPE = {
 
 class TestChatSend:
     @pytest.fixture
-    def config(self) -> ConfigSchema:
-        return ConfigSchema(
-            fast_model_id="gpt-4",
-            smart_model_ids=["gpt-4"],
-            compute_power=50,
-        )
-
-    @pytest.fixture
     def chat_response(self) -> dict[str, Any]:
         return {
             "content": {
                 "message_id": "msg-1",
-                "task_id": "t-1",
                 "content": "Hi!",
                 "reply_to": None,
             }
         }
 
-    def test_sends_correct_request(
+    async def test_sends_correct_request(
         self,
         client: MagickMind,
         mock_auth: HTTPXMock,
-        config: ConfigSchema,
         chat_response: dict[str, Any],
     ):
         mock_auth.add_response(
@@ -139,12 +150,14 @@ class TestChatSend:
             json=chat_response,
         )
 
-        client.chat.send(
+        await client.chat.send(
             api_key="sk-test",
             mindspace_id="ms-1",
             message="Hello",
             enduser_id="u-1",
-            config=config,
+            fast_model_id="gpt-4",
+            smart_model_ids=["gpt-4"],
+            compute_power=50,
         )
 
         request = mock_auth.get_requests()[-1]
@@ -158,11 +171,10 @@ class TestChatSend:
         assert body["enduser_id"] == "u-1"
         assert body["config"]["fast_model_id"] == "gpt-4"
 
-    def test_includes_optional_params(
+    async def test_includes_optional_params(
         self,
         client: MagickMind,
         mock_auth: HTTPXMock,
-        config: ConfigSchema,
         chat_response: dict[str, Any],
     ):
         mock_auth.add_response(
@@ -171,12 +183,13 @@ class TestChatSend:
             json=chat_response,
         )
 
-        client.chat.send(
+        await client.chat.send(
             api_key="sk-test",
             mindspace_id="ms-1",
             message="Reply",
             enduser_id="u-1",
-            config=config,
+            fast_model_id="gpt-4",
+            smart_model_ids=["gpt-4"],
             reply_to_message_id="msg-0",
             additional_context="Some context",
             artifact_ids=["art-1", "art-2"],
@@ -187,11 +200,10 @@ class TestChatSend:
         assert body["additional_context"] == "Some context"
         assert body["artifact_ids"] == ["art-1", "art-2"]
 
-    def test_deserializes_response(
+    async def test_deserializes_response(
         self,
         client: MagickMind,
         mock_auth: HTTPXMock,
-        config: ConfigSchema,
         chat_response: dict[str, Any],
     ):
         mock_auth.add_response(
@@ -202,25 +214,53 @@ class TestChatSend:
 
         from magick_mind.models.v1.chat import ChatSendResponse
 
-        result = client.chat.send(
+        result = await client.chat.send(
             api_key="sk-test",
             mindspace_id="ms-1",
             message="Hello",
             enduser_id="u-1",
-            config=config,
+            fast_model_id="gpt-4",
+            smart_model_ids=["gpt-4"],
         )
 
         assert isinstance(result, ChatSendResponse)
         assert result.content is not None
         assert result.content.message_id == "msg-1"
-        assert result.content.task_id == "t-1"
         assert result.content.content == "Hi!"
 
-    def test_404_raises_problem_details(
+    async def test_config_override_takes_precedence(
         self,
         client: MagickMind,
         mock_auth: HTTPXMock,
-        config: ConfigSchema,
+        chat_response: dict[str, Any],
+    ):
+        """Passing config= directly overrides flat model params (backward compat)."""
+        mock_auth.add_response(
+            url=f"{BASE_URL}/v1/chat/magickmind",
+            method="POST",
+            json=chat_response,
+        )
+
+        await client.chat.send(
+            api_key="sk-test",
+            mindspace_id="ms-1",
+            message="Hello",
+            enduser_id="u-1",
+            config=ConfigSchema(
+                fast_model_id="gpt-4-override",
+                smart_model_ids=["gpt-4-override"],
+                compute_power=99,
+            ),
+        )
+
+        body = json.loads(mock_auth.get_requests()[-1].content)
+        assert body["config"]["fast_model_id"] == "gpt-4-override"
+        assert body["config"]["compute_power"] == 99
+
+    async def test_404_raises_problem_details(
+        self,
+        client: MagickMind,
+        mock_auth: HTTPXMock,
     ):
         mock_auth.add_response(
             url=f"{BASE_URL}/v1/chat/magickmind",
@@ -230,12 +270,13 @@ class TestChatSend:
         )
 
         with pytest.raises(ProblemDetailsException) as exc_info:
-            client.chat.send(
+            await client.chat.send(
                 api_key="sk-test",
                 mindspace_id="ms-1",
                 message="Hello",
                 enduser_id="u-1",
-                config=config,
+                fast_model_id="gpt-4",
+                smart_model_ids=["gpt-4"],
             )
 
         exc = exc_info.value
@@ -243,11 +284,10 @@ class TestChatSend:
         assert exc.title == "Not Found"
         assert exc.request_id == "req-abc123"
 
-    def test_429_raises_rate_limit(
+    async def test_429_raises_rate_limit(
         self,
         client: MagickMind,
         mock_auth: HTTPXMock,
-        config: ConfigSchema,
     ):
         mock_auth.add_response(
             url=f"{BASE_URL}/v1/chat/magickmind",
@@ -265,12 +305,13 @@ class TestChatSend:
         )
 
         with pytest.raises(RateLimitError):
-            client.chat.send(
+            await client.chat.send(
                 api_key="sk-test",
                 mindspace_id="ms-1",
                 message="Hello",
                 enduser_id="u-1",
-                config=config,
+                fast_model_id="gpt-4",
+                smart_model_ids=["gpt-4"],
             )
 
 
@@ -280,7 +321,7 @@ class TestChatSend:
 
 
 class TestMindspace:
-    def test_create_sends_correct_request(
+    async def test_create_sends_correct_request(
         self,
         client: MagickMind,
         mock_auth: HTTPXMock,
@@ -291,7 +332,7 @@ class TestMindspace:
             json=MINDSPACE_PAYLOAD,
         )
 
-        client.mindspace.create(
+        await client.mindspace.create(
             name="Test Space",
             type="PRIVATE",
             description="test",
@@ -308,7 +349,7 @@ class TestMindspace:
         assert body["description"] == "test"
         assert body["project_id"] == "proj-1"
 
-    def test_create_returns_mindspace(
+    async def test_create_returns_mindspace(
         self,
         client: MagickMind,
         mock_auth: HTTPXMock,
@@ -319,7 +360,7 @@ class TestMindspace:
             json=MINDSPACE_PAYLOAD,
         )
 
-        result = client.mindspace.create(name="Test Space", type="PRIVATE")
+        result = await client.mindspace.create(name="Test Space", type="PRIVATE")
 
         assert isinstance(result, MindSpace)
         assert result.id == "ms-123"
@@ -327,7 +368,7 @@ class TestMindspace:
         assert result.type == "PRIVATE"
         assert result.project_id == "proj-1"
 
-    def test_get_returns_mindspace(
+    async def test_get_returns_mindspace(
         self,
         client: MagickMind,
         mock_auth: HTTPXMock,
@@ -338,7 +379,7 @@ class TestMindspace:
             json=MINDSPACE_PAYLOAD,
         )
 
-        result = client.mindspace.get("ms-123")
+        result = await client.mindspace.get("ms-123")
 
         assert isinstance(result, MindSpace)
         assert result.id == "ms-123"
@@ -347,7 +388,7 @@ class TestMindspace:
         assert request.method == "GET"
         assert str(request.url).endswith("/v1/mindspaces/ms-123")
 
-    def test_list_returns_response(
+    async def test_list_returns_response(
         self,
         client: MagickMind,
         mock_auth: HTTPXMock,
@@ -361,7 +402,7 @@ class TestMindspace:
             },
         )
 
-        result = client.mindspace.list(participant_id="user-1")
+        result = await client.mindspace.list(participant_id="user-1")
 
         assert isinstance(result, GetMindSpaceListResponse)
         assert len(result.data) == 1
@@ -372,7 +413,7 @@ class TestMindspace:
         assert "/v1/mindspaces" in str(request.url)
         assert "participant_id=user-1" in str(request.url)
 
-    def test_update_sends_put(
+    async def test_update_sends_put(
         self,
         client: MagickMind,
         mock_auth: HTTPXMock,
@@ -384,7 +425,7 @@ class TestMindspace:
             json=updated,
         )
 
-        result = client.mindspace.update(
+        result = await client.mindspace.update(
             mindspace_id="ms-123",
             name="Updated Space",
         )
@@ -399,7 +440,7 @@ class TestMindspace:
         body = json.loads(request.content)
         assert body["name"] == "Updated Space"
 
-    def test_delete_sends_delete(
+    async def test_delete_sends_delete(
         self,
         client: MagickMind,
         mock_auth: HTTPXMock,
@@ -410,13 +451,13 @@ class TestMindspace:
             json={},
         )
 
-        client.mindspace.delete("ms-123")
+        await client.mindspace.delete("ms-123")
 
         request = mock_auth.get_requests()[-1]
         assert request.method == "DELETE"
         assert str(request.url).endswith("/v1/mindspaces/ms-123")
 
-    def test_get_messages(
+    async def test_get_messages(
         self,
         client: MagickMind,
         mock_auth: HTTPXMock,
@@ -427,7 +468,7 @@ class TestMindspace:
             json=HISTORY_PAYLOAD,
         )
 
-        result = client.mindspace.get_messages(mindspace_id="ms-1", limit=20)
+        result = await client.mindspace.get_messages(mindspace_id="ms-1", limit=20)
 
         assert isinstance(result, MindspaceMessagesResponse)
         assert len(result.data) == 1
@@ -446,7 +487,7 @@ class TestMindspace:
 
 
 class TestProject:
-    def test_create(
+    async def test_create(
         self,
         client: MagickMind,
         mock_auth: HTTPXMock,
@@ -457,7 +498,7 @@ class TestProject:
             json=PROJECT_PAYLOAD,
         )
 
-        result = client.v1.project.create(
+        result = await client.v1.project.create(
             name="Test Project",
             description="test",
         )
@@ -475,7 +516,7 @@ class TestProject:
         assert body["name"] == "Test Project"
         assert body["description"] == "test"
 
-    def test_get(
+    async def test_get(
         self,
         client: MagickMind,
         mock_auth: HTTPXMock,
@@ -486,7 +527,7 @@ class TestProject:
             json=PROJECT_PAYLOAD,
         )
 
-        result = client.v1.project.get("proj-123")
+        result = await client.v1.project.get("proj-123")
 
         assert isinstance(result, Project)
         assert result.id == "proj-123"
@@ -496,7 +537,7 @@ class TestProject:
         assert request.method == "GET"
         assert str(request.url).endswith("/v1/projects/proj-123")
 
-    def test_list(
+    async def test_list(
         self,
         client: MagickMind,
         mock_auth: HTTPXMock,
@@ -510,14 +551,14 @@ class TestProject:
             },
         )
 
-        result = client.v1.project.list()
+        result = await client.v1.project.list()
 
         assert isinstance(result, list)
         assert len(result) == 1
         assert isinstance(result[0], Project)
         assert result[0].id == "proj-123"
 
-    def test_delete(
+    async def test_delete(
         self,
         client: MagickMind,
         mock_auth: HTTPXMock,
@@ -528,7 +569,7 @@ class TestProject:
             json={},
         )
 
-        client.v1.project.delete("proj-123")
+        await client.v1.project.delete("proj-123")
 
         request = mock_auth.get_requests()[-1]
         assert request.method == "DELETE"
@@ -541,7 +582,7 @@ class TestProject:
 
 
 class TestEndUser:
-    def test_create(
+    async def test_create(
         self,
         client: MagickMind,
         mock_auth: HTTPXMock,
@@ -552,10 +593,8 @@ class TestEndUser:
             json=END_USER_PAYLOAD,
         )
 
-        result = client.v1.end_user.create(
+        result = await client.v1.end_user.create(
             name="John Doe",
-            tenant_id="t-1",
-            actor_id="a-1",
             external_id="ext-123",
         )
 
@@ -563,7 +602,6 @@ class TestEndUser:
         assert result.id == "eu-123"
         assert result.name == "John Doe"
         assert result.external_id == "ext-123"
-        assert result.tenant_id == "t-1"
 
         request = mock_auth.get_requests()[-1]
         assert request.method == "POST"
@@ -571,11 +609,9 @@ class TestEndUser:
 
         body = json.loads(request.content)
         assert body["name"] == "John Doe"
-        assert body["tenant_id"] == "t-1"
-        assert body["actor_id"] == "a-1"
         assert body["external_id"] == "ext-123"
 
-    def test_get(
+    async def test_get(
         self,
         client: MagickMind,
         mock_auth: HTTPXMock,
@@ -586,7 +622,7 @@ class TestEndUser:
             json=END_USER_PAYLOAD,
         )
 
-        result = client.v1.end_user.get("eu-123")
+        result = await client.v1.end_user.get("eu-123")
 
         assert isinstance(result, EndUser)
         assert result.id == "eu-123"
@@ -596,7 +632,7 @@ class TestEndUser:
         assert request.method == "GET"
         assert str(request.url).endswith("/v1/end-users/eu-123")
 
-    def test_query(
+    async def test_query(
         self,
         client: MagickMind,
         mock_auth: HTTPXMock,
@@ -610,7 +646,7 @@ class TestEndUser:
             },
         )
 
-        result = client.v1.end_user.query(tenant_id="t-1")
+        result = await client.v1.end_user.query(name="John")
 
         assert isinstance(result, list)
         assert len(result) == 1
@@ -619,9 +655,9 @@ class TestEndUser:
 
         request = mock_auth.get_requests()[-1]
         assert "/v1/end-users" in str(request.url)
-        assert "tenant_id=t-1" in str(request.url)
+        assert "name=John" in str(request.url)
 
-    def test_delete(
+    async def test_delete(
         self,
         client: MagickMind,
         mock_auth: HTTPXMock,
@@ -632,11 +668,196 @@ class TestEndUser:
             json={},
         )
 
-        client.v1.end_user.delete("eu-123")
+        await client.v1.end_user.delete("eu-123")
 
         request = mock_auth.get_requests()[-1]
         assert request.method == "DELETE"
         assert str(request.url).endswith("/v1/end-users/eu-123")
+
+
+# ---------------------------------------------------------------------------
+# TestTrait
+# ---------------------------------------------------------------------------
+
+
+class TestTrait:
+    async def test_create(
+        self,
+        client: MagickMind,
+        mock_auth: HTTPXMock,
+    ):
+        mock_auth.add_response(
+            url=f"{BASE_URL}/v1/traits",
+            method="POST",
+            json=TRAIT_PAYLOAD,
+        )
+
+        result = await client.v1.trait.create(
+            name="openness",
+            namespace="SYSTEM",
+            category="personality",
+            display_name="Openness",
+            type="NUMERIC",
+            visibility="PUBLIC",
+            description="Openness to experience",
+        )
+
+        assert isinstance(result, Trait)
+        assert result.id == "tr-123"
+        assert result.name == "openness"
+        assert result.namespace == "SYSTEM"
+        assert result.category == "personality"
+        assert result.display_name == "Openness"
+        assert result.type == "NUMERIC"
+        assert result.visibility == "PUBLIC"
+        assert result.numeric_config is not None
+        assert result.numeric_config.min == 0.0
+        assert result.numeric_config.max == 1.0
+
+        request = mock_auth.get_requests()[-1]
+        assert request.method == "POST"
+        assert str(request.url).endswith("/v1/traits")
+
+        body = json.loads(request.content)
+        assert body["name"] == "openness"
+        assert body["namespace"] == "SYSTEM"
+        assert body["category"] == "personality"
+        assert body["display_name"] == "Openness"
+        assert body["type"] == "NUMERIC"
+        assert body["visibility"] == "PUBLIC"
+        assert body["description"] == "Openness to experience"
+
+    async def test_get(
+        self,
+        client: MagickMind,
+        mock_auth: HTTPXMock,
+    ):
+        mock_auth.add_response(
+            url=f"{BASE_URL}/v1/traits/tr-123",
+            method="GET",
+            json=TRAIT_PAYLOAD,
+        )
+
+        result = await client.v1.trait.get("tr-123")
+
+        assert isinstance(result, Trait)
+        assert result.id == "tr-123"
+        assert result.name == "openness"
+
+        request = mock_auth.get_requests()[-1]
+        assert request.method == "GET"
+        assert str(request.url).endswith("/v1/traits/tr-123")
+
+    async def test_list(
+        self,
+        client: MagickMind,
+        mock_auth: HTTPXMock,
+    ):
+        mock_auth.add_response(
+            method="GET",
+            json={
+                "data": [TRAIT_PAYLOAD],
+                "paging": PAGING_EMPTY,
+            },
+        )
+
+        result = await client.v1.trait.list(limit=10, order="ASC")
+
+        assert isinstance(result, list)
+        assert len(result) == 1
+        assert isinstance(result[0], Trait)
+        assert result[0].id == "tr-123"
+
+        request = mock_auth.get_requests()[-1]
+        assert request.method == "GET"
+        assert "/v1/traits" in str(request.url)
+        assert "limit=10" in str(request.url)
+        assert "order=ASC" in str(request.url)
+
+    async def test_update(
+        self,
+        client: MagickMind,
+        mock_auth: HTTPXMock,
+    ):
+        mock_auth.add_response(
+            url=f"{BASE_URL}/v1/traits/tr-123",
+            method="PUT",
+            json=TRAIT_PAYLOAD,
+        )
+
+        result = await client.v1.trait.update(
+            trait_id="tr-123",
+            category="personality",
+            display_name="Openness Updated",
+            description="Updated description",
+            type="NUMERIC",
+            default_learning_rate=0.2,
+            supports_dyadic=True,
+            visibility="ORG",
+        )
+
+        assert isinstance(result, Trait)
+        assert result.id == "tr-123"
+
+        request = mock_auth.get_requests()[-1]
+        assert request.method == "PUT"
+        assert str(request.url).endswith("/v1/traits/tr-123")
+
+        body = json.loads(request.content)
+        assert body["category"] == "personality"
+        assert body["display_name"] == "Openness Updated"
+        assert body["description"] == "Updated description"
+        assert body["type"] == "NUMERIC"
+        assert body["default_learning_rate"] == 0.2
+        assert body["supports_dyadic"] is True
+        assert body["visibility"] == "ORG"
+
+    async def test_patch(
+        self,
+        client: MagickMind,
+        mock_auth: HTTPXMock,
+    ):
+        mock_auth.add_response(
+            url=f"{BASE_URL}/v1/traits/tr-123",
+            method="PATCH",
+            json=TRAIT_PAYLOAD,
+        )
+
+        result = await client.v1.trait.patch(
+            trait_id="tr-123",
+            display_name="Openness Patched",
+            visibility="PUBLIC",
+        )
+
+        assert isinstance(result, Trait)
+        assert result.id == "tr-123"
+
+        request = mock_auth.get_requests()[-1]
+        assert request.method == "PATCH"
+        assert str(request.url).endswith("/v1/traits/tr-123")
+
+        body = json.loads(request.content)
+        assert body["display_name"] == "Openness Patched"
+        assert body["visibility"] == "PUBLIC"
+        # Fields not passed should not be in the body (exclude_none)
+        assert "category" not in body
+
+    async def test_delete(
+        self,
+        client: MagickMind,
+        mock_auth: HTTPXMock,
+    ):
+        mock_auth.add_response(
+            url=f"{BASE_URL}/v1/traits/tr-123",
+            method="DELETE",
+            json={},
+        )
+
+        await client.v1.trait.delete("tr-123")
+
+        request = mock_auth.get_requests()[-1]
+        assert request.method == "DELETE"
+        assert str(request.url).endswith("/v1/traits/tr-123")
 
 
 # ---------------------------------------------------------------------------
@@ -645,7 +866,7 @@ class TestEndUser:
 
 
 class TestHistory:
-    def test_get_messages(
+    async def test_get_messages(
         self,
         client: MagickMind,
         mock_auth: HTTPXMock,
@@ -656,7 +877,7 @@ class TestHistory:
             json=HISTORY_PAYLOAD,
         )
 
-        result = client.v1.history.get_messages(mindspace_id="ms-1", limit=10)
+        result = await client.v1.history.get_messages(mindspace_id="ms-1", limit=10)
 
         assert isinstance(result, HistoryResponse)
         assert len(result.data) == 1
@@ -670,7 +891,7 @@ class TestHistory:
         assert "mindspace_id=ms-1" in str(request.url)
         assert "limit=10" in str(request.url)
 
-    def test_get_messages_with_after_id(
+    async def test_get_messages_with_after_id(
         self,
         client: MagickMind,
         mock_auth: HTTPXMock,
@@ -688,7 +909,7 @@ class TestHistory:
             },
         )
 
-        result = client.v1.history.get_messages(
+        result = await client.v1.history.get_messages(
             mindspace_id="ms-1", after_id="msg-5", limit=10
         )
 

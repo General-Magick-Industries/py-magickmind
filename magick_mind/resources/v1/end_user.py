@@ -27,11 +27,9 @@ class EndUserResourceV1(BaseResource):
     platform in a multi-tenant architecture.
     """
 
-    def create(
+    async def create(
         self,
         name: str,
-        tenant_id: str,
-        actor_id: str,
         external_id: Optional[str] = None,
     ) -> EndUser:
         """
@@ -39,33 +37,27 @@ class EndUserResourceV1(BaseResource):
 
         Args:
             name: End user name (required)
-            tenant_id: Tenant ID this end user belongs to (required)
-            actor_id: Actor ID performing the action (required)
             external_id: Optional external ID for mapping to external systems
 
         Returns:
             Created EndUser object
 
         Example:
-            end_user = client.v1.end_user.create(
+            end_user = await client.v1.end_user.create(
                 name="John Doe",
-                tenant_id="tenant-123",
-                actor_id="user-456",
                 external_id="ext-789"
             )
             print(f"Created end user: {end_user.id}")
         """
         request = CreateEndUserRequest(
             name=name,
-            tenant_id=tenant_id,
-            actor_id=actor_id,
             external_id=external_id,
         )
 
-        response = self._http.post(Routes.END_USERS, json=request.model_dump())
+        response = await self._http.post(Routes.END_USERS, json=request.model_dump())
         return EndUser(**response)
 
-    def get(self, end_user_id: str) -> EndUser:
+    async def get(self, end_user_id: str) -> EndUser:
         """
         Get an end user by ID.
 
@@ -76,18 +68,19 @@ class EndUserResourceV1(BaseResource):
             EndUser object
 
         Example:
-            end_user = client.v1.end_user.get(end_user_id="user-123")
+            end_user = await client.v1.end_user.get(end_user_id="user-123")
             print(f"End user name: {end_user.name}")
         """
-        response = self._http.get(Routes.end_user(end_user_id))
+        response = await self._http.get(Routes.end_user(end_user_id))
         return EndUser(**response)
 
-    def query(
+    async def query(
         self,
         name: Optional[str] = None,
         external_id: Optional[str] = None,
-        tenant_id: Optional[str] = None,
-        actor_id: Optional[str] = None,
+        cursor: Optional[str] = None,
+        limit: Optional[int] = None,
+        order: Optional[str] = None,
     ) -> list[EndUser]:
         """
         Query end users with optional filters.
@@ -98,41 +91,43 @@ class EndUserResourceV1(BaseResource):
         Args:
             name: Filter by end user name (optional)
             external_id: Filter by external ID (optional)
-            tenant_id: Filter by tenant ID (optional)
-            actor_id: Filter by actor ID (optional)
+            cursor: Pagination cursor (optional)
+            limit: Maximum number of results to return (optional)
+            order: Sort order (optional)
 
         Returns:
             List of EndUser objects matching the query
 
         Example:
-            # Get all end users for a tenant
-            end_users = client.v1.end_user.query(tenant_id="tenant-123")
+            # Search by name
+            end_users = await client.v1.end_user.query(name="John")
             for user in end_users:
                 print(f"- {user.name}")
 
             # Search by external ID
-            user = client.v1.end_user.query(external_id="ext-789")
+            user = await client.v1.end_user.query(external_id="ext-789")
         """
         params = {}
         if name is not None:
             params["name"] = name
         if external_id is not None:
             params["external_id"] = external_id
-        if tenant_id is not None:
-            params["tenant_id"] = tenant_id
-        if actor_id is not None:
-            params["actor_id"] = actor_id
+        if cursor is not None:
+            params["cursor"] = cursor
+        if limit is not None:
+            params["limit"] = limit
+        if order is not None:
+            params["order"] = order
 
-        response = self._http.get(Routes.END_USERS, params=params)
+        response = await self._http.get(Routes.END_USERS, params=params)
         query_response = QueryEndUserResponse(**response)
         return query_response.data
 
-    def update(
+    async def update(
         self,
         end_user_id: str,
         name: Optional[str] = None,
         external_id: Optional[str] = None,
-        tenant_id: Optional[str] = None,
     ) -> EndUser:
         """
         Update an existing end user.
@@ -143,13 +138,12 @@ class EndUserResourceV1(BaseResource):
             end_user_id: The end user ID to update
             name: New end user name (optional)
             external_id: New external ID (optional)
-            tenant_id: New tenant ID (optional)
 
         Returns:
             Updated EndUser object
 
         Example:
-            updated = client.v1.end_user.update(
+            updated = await client.v1.end_user.update(
                 end_user_id="user-123",
                 name="Jane Doe",
                 external_id="new-ext-id"
@@ -159,15 +153,14 @@ class EndUserResourceV1(BaseResource):
         request = UpdateEndUserRequest(
             name=name,
             external_id=external_id,
-            tenant_id=tenant_id,
         )
 
-        response = self._http.put(
+        response = await self._http.put(
             Routes.end_user(end_user_id), json=request.model_dump(exclude_none=True)
         )
         return EndUser(**response)
 
-    def delete(self, end_user_id: str) -> None:
+    async def delete(self, end_user_id: str) -> None:
         """
         Delete an end user.
 
@@ -175,7 +168,7 @@ class EndUserResourceV1(BaseResource):
             end_user_id: The end user ID to delete
 
         Example:
-            client.v1.end_user.delete(end_user_id="user-123")
+            await client.v1.end_user.delete(end_user_id="user-123")
             print("End user deleted successfully")
         """
-        self._http.delete(Routes.end_user(end_user_id))
+        await self._http.delete(Routes.end_user(end_user_id))
