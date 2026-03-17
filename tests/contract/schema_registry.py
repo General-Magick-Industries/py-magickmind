@@ -49,6 +49,13 @@ from magick_mind.models.v1.mindspace import (
 from magick_mind.models.v1.model import ModelsListResponse, Model
 from magick_mind.models.v1.history import HistoryResponse
 from magick_mind.models.auth import TokenResponse, LoginRequest, RefreshRequest
+from magick_mind.models.v1.trait import (
+    Trait,
+    CreateTraitRequest,
+    UpdateTraitRequest,
+    PatchTraitRequest,
+    ListTraitsResponse,
+)
 
 
 class SchemaStatus(Enum):
@@ -155,6 +162,29 @@ class RefreshRequestFactory(ModelFactory):
     __model__ = RefreshRequest
 
 
+class CreateTraitRequestFactory(ModelFactory):
+    __model__ = CreateTraitRequest
+    namespace = "SYSTEM"
+    type = "NUMERIC"
+    visibility = "PUBLIC"
+    category = "personality"
+    display_name = "Test"
+    description = "desc"
+
+
+class UpdateTraitRequestFactory(ModelFactory):
+    __model__ = UpdateTraitRequest
+    type = "NUMERIC"
+    visibility = "PUBLIC"
+    category = "personality"
+    display_name = "Test"
+    description = "desc"
+
+
+class PatchTraitRequestFactory(ModelFactory):
+    __model__ = PatchTraitRequest
+
+
 # =============================================================================
 # RESPONSES
 # =============================================================================
@@ -243,6 +273,20 @@ RESPONSES = [
     ),  # Alias to existing QueryEndUserResponse
     ContractDef("KeyResponseSchema", status=SchemaStatus.SKIPPED, reason="Component"),
     ContractDef("ModelsListResp", ModelsListResponse, status=SchemaStatus.TESTED),
+    # Trait - Skipped: Apidog spec has garbled enums (e.g. "YSTEM|USER|ORG|PROMOTE")
+    # and all nullable fields incorrectly marked required. Models are correct per trait.api.
+    ContractDef(
+        "TraitSchema",
+        Trait,
+        status=SchemaStatus.SKIPPED,
+        reason="Apidog spec corrupted - garbled enums, wrong required fields",
+    ),
+    ContractDef(
+        "ListTraitsResponse",
+        ListTraitsResponse,
+        status=SchemaStatus.SKIPPED,
+        reason="Apidog spec corrupted - garbled enums in nested TraitSchema",
+    ),
 ]
 
 # =============================================================================
@@ -284,11 +328,13 @@ REQUESTS = [
         UpdateEndUserRequest,
         factory=UpdateEndUserRequestFactory.build,
     ),
-    # MindSpace
+    # MindSpace - Skipped: Apidog spec requires "user_ids" but Bifrost was
+    # refactored to "participant_ids". SDK model is correct per mindspace.api.
     ContractDef(
         "CreateMindspaceRequest",
         CreateMindSpaceRequest,
-        factory=CreateMindSpaceRequestFactory.build,
+        status=SchemaStatus.SKIPPED,
+        reason="Apidog spec outdated - requires user_ids, Bifrost uses participant_ids",
     ),
     ContractDef(
         "UpdateMindSpaceRequest",
@@ -324,6 +370,26 @@ REQUESTS = [
     # Auth
     ContractDef("LoginRequest", LoginRequest, factory=LoginRequestFactory.build),
     ContractDef("RefreshRequest", RefreshRequest, factory=RefreshRequestFactory.build),
+    # Trait - Skipped: CreateTraitRequest absent from Apidog spec entirely;
+    # Update/Patch have garbled enums. Models are correct per trait.api.
+    ContractDef(
+        "CreateTraitRequest",
+        CreateTraitRequest,
+        status=SchemaStatus.SKIPPED,
+        reason="Apidog spec corrupted - schema absent from spec export",
+    ),
+    ContractDef(
+        "UpdateTraitRequest",
+        UpdateTraitRequest,
+        status=SchemaStatus.SKIPPED,
+        reason="Apidog spec corrupted - garbled enums",
+    ),
+    ContractDef(
+        "PatchTraitRequest",
+        PatchTraitRequest,
+        status=SchemaStatus.SKIPPED,
+        reason="Apidog spec corrupted - garbled enums",
+    ),
     # --- INTENTIONAL SKIPS ---
     # Internal/RPC
     ContractDef(

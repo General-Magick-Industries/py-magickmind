@@ -26,7 +26,7 @@ class ProjectResourceV1(BaseResource):
     Projects organize corpus and other resources for multi-tenant backends.
     """
 
-    def create(
+    async def create(
         self,
         name: str,
         description: str = "",
@@ -44,7 +44,7 @@ class ProjectResourceV1(BaseResource):
             Created Project object
 
         Example:
-            project = client.v1.project.create(
+            project = await client.v1.project.create(
                 name="My Agentic App",
                 description="An AI-powered assistant",
                 corpus_ids=["corpus-123"]
@@ -57,10 +57,10 @@ class ProjectResourceV1(BaseResource):
             corpus_ids=corpus_ids or [],
         )
 
-        response = self._http.post(Routes.PROJECTS, json=request.model_dump())
+        response = await self._http.post(Routes.PROJECTS, json=request.model_dump())
         return Project.model_validate(response)
 
-    def get(self, project_id: str) -> Project:
+    async def get(self, project_id: str) -> Project:
         """
         Get a project by ID.
 
@@ -71,13 +71,13 @@ class ProjectResourceV1(BaseResource):
             Project object
 
         Example:
-            project = client.v1.project.get(project_id="proj-123")
+            project = await client.v1.project.get(project_id="proj-123")
             print(f"Project name: {project.name}")
         """
-        response = self._http.get(Routes.project(project_id))
+        response = await self._http.get(Routes.project(project_id))
         return Project.model_validate(response)
 
-    def list(self, created_by_user_id: Optional[str] = None) -> list[Project]:
+    async def list(self, created_by_user_id: Optional[str] = None) -> list[Project]:
         """
         List projects, optionally filtered by creator user ID.
 
@@ -89,10 +89,10 @@ class ProjectResourceV1(BaseResource):
 
         Example:
             # List all accessible projects
-            projects = client.v1.project.list()
+            projects = await client.v1.project.list()
 
             # List projects created by specific user
-            user_projects = client.v1.project.list(created_by_user_id="user-123")
+            user_projects = await client.v1.project.list(created_by_user_id="user-123")
             for project in user_projects:
                 print(f"- {project.name}")
         """
@@ -100,11 +100,11 @@ class ProjectResourceV1(BaseResource):
         if created_by_user_id:
             params["user_id"] = created_by_user_id
 
-        response = self._http.get(Routes.PROJECTS, params=params)
+        response = await self._http.get(Routes.PROJECTS, params=params)
         list_response = GetProjectListResponse.model_validate(response)
         return [Project.model_validate(p) for p in list_response.data]
 
-    def update(
+    async def update(
         self,
         project_id: str,
         name: str,
@@ -124,7 +124,7 @@ class ProjectResourceV1(BaseResource):
             Updated Project object
 
         Example:
-            updated = client.v1.project.update(
+            updated = await client.v1.project.update(
                 project_id="proj-123",
                 name="Updated Name",
                 description="Updated description",
@@ -138,10 +138,12 @@ class ProjectResourceV1(BaseResource):
             corpus_ids=corpus_ids or [],
         )
 
-        response = self._http.put(Routes.project(project_id), json=request.model_dump())
+        response = await self._http.put(
+            Routes.project(project_id), json=request.model_dump()
+        )
         return Project(**response)
 
-    def delete(self, project_id: str) -> None:
+    async def delete(self, project_id: str) -> None:
         """
         Delete a project.
 
@@ -149,7 +151,7 @@ class ProjectResourceV1(BaseResource):
             project_id: The project ID to delete
 
         Example:
-            client.v1.project.delete(project_id="proj-123")
+            await client.v1.project.delete(project_id="proj-123")
             print("Project deleted successfully")
         """
-        self._http.delete(Routes.project(project_id))
+        await self._http.delete(Routes.project(project_id))

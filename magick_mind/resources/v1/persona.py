@@ -35,13 +35,13 @@ class PersonaResourceV1(BaseResource):
 
     Example:
         # Create a persona
-        persona = client.v1.persona.create(
+        persona = await client.v1.persona.create(
             name="Aria",
             role="assistant",
         )
 
         # Create from blueprint
-        result = client.v1.persona.create_from_blueprint(
+        result = await client.v1.persona.create_from_blueprint(
             blueprint_id="bp-123",
             name="Aria",
             role="assistant",
@@ -49,16 +49,16 @@ class PersonaResourceV1(BaseResource):
         print(result.persona.id, result.version.version)
 
         # Version management
-        version = client.v1.persona.create_version(
+        version = await client.v1.persona.create_version(
             persona_id="p-123",
             version="1.1",
         )
-        active = client.v1.persona.get_active_version("p-123")
+        active = await client.v1.persona.get_active_version("p-123")
     """
 
     # --- Base CRUD ---
 
-    def create(
+    async def create(
         self,
         name: str,
         role: str,
@@ -89,12 +89,12 @@ class PersonaResourceV1(BaseResource):
             tones=tones or [],
             background_story=background_story,
         )
-        response = self._http.post(
+        response = await self._http.post(
             Routes.PERSONAS, json=request.model_dump(exclude_none=True)
         )
         return Persona.model_validate(response)
 
-    def get(self, persona_id: str) -> Persona:
+    async def get(self, persona_id: str) -> Persona:
         """
         Get a persona by ID.
 
@@ -104,10 +104,10 @@ class PersonaResourceV1(BaseResource):
         Returns:
             Persona
         """
-        response = self._http.get(Routes.persona(persona_id))
+        response = await self._http.get(Routes.persona(persona_id))
         return Persona.model_validate(response)
 
-    def update(
+    async def update(
         self,
         persona_id: str,
         name: str,
@@ -140,22 +140,22 @@ class PersonaResourceV1(BaseResource):
             tones=tones or [],
             background_story=background_story,
         )
-        response = self._http.put(
+        response = await self._http.put(
             Routes.persona(persona_id),
             json=request.model_dump(exclude_none=True),
         )
         return Persona.model_validate(response)
 
-    def delete(self, persona_id: str) -> None:
+    async def delete(self, persona_id: str) -> None:
         """
         Delete a persona.
 
         Args:
             persona_id: Persona ID
         """
-        self._http.delete(Routes.persona(persona_id))
+        await self._http.delete(Routes.persona(persona_id))
 
-    def create_from_blueprint(
+    async def create_from_blueprint(
         self,
         blueprint_id: str,
         name: str,
@@ -198,7 +198,7 @@ class PersonaResourceV1(BaseResource):
             growth_override=growth_override,
             dyadic_override=dyadic_override,
         )
-        response = self._http.post(
+        response = await self._http.post(
             Routes.PERSONA_FROM_BLUEPRINT,
             json=request.model_dump(exclude_none=True),
         )
@@ -206,7 +206,7 @@ class PersonaResourceV1(BaseResource):
 
     # --- Versioning ---
 
-    def create_version(
+    async def create_version(
         self,
         persona_id: str,
         version: str,
@@ -233,13 +233,13 @@ class PersonaResourceV1(BaseResource):
             growth=growth,
             dyadic=dyadic,
         )
-        response = self._http.post(
+        response = await self._http.post(
             Routes.persona_versions(persona_id),
             json=request.model_dump(exclude_none=True),
         )
         return PersonaVersion.model_validate(response)
 
-    def list_versions(
+    async def list_versions(
         self,
         persona_id: str,
         cursor: Optional[str] = None,
@@ -262,13 +262,13 @@ class PersonaResourceV1(BaseResource):
         if limit is not None:
             params["limit"] = limit
 
-        response = self._http.get(
+        response = await self._http.get(
             Routes.persona_versions(persona_id),
             params=params if params else None,
         )
         return ListPersonaVersionsResponse.model_validate(response)
 
-    def get_version(self, persona_id: str, version: str) -> PersonaVersion:
+    async def get_version(self, persona_id: str, version: str) -> PersonaVersion:
         """
         Get a specific version by version string.
 
@@ -279,10 +279,10 @@ class PersonaResourceV1(BaseResource):
         Returns:
             PersonaVersion
         """
-        response = self._http.get(Routes.persona_version(persona_id, version))
+        response = await self._http.get(Routes.persona_version(persona_id, version))
         return PersonaVersion.model_validate(response)
 
-    def get_active_version(self, persona_id: str) -> PersonaVersion:
+    async def get_active_version(self, persona_id: str) -> PersonaVersion:
         """
         Get the currently active version.
 
@@ -292,10 +292,10 @@ class PersonaResourceV1(BaseResource):
         Returns:
             PersonaVersion (the active one)
         """
-        response = self._http.get(Routes.persona_active_version(persona_id))
+        response = await self._http.get(Routes.persona_active_version(persona_id))
         return PersonaVersion.model_validate(response)
 
-    def set_active_version(self, persona_id: str, version: str) -> PersonaVersion:
+    async def set_active_version(self, persona_id: str, version: str) -> PersonaVersion:
         """
         Set a version as active.
 
@@ -307,7 +307,7 @@ class PersonaResourceV1(BaseResource):
             PersonaVersion
         """
         request = SetActiveVersionRequest(version=version)
-        response = self._http.put(
+        response = await self._http.put(
             Routes.persona_active_version(persona_id),
             json=request.model_dump(),
         )

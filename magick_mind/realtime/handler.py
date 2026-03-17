@@ -1,122 +1,114 @@
 """
-High-level event handler for Magick Mind Realtime Client.
-Abstracts away Centrifugo channel parsing details.
+Decorator-based event router for Centrifugo realtime publications.
+
+Usage:
+    router = EventRouter()
+
+    @router.on("chat_message")
+    async def handle_chat(event: ChatMessageEvent):
+        print(event.payload.message)
+
+    @router.on("image_generation")
+    async def handle_image(event: ImageGenerationEvent):
+        print(event.payload.data)
+
+    # Catch-all for unregistered event types
+    @router.on_unknown
+    async def handle_unknown(event: UnknownEvent):
+        logger.warning(f"Unhandled event type: {event.type}")
 """
 
-import logging
-from typing import Any, Optional
+from __future__ import annotations
 
-from centrifuge import (
-    ClientEventHandler,
-    ServerPublicationContext,
-    ServerSubscribedContext,
-    ServerSubscribingContext,
-    ServerUnsubscribedContext,
-    ConnectedContext,
-)
+import logging
+from collections.abc import Awaitable, Callable
+from typing import Any
+
+from centrifuge import ClientEventHandler, ServerPublicationContext
+
+from magick_mind.realtime.events import UnknownEvent, parse_ws_event
 
 logger = logging.getLogger(__name__)
 
 
-class RealtimeEventHandler(ClientEventHandler):
+# Type alias for event handler callbacks
+EventCallback = Callable[..., Awaitable[None]]
+
+
+class EventRouter(ClientEventHandler):
     """
-    Abstract base class for handling Realtime SDK events.
+    Routes Centrifugo publications to registered async callbacks by event type.
 
-    Subclass this and override `on_message` to handle incoming user updates.
-    The SDK handles channel parsing and data extraction for you.
+    Integrates with centrifuge-python's ClientEventHandler so it can be passed
+    directly to RealtimeClient.connect().
     """
 
-    async def on_connected(self, ctx: ConnectedContext) -> None:
-        """Called when connected to the Realtime Gateway."""
-        logger.info(f"✅ Connected to Realtime Gateway (Client ID: {ctx.client})")
+    def __init__(self) -> None:
+        self._handlers: dict[str, EventCallback] = {}
+        self._unknown_handler: EventCallback | None = None
 
-    async def on_subscribed(self, ctx: ServerSubscribedContext) -> None:
-        """Called when server-side subscription is established."""
-        logger.info(f"✅ Server-side subscribed to channel: {ctx.channel}")
-
-    async def on_subscribing(self, ctx: ServerSubscribingContext) -> None:
-        """Called when server-side subscription is in progress."""
-        logger.debug(f"Subscribing to server-side channel: {ctx.channel}")
-
-    async def on_unsubscribed(self, ctx: ServerUnsubscribedContext) -> None:
-        """Called when unsubscribed from server-side subscription."""
-        logger.info(f"Unsubscribed from server-side channel: {ctx.channel}")
-
-    async def on_message(self, user_id: str, payload: Any) -> None:
+    def on(self, event_type: str) -> Callable[[EventCallback], EventCallback]:
         """
-        Called when a message is received for a specific user.
+        Register a handler for a specific event type.
 
         Args:
-            user_id: The ID of the end-user this message is for.
-            payload: The message content (dict, string, etc).
-        """
-        pass
+            event_type: The WsEvent type string (e.g. "chat_message", "image_generation")
 
-    async def on_raw_message(self, channel: str, payload: Any) -> None:
+        Returns:
+            Decorator that registers the handler function.
         """
-        Called when a message is received but the user ID could not be parsed,
-        or for non-standard channels.
+
+        def decorator(fn: EventCallback) -> EventCallback:
+            self._handlers[event_type] = fn
+            return fn
+
+        return decorator
+
+    @property
+    def on_unknown(self) -> Callable[[EventCallback], EventCallback]:
         """
-        pass
+        Register a catch-all handler for unknown/unregistered event types.
+
+        Usage:
+            @router.on_unknown
+            async def handle_unknown(event: UnknownEvent):
+                ...
+        """
+
+        def decorator(fn: EventCallback) -> EventCallback:
+            self._unknown_handler = fn
+            return fn
+
+        return decorator
 
     async def on_publication(self, ctx: ServerPublicationContext) -> None:
         """
-        Internal handler. Parses channel context and dispatches to on_message.
+        Internal: called by centrifuge-python on each publication.
+        Parses raw data into typed event, dispatches to registered handler.
         """
-        logger.info(f"📨 Publication received on channel: {ctx.channel}")
+        data = getattr(ctx.pub, "data", None)
+        if data is None:
+            return
 
-        channel = self._extract_channel(ctx)
-        data = self._extract_data(ctx)
+        event = parse_ws_event(data)
+        handler = self._handlers.get(event.type)
 
-        logger.debug(f"Channel: {channel}, Data: {data}")
-
-        user_id = self._extract_user_id(channel)
-
-        if user_id:
-            await self.on_message(user_id, data)
+        if handler:
+            try:
+                await handler(event)
+            except Exception:
+                logger.exception(f"Error in handler for event type '{event.type}'")
+        elif self._unknown_handler:
+            try:
+                unknown = (
+                    event
+                    if isinstance(event, UnknownEvent)
+                    else UnknownEvent(type=event.type, payload=data.get("payload", {}))
+                )
+                await self._unknown_handler(unknown)
+            except Exception:
+                logger.exception(
+                    f"Error in unknown event handler for type '{event.type}'"
+                )
         else:
-            await self.on_raw_message(channel, data)
-
-    def _extract_channel(self, ctx: ServerPublicationContext) -> str:
-        """
-        Extract channel from context in a version-resilient way.
-        """
-        # Try direct attribute
-        ch = getattr(ctx, "channel", None)
-        if ch:
-            return ch
-
-        # Try inside pub object
-        pub = getattr(ctx, "pub", None)
-        if pub:
-            return getattr(pub, "channel", "")
-
-        return ""
-
-    def _extract_data(self, ctx: ServerPublicationContext) -> Any:
-        """
-        Extract data payload from context.
-        """
-        pub = getattr(ctx, "pub", None)
-        return getattr(pub, "data", None) if pub else None
-
-    def _extract_user_id(self, channel: str) -> Optional[str]:
-        """
-        Parse User ID from channel string.
-        Format confirmed as: personal:<target_user_id>#<service_user_id>
-        """
-        if not channel:
-            return None
-
-        # 1. Remove namespace (personal:)
-        if ":" in channel:
-            without_ns = channel.split(":", 1)[1]
-        else:
-            without_ns = channel
-
-        # 2. Extract first part before '#'
-        # "user_123#service_456" -> "user_123"
-        if "#" in without_ns:
-            return without_ns.split("#")[0]
-
-        return without_ns
+            logger.debug(f"No handler registered for event type: {event.type}")

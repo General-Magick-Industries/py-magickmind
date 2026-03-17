@@ -26,7 +26,6 @@ async def test_realtime_client_logic():
     # Initialize Client
     ws_url = "wss://api.bifrost.com/connection/websocket"
     rt = RealtimeClient(auth=mock_auth, ws_url=ws_url)
-    rt._events = MagicMock()
 
     # Mock the internal centrifuge client
     rt._client = MagicMock()

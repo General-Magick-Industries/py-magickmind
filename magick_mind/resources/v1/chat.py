@@ -21,27 +21,28 @@ class ChatResourceV1(BaseResource):
     Provides typed interface for sending chat messages to mindspaces.
 
     Example:
-        response = client.v1.chat.send(
+        response = await client.v1.chat.send(
             api_key="sk-...",
             mindspace_id="mind-123",
             message="Hello!",
             enduser_id="user-456",
-            config=ConfigSchema(
-                fast_model_id="gpt-4",
-                smart_model_ids=["gpt-4"],
-                compute_power=50,
-            ),
+            fast_model_id="gpt-4",
+            smart_model_ids=["gpt-4"],
+            compute_power=50,
         )
         print(response.content.content)  # AI response text
     """
 
-    def send(
+    async def send(
         self,
         api_key: str,
         mindspace_id: str,
         message: str,
         enduser_id: str,
-        config: ConfigSchema,
+        fast_model_id: str = "",
+        smart_model_ids: Optional[list[str]] = None,
+        compute_power: int = 0,
+        config: Optional[ConfigSchema] = None,
         reply_to_message_id: Optional[str] = None,
         additional_context: Optional[str] = None,
         artifact_ids: Optional[list[str]] = None,
@@ -54,7 +55,12 @@ class ChatResourceV1(BaseResource):
             mindspace_id: Mindspace/chat conversation ID
             message: User message text to send
             enduser_id: End-user identifier
-            config: Model configuration (fast_model_id, smart_model_ids, compute_power)
+            fast_model_id: Model ID for fast brain
+            smart_model_ids: Model IDs for smart brain
+            compute_power: Compute power setting (0-100), defaults to 0
+            config: Optional ConfigSchema override — if provided, used directly and
+                the flat model params (fast_model_id, smart_model_ids, compute_power)
+                are ignored. Useful for advanced callers who already have a ConfigSchema.
             reply_to_message_id: Optional ID of message being replied to
             additional_context: Optional additional context for the message
             artifact_ids: Optional list of artifact IDs to attach to message
@@ -70,49 +76,61 @@ class ChatResourceV1(BaseResource):
             AuthenticationError: If JWT token is invalid or expired (auto-refreshed transparently)
 
         Example:
-            # Basic chat with config
-            response = chat.send(
+            # Basic chat with flat params (preferred)
+            response = await chat.send(
                 api_key="sk-test",
                 mindspace_id="mind-123",
                 message="What's the weather?",
                 enduser_id="user-456",
-                config=ConfigSchema(
-                    fast_model_id="gpt-4",
-                    smart_model_ids=["gpt-4"],
-                ),
+                fast_model_id="gpt-4",
+                smart_model_ids=["gpt-4"],
             )
 
             # Chat with attached artifacts
-            response = chat.send(
+            response = await chat.send(
                 api_key="sk-test",
                 mindspace_id="mind-123",
                 message="Analyze these documents",
                 enduser_id="user-456",
-                config=ConfigSchema(
-                    fast_model_id="gpt-4",
-                    smart_model_ids=["gpt-4"],
-                    compute_power=80,
-                ),
+                fast_model_id="gpt-4",
+                smart_model_ids=["gpt-4"],
+                compute_power=80,
                 artifact_ids=["art-123", "art-456"],
+            )
+
+            # Advanced: pass a pre-built ConfigSchema directly
+            response = await chat.send(
+                api_key="sk-test",
+                mindspace_id="mind-123",
+                message="Hello",
+                enduser_id="user-456",
+                config=ConfigSchema(fast_model_id="gpt-4", smart_model_ids=["gpt-4"]),
             )
 
             print(f"AI: {response.content.content}")
             print(f"Message ID: {response.content.message_id}")
         """
+        # Resolve config: explicit override takes precedence over flat params
+        resolved_config = config or ConfigSchema(
+            fast_model_id=fast_model_id,
+            smart_model_ids=smart_model_ids or [],
+            compute_power=compute_power,
+        )
+
         # Build and validate request
         request = ChatSendRequest(
             api_key=api_key,
             mindspace_id=mindspace_id,
             message=message,
             enduser_id=enduser_id,
-            config=config,
+            config=resolved_config,
             reply_to_message_id=reply_to_message_id,
             additional_context=additional_context,
             artifact_ids=artifact_ids,
         )
 
         # Make API call
-        response = self._http.post(
+        response = await self._http.post(
             Routes.CHAT, json=request.model_dump(exclude_none=True)
         )
 

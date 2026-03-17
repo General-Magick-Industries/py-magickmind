@@ -39,7 +39,7 @@ class ArtifactResourceV1(BaseResource):
     4. Use get() or list() to retrieve artifact metadata
     """
 
-    def presign_upload(
+    async def presign_upload(
         self,
         file_name: str,
         content_type: str,
@@ -62,7 +62,7 @@ class ArtifactResourceV1(BaseResource):
 
         Example:
             # Get presigned URL
-            response = client.v1.artifact.presign_upload(
+            response = await client.v1.artifact.presign_upload(
                 file_name="document.pdf",
                 content_type="application/pdf",
                 size_bytes=1024000,
@@ -89,12 +89,12 @@ class ArtifactResourceV1(BaseResource):
         )
 
         # Use generic presign endpoint
-        response = self._http.post(
+        response = await self._http.post(
             Routes.ARTIFACTS_PRESIGN, json=request.model_dump(exclude_none=True)
         )
-        return PresignArtifactResponse(**response.json())
+        return PresignArtifactResponse(**response)
 
-    def upload_file(
+    async def upload_file(
         self,
         file_path: str,
         content_type: str,
@@ -119,7 +119,7 @@ class ArtifactResourceV1(BaseResource):
             Tuple of (PresignArtifactResponse, S3 upload response)
 
         Example:
-            presign_resp, upload_resp = client.v1.artifact.upload_file(
+            presign_resp, upload_resp = await client.v1.artifact.upload_file(
                 file_path="./document.pdf",
                 content_type="application/pdf",
                 corpus_id="corpus-123"
@@ -135,7 +135,7 @@ class ArtifactResourceV1(BaseResource):
         file_name = os.path.basename(file_path)
 
         # Get presigned URL
-        presign_response = self.presign_upload(
+        presign_response = await self.presign_upload(
             file_name=file_name,
             content_type=content_type,
             size_bytes=size_bytes,
@@ -144,17 +144,21 @@ class ArtifactResourceV1(BaseResource):
         )
 
         # Upload to S3 using httpx
+        if not presign_response.upload_url:
+            raise ValueError("Presign response missing upload_url")
         with open(file_path, "rb") as f:
-            upload_response = httpx.put(
+            file_data = f.read()
+        async with httpx.AsyncClient() as s3_client:
+            upload_response = await s3_client.put(
                 presign_response.upload_url,
-                content=f,
-                headers=presign_response.required_headers,
+                content=file_data,
+                headers={"Content-Type": content_type},
             )
 
         upload_response.raise_for_status()
         return presign_response, upload_response
 
-    def get(self, artifact_id: str) -> Artifact:
+    async def get(self, artifact_id: str) -> Artifact:
         """
         Get artifact metadata by ID.
 
@@ -165,15 +169,15 @@ class ArtifactResourceV1(BaseResource):
             Artifact object with metadata
 
         Example:
-            artifact = client.v1.artifact.get(artifact_id="art-123")
+            artifact = await client.v1.artifact.get(artifact_id="art-123")
             print(f"Status: {artifact.status}")
             print(f"S3 URL: {artifact.s3_url}")
         """
-        response = self._http.get(Routes.artifact(artifact_id))
-        get_response = GetArtifactResponse(**response.json())
+        response = await self._http.get(Routes.artifact(artifact_id))
+        get_response = GetArtifactResponse(**response)
         return get_response.artifact
 
-    def list(
+    async def list(
         self,
         corpus_id: Optional[str] = None,
         end_user_id: Optional[str] = None,
@@ -192,12 +196,12 @@ class ArtifactResourceV1(BaseResource):
 
         Example:
             # Get all artifacts for a corpus
-            artifacts = client.v1.artifact.list(corpus_id="corpus-123")
+            artifacts = await client.v1.artifact.list(corpus_id="corpus-123")
             for artifact in artifacts:
                 print(f"- {artifact.id}: {artifact.status}")
 
             # Get ready artifacts
-            ready = client.v1.artifact.list(status="ready")
+            ready = await client.v1.artifact.list(status="ready")
         """
         params = {}
         if corpus_id is not None:
@@ -207,11 +211,11 @@ class ArtifactResourceV1(BaseResource):
         if status is not None:
             params["status"] = status
 
-        response = self._http.get(Routes.ARTIFACTS, params=params)
-        list_response = ListArtifactsResponse(**response.json())
+        response = await self._http.get(Routes.ARTIFACTS, params=params)
+        list_response = ListArtifactsResponse(**response)
         return list_response.artifacts
 
-    def list_statuses(
+    async def list_statuses(
         self,
         corpus_id: str,
         artifact_ids: Optional[list[str]] = None,
@@ -242,11 +246,11 @@ class ArtifactResourceV1(BaseResource):
             params["limit"] = str(limit)
 
         route = Routes.corpus_artifacts_status(corpus_id)
-        response = self._http.get(route, params=params)
+        response = await self._http.get(route, params=params)
 
         return ListArtifactStatusesResponse(**response)
 
-    def delete(self, artifact_id: str) -> None:
+    async def delete(self, artifact_id: str) -> None:
         """
         Delete an artifact.
 
@@ -254,12 +258,12 @@ class ArtifactResourceV1(BaseResource):
             artifact_id: The artifact ID to delete
 
         Example:
-            client.v1.artifact.delete(artifact_id="art-123")
+            await client.v1.artifact.delete(artifact_id="art-123")
             print("Artifact deleted successfully")
         """
-        self._http.delete(Routes.artifact(artifact_id))
+        await self._http.delete(Routes.artifact(artifact_id))
 
-    def finalize(
+    async def finalize(
         self,
         artifact_id: str,
         bucket: str,
@@ -294,7 +298,7 @@ class ArtifactResourceV1(BaseResource):
 
         Example:
             # After uploading to S3
-            response = client.v1.artifact.finalize(
+            response = await client.v1.artifact.finalize(
                 artifact_id=presign_resp.id,
                 bucket=presign_resp.bucket,
                 key=presign_resp.key,
@@ -320,5 +324,7 @@ class ArtifactResourceV1(BaseResource):
             # Generic finalize endpoint (if available)
             endpoint = Routes.ARTIFACTS_FINALIZE
 
-        response = self._http.post(endpoint, json=request.model_dump(exclude_none=True))
-        return FinalizeArtifactResponse(**response.json())
+        response = await self._http.post(
+            endpoint, json=request.model_dump(exclude_none=True)
+        )
+        return FinalizeArtifactResponse(**response)

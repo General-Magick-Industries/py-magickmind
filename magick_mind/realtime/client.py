@@ -4,17 +4,18 @@ import asyncio
 import base64
 import json
 import logging
-from typing import Optional, List
+from typing import Optional, List, cast
 
 from centrifuge import (
     Client,
-    ClientEventHandler,
     PublicationContext,
+    ServerPublicationContext,
     SubscriptionEventHandler,
 )
 
 from ..auth.base import AuthProvider
 from ..exceptions import MagickMindError
+from .handler import EventRouter
 
 
 logger = logging.getLogger(__name__)
@@ -39,22 +40,26 @@ def _extract_jwt_sub(token: str) -> Optional[str]:
 
 
 class _DelegatingSubscriptionHandler(SubscriptionEventHandler):
-    """Routes client-side subscription publications to ClientEventHandler.on_publication."""
+    """Routes client-side subscription publications to EventRouter.on_publication."""
 
-    def __init__(self, client_handler: ClientEventHandler, channel: str):
-        self._client_handler = client_handler
+    def __init__(self, router: EventRouter, channel: str):
+        self._router = router
         self._channel = channel
 
     async def on_publication(self, ctx: PublicationContext) -> None:
-        """Route client-side publication to the ClientEventHandler."""
+        """Route client-side publication to the EventRouter."""
         logger.debug(f"Publication on {self._channel}: {ctx.pub.data}")
 
-        # Wrap in adapter for ClientEventHandler
-        server_ctx = _PublicationAdapter(ctx, self._channel)
+        # Wrap in adapter for EventRouter.
+        # _PublicationAdapter is structurally compatible with ServerPublicationContext.
+        server_ctx = cast(
+            ServerPublicationContext,
+            _PublicationAdapter(ctx, self._channel),  # type: ignore[arg-type]
+        )
         try:
-            await self._client_handler.on_publication(server_ctx)
+            await self._router.on_publication(server_ctx)
         except Exception:
-            logger.exception(f"Error in on_publication handler for {self._channel}")
+            logger.exception(f"Error in publication handler for {self._channel}")
 
     async def on_subscribed(self, ctx) -> None:
         logger.info(f"✅ Subscribed to channel: {self._channel}")
@@ -80,29 +85,43 @@ class RealtimeClient:
     Uses pure client-side subscriptions for reliability.
     """
 
-    def __init__(self, auth: AuthProvider, ws_url: str):
+    def __init__(self, auth: AuthProvider, ws_url: Optional[str]):
         self.auth = auth
         self.ws_url = ws_url
         self._client: Optional[Client] = None
-        self._events: Optional[ClientEventHandler] = None
+        self._router = EventRouter()
+
+    def on(self, event_type: str):
+        """Register a handler for a realtime event type."""
+        return self._router.on(event_type)
+
+    @property
+    def on_unknown(self):
+        """Register a catch-all for unknown event types."""
+        return self._router.on_unknown
 
     async def _get_token(self) -> str:
         """Get token wrapper for centrifuge client."""
         try:
-            return await self.auth.get_token_async()
+            return await self.auth.get_token_async()  # type: ignore[attr-defined]
         except Exception:
             raise
 
-    async def connect(self, events: Optional[ClientEventHandler] = None) -> None:
+    async def connect(self) -> None:
         """Connect to the realtime service."""
         if self._client:
             return
 
-        self._events = events or ClientEventHandler()
+        ws_url = self.ws_url
+        if not ws_url:
+            raise MagickMindError(
+                "WebSocket URL is required for realtime connections. "
+                "Pass ws_endpoint= when creating MagickMind client."
+            )
 
         self._client = Client(
-            self.ws_url,
-            events=self._events,
+            ws_url,
+            events=self._router,
             get_token=self._get_token,
             use_protobuf=False,
         )
@@ -140,10 +159,10 @@ class RealtimeClient:
 
     async def _ensure_subscription(self, channel: str) -> None:
         """Ensure client-side subscription exists with proper event handler."""
-        if not self._client or not self._events:
+        if not self._client:
             return
 
-        sub_events = _DelegatingSubscriptionHandler(self._events, channel)
+        sub_events = _DelegatingSubscriptionHandler(self._router, channel)
 
         try:
             existing_sub = self._client.get_subscription(channel)

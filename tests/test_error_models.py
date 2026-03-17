@@ -34,7 +34,7 @@ class TestValidationErrorField:
     def test_missing_required_field(self):
         """Missing required fields should raise validation error."""
         with pytest.raises(PydanticValidationError) as exc_info:
-            ValidationErrorField(field="email")  # Missing message
+            ValidationErrorField.model_validate({"field": "email"})  # Missing message
 
         errors = exc_info.value.errors()
         assert any(e["loc"] == ("message",) for e in errors)
@@ -118,15 +118,18 @@ class TestProblemDetails:
 
     def test_extra_fields_allowed(self):
         """Additional fields should be allowed (RFC 7807 extension)."""
-        problem = ProblemDetails(
-            title="Rate Limited",
-            status=429,
-            detail="Too many requests",
-            retry_after=60,  # Extension field
-            rate_limit_reset=1234567890,  # Extension field
+        problem = ProblemDetails.model_validate(
+            {
+                "title": "Rate Limited",
+                "status": 429,
+                "detail": "Too many requests",
+                "retry_after": 60,  # Extension field
+                "rate_limit_reset": 1234567890,  # Extension field
+            }
         )
         assert problem.title == "Rate Limited"
         # Extra fields stored in model
+        assert problem.model_extra is not None
         assert problem.model_extra["retry_after"] == 60
         assert problem.model_extra["rate_limit_reset"] == 1234567890
 
@@ -178,11 +181,13 @@ class TestErrorResponse:
     def test_nested_validation(self):
         """Nested validation errors should propagate."""
         with pytest.raises(PydanticValidationError) as exc_info:
-            ErrorResponse(
-                error={
-                    "title": "Error",
-                    "status": 200,  # Invalid status
-                    "detail": "Test",
+            ErrorResponse.model_validate(
+                {
+                    "error": {
+                        "title": "Error",
+                        "status": 200,  # Invalid status
+                        "detail": "Test",
+                    }
                 }
             )
 

@@ -17,8 +17,8 @@ class BaseResource:
 
     Example:
         class ChatResourceV1(BaseResource):
-            def send(self, api_key: str, message: str, **kwargs):
-                return self._http.post("/v1/magickmind/chat", json={...})
+            async def send(self, api_key: str, message: str, **kwargs) -> ...:
+                return await self._http.post("/v1/magickmind/chat", json={...})
     """
 
     def __init__(self, http_client: "HTTPClient"):

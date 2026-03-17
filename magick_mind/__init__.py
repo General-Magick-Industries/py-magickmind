@@ -14,11 +14,21 @@ from magick_mind.exceptions import (
     ValidationError,
 )
 from magick_mind.models.v1 import (
-    ChatPayload,
+    ChatAck,
     ChatSendRequest,
     ChatSendResponse,
     ChatHistoryMessage,
     HistoryResponse,
+)
+from magick_mind.realtime.events import (
+    ArtifactData,
+    ArtifactPayload,
+    ChatMessageEvent,
+    ChatMessagePayload,
+    ImageGenerationEvent,
+    UnknownEvent,
+    WsEvent,
+    parse_ws_event,
 )
 
 __version__ = "0.2.0"
@@ -32,8 +42,16 @@ __all__ = [
     "TokenExpiredError",
     "ValidationError",
     "ChatSendRequest",
-    "ChatPayload",
+    "ChatAck",
+    "ChatMessagePayload",
+    "ChatMessageEvent",
     "ChatSendResponse",
     "ChatHistoryMessage",
     "HistoryResponse",
+    "ArtifactData",
+    "ArtifactPayload",
+    "ImageGenerationEvent",
+    "UnknownEvent",
+    "WsEvent",
+    "parse_ws_event",
 ]

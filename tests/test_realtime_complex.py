@@ -23,7 +23,6 @@ async def test_complex_realtime_scenarios():
     mock_auth.get_token_async = AsyncMock(return_value=fake_token)
 
     rt = RealtimeClient(auth=mock_auth, ws_url="ws://test")
-    rt._events = MagicMock()
     rt._client = MagicMock()
     rt._client.get_subscription.return_value = None
     mock_sub = AsyncMock()

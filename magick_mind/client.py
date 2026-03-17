@@ -1,9 +1,12 @@
 """Main Magick Mind SDK client."""
 
+from __future__ import annotations
+
 from typing import Optional
 
 from magick_mind.auth import AuthProvider, EmailPasswordAuth
 from magick_mind.config import SDKConfig
+from magick_mind.exceptions import MagickMindError
 from magick_mind.http import HTTPClient
 from magick_mind.realtime import RealtimeClient
 
@@ -45,7 +48,7 @@ class MagickMind:
 
         # Use Realtime client (in async context)
         async def main():
-            await client.realtime.connect(events=MyHandler())
+            await client.realtime.connect()
             await client.realtime.subscribe(target_user_id="user-456")
     """
 
@@ -149,11 +152,32 @@ class MagickMind:
         """
         return self._realtime
 
-    def test_connection(self) -> bool:
+    async def get_user_id(self) -> str:
+        """
+        The authenticated user's ID (JWT ``sub`` claim).
+
+        Useful for subscribing to your own realtime events::
+
+            user_id = await client.get_user_id()
+            await client.realtime.subscribe(target_user_id=user_id)
+
+        Raises:
+            MagickMindError: If the current token does not contain a ``sub`` claim
+                or cannot be decoded.
+        """
+        from magick_mind.realtime.client import _extract_jwt_sub
+
+        token = await self.auth.get_token_async()
+        uid = _extract_jwt_sub(token)
+        if not uid:
+            raise MagickMindError("Failed to extract user_id from JWT token")
+        return uid
+
+    async def test_connection(self) -> bool:
         """Test the connection to the API."""
         try:
             # This assumes there's a health check or similar endpoint
-            response = self.http.get("/health")
+            response = await self.http.get("/health")
             return response.get("success", False)
         except Exception:
             return False
@@ -165,23 +189,25 @@ class MagickMind:
         Returns:
             True if authenticated, False otherwise
         """
-        """Check if the client is authenticated."""
         return self.auth.is_authenticated()
 
-    def close(self) -> None:
+    async def close(self) -> None:
         """Close the client and cleanup resources."""
-        self._http.close()
-        # Realtime client might need async close?
-        # But close() here is typically sync.
-        # User should probably manage realtime lifecycle themselves if async.
+        await self._http.close()
+        await self._realtime.disconnect()
 
-    def __enter__(self):
-        """Context manager entry."""
+    async def __aenter__(self) -> MagickMind:
+        """Async context manager entry."""
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        """Context manager exit."""
-        self.close()
+    async def __aexit__(
+        self,
+        exc_type: object,
+        exc_val: object,
+        exc_tb: object,
+    ) -> None:
+        """Async context manager exit."""
+        await self.close()
 
     def __repr__(self) -> str:
         """String representation of the client."""

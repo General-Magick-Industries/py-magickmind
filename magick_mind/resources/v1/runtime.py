@@ -20,18 +20,18 @@ class RuntimeResourceV1(BaseResource):
 
     Example:
         # Get effective personality (global)
-        personality = client.v1.runtime.get_effective_personality("persona-123")
+        personality = await client.v1.runtime.get_effective_personality("persona-123")
 
         # Get effective personality (dyadic — for a specific user)
-        personality = client.v1.runtime.get_effective_personality(
+        personality = await client.v1.runtime.get_effective_personality(
             "persona-123", user_id="user-456"
         )
 
         # Invalidate cached personality
-        client.v1.runtime.invalidate_cache("persona-123")
+        await client.v1.runtime.invalidate_cache("persona-123")
     """
 
-    def get_effective_personality(
+    async def get_effective_personality(
         self,
         persona_id: str,
         user_id: Optional[str] = None,
@@ -52,13 +52,13 @@ class RuntimeResourceV1(BaseResource):
         if user_id is not None:
             params["user_id"] = user_id
 
-        response = self._http.get(
+        response = await self._http.get(
             Routes.runtime_effective_personality(persona_id),
             params=params if params else None,
         )
         return EffectivePersonality.model_validate(response)
 
-    def invalidate_cache(
+    async def invalidate_cache(
         self,
         persona_id: str,
         user_id: Optional[str] = None,
@@ -74,4 +74,4 @@ class RuntimeResourceV1(BaseResource):
         if user_id is not None:
             body["user_id"] = user_id
 
-        self._http.post(Routes.RUNTIME_INVALIDATE_CACHE, json=body)
+        await self._http.post(Routes.RUNTIME_INVALIDATE_CACHE, json=body)

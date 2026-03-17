@@ -69,14 +69,16 @@ class TestAuthLifecycle:
         return httpx_mock
 
     @time_machine.travel(0, tick=False)
-    def test_login_on_first_get_headers(self, auth_mock):
-        """First get_headers() triggers login."""
+    @pytest.mark.asyncio
+    async def test_login_on_first_get_headers(self, auth_mock):
+        """First get_headers_async() triggers login."""
         auth = EmailPasswordAuth(email="a@b.com", password="p", base_url=BASE_URL)
-        headers = auth.get_headers()
+        headers = await auth.get_headers_async()
         assert headers["Authorization"] == "Bearer test-access-token"
 
     @time_machine.travel(0, tick=False)
-    def test_auto_refresh_when_expired(self, auth_mock):
+    @pytest.mark.asyncio
+    async def test_auto_refresh_when_expired(self, auth_mock):
         """Access token expires → triggers refresh (not re-login)."""
         auth_mock.add_response(
             url=f"{BASE_URL}/v1/auth/refresh",
@@ -91,17 +93,18 @@ class TestAuthLifecycle:
         auth = EmailPasswordAuth(email="a@b.com", password="p", base_url=BASE_URL)
 
         with time_machine.travel(0, tick=False) as t:
-            auth.get_headers()  # triggers login
+            await auth.get_headers_async()  # triggers login
             assert auth._access_token == "test-access-token"
 
             t.shift(
                 3595
             )  # jump past access token expiry (3600 - 10 buffer = 3590 is the expiry)
-            auth.refresh_if_needed()
+            await auth.refresh_if_needed_async()
             assert auth._access_token == "refreshed-token"
 
     @time_machine.travel(0, tick=False)
-    def test_relogin_when_both_expired(self, httpx_mock: HTTPXMock):
+    @pytest.mark.asyncio
+    async def test_relogin_when_both_expired(self, httpx_mock: HTTPXMock):
         """Both tokens expired → triggers full re-login."""
         # First login
         httpx_mock.add_response(
@@ -119,12 +122,13 @@ class TestAuthLifecycle:
         auth = EmailPasswordAuth(email="a@b.com", password="p", base_url=BASE_URL)
 
         with time_machine.travel(0, tick=False) as t:
-            auth.get_headers()  # first login
+            await auth.get_headers_async()  # first login
             t.shift(200)  # past both expiries
-            auth.refresh_if_needed()
+            await auth.refresh_if_needed_async()
             assert auth._access_token == "relogin-token"
 
-    def test_invalid_credentials_raises(self, httpx_mock: HTTPXMock):
+    @pytest.mark.asyncio
+    async def test_invalid_credentials_raises(self, httpx_mock: HTTPXMock):
         """401 from login → AuthenticationError."""
         httpx_mock.add_response(
             url=f"{BASE_URL}/v1/auth/login",
@@ -134,7 +138,7 @@ class TestAuthLifecycle:
 
         auth = EmailPasswordAuth(email="bad@b.com", password="wrong", base_url=BASE_URL)
         with pytest.raises(AuthenticationError, match="Invalid email or password"):
-            auth.get_headers()
+            await auth.get_headers_async()
 
     def test_empty_email_raises(self):
         """Empty email raises ValueError."""

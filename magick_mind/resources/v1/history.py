@@ -21,7 +21,7 @@ class HistoryResourceV1(BaseResource):
     3. Backward: Get messages before a specific message_id
     """
 
-    def get_messages(
+    async def get_messages(
         self,
         mindspace_id: str,
         after_id: Optional[str] = None,
@@ -50,17 +50,17 @@ class HistoryResourceV1(BaseResource):
 
         Example:
             # Get latest 50 messages
-            history = client.v1.history.get_messages(mindspace_id="mind-123")
+            history = await client.v1.history.get_messages(mindspace_id="mind-123")
 
             # Forward pagination (newer messages)
-            more = client.v1.history.get_messages(
+            more = await client.v1.history.get_messages(
                 mindspace_id="mind-123",
                 after_id=history.last_id,
                 limit=50
             )
 
             # Backward pagination (older messages)
-            older = client.v1.history.get_messages(
+            older = await client.v1.history.get_messages(
                 mindspace_id="mind-123",
                 before_id=history.chat_histories[0].id,
                 limit=50
@@ -82,7 +82,7 @@ class HistoryResourceV1(BaseResource):
             params["before_id"] = before_id
 
         # Make request (returns dict directly)
-        response_data = self._http.get(Routes.HISTORY_MESSAGES, params=params)
+        response_data = await self._http.get(Routes.HISTORY_MESSAGES, params=params)
 
         # Parse and return
         return HistoryResponse(**response_data)

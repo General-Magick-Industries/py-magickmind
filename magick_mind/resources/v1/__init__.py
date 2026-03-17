@@ -10,6 +10,7 @@ from magick_mind.resources.v1.mindspace import MindspaceResourceV1
 from magick_mind.resources.v1.persona import PersonaResourceV1
 from magick_mind.resources.v1.project import ProjectResourceV1
 from magick_mind.resources.v1.runtime import RuntimeResourceV1
+from magick_mind.resources.v1.trait import TraitResourceV1
 
 __all__ = [
     "ArtifactResourceV1",
@@ -22,4 +23,5 @@ __all__ = [
     "PersonaResourceV1",
     "ProjectResourceV1",
     "RuntimeResourceV1",
+    "TraitResourceV1",
 ]

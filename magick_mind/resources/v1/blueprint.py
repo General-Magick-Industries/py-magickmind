@@ -38,7 +38,7 @@ class BlueprintResourceV1(BaseResource):
 
     Example:
         # Create a blueprint
-        bp = client.v1.blueprint.create(
+        bp = await client.v1.blueprint.create(
             blueprint_id="friendly-bot",
             name="Friendly Bot",
             category="social",
@@ -47,12 +47,12 @@ class BlueprintResourceV1(BaseResource):
         )
 
         # List blueprints
-        response = client.v1.blueprint.list()
+        response = await client.v1.blueprint.list()
         for bp in response.data:
             print(bp.name)
     """
 
-    def create(
+    async def create(
         self,
         blueprint_id: str,
         name: str,
@@ -92,12 +92,12 @@ class BlueprintResourceV1(BaseResource):
             default_dyadic=default_dyadic,
             visibility=visibility,
         )
-        response = self._http.post(
+        response = await self._http.post(
             Routes.BLUEPRINTS, json=request.model_dump(exclude_none=True)
         )
         return Blueprint.model_validate(response)
 
-    def get(self, blueprint_id: str) -> Blueprint:
+    async def get(self, blueprint_id: str) -> Blueprint:
         """
         Get a blueprint by internal ID.
 
@@ -107,10 +107,10 @@ class BlueprintResourceV1(BaseResource):
         Returns:
             Blueprint
         """
-        response = self._http.get(Routes.blueprint(blueprint_id))
+        response = await self._http.get(Routes.blueprint(blueprint_id))
         return Blueprint.model_validate(response)
 
-    def get_by_key(
+    async def get_by_key(
         self,
         namespace: str,
         owner_id: str,
@@ -132,10 +132,10 @@ class BlueprintResourceV1(BaseResource):
             "owner_id": owner_id,
             "blueprint_id": blueprint_id,
         }
-        response = self._http.get(Routes.BLUEPRINTS_BY_KEY, params=params)
+        response = await self._http.get(Routes.BLUEPRINTS_BY_KEY, params=params)
         return Blueprint.model_validate(response)
 
-    def list(
+    async def list(
         self,
         cursor: Optional[str] = None,
         limit: Optional[int] = None,
@@ -160,10 +160,12 @@ class BlueprintResourceV1(BaseResource):
         if order is not None:
             params["order"] = order
 
-        response = self._http.get(Routes.BLUEPRINTS, params=params if params else None)
+        response = await self._http.get(
+            Routes.BLUEPRINTS, params=params if params else None
+        )
         return ListBlueprintsResponse.model_validate(response)
 
-    def update(
+    async def update(
         self,
         blueprint_id: str,
         name: str,
@@ -199,13 +201,13 @@ class BlueprintResourceV1(BaseResource):
             default_dyadic=default_dyadic,
             visibility=visibility,
         )
-        response = self._http.put(
+        response = await self._http.put(
             Routes.blueprint(blueprint_id),
             json=request.model_dump(exclude_none=True),
         )
         return Blueprint.model_validate(response)
 
-    def patch(
+    async def patch(
         self,
         blueprint_id: str,
         name: Optional[str] = None,
@@ -241,22 +243,22 @@ class BlueprintResourceV1(BaseResource):
             default_dyadic=default_dyadic,
             visibility=visibility,
         )
-        response = self._http.patch(
+        response = await self._http.patch(
             Routes.blueprint(blueprint_id),
             json=request.model_dump(exclude_none=True),
         )
         return Blueprint.model_validate(response)
 
-    def delete(self, blueprint_id: str) -> None:
+    async def delete(self, blueprint_id: str) -> None:
         """
         Delete a blueprint.
 
         Args:
             blueprint_id: Internal blueprint ID
         """
-        self._http.delete(Routes.blueprint(blueprint_id))
+        await self._http.delete(Routes.blueprint(blueprint_id))
 
-    def clone(
+    async def clone(
         self,
         blueprint_id: str,
         new_owner_id: str,
@@ -280,13 +282,13 @@ class BlueprintResourceV1(BaseResource):
             new_namespace=new_namespace,
             new_blueprint_id=new_blueprint_id,
         )
-        response = self._http.post(
+        response = await self._http.post(
             Routes.blueprint_clone(blueprint_id),
             json=request.model_dump(exclude_none=True),
         )
         return Blueprint.model_validate(response)
 
-    def validate(
+    async def validate(
         self,
         blueprint_id: str,
         name: str,
@@ -329,13 +331,13 @@ class BlueprintResourceV1(BaseResource):
             default_dyadic=default_dyadic,
             visibility=visibility,
         )
-        response = self._http.post(
+        response = await self._http.post(
             Routes.BLUEPRINTS_VALIDATE,
             json=request.model_dump(exclude_none=True),
         )
         return ValidateBlueprintResponse.model_validate(response)
 
-    def hydrate(self, blueprint_id: str) -> HydratedBlueprint:
+    async def hydrate(self, blueprint_id: str) -> HydratedBlueprint:
         """
         Get a blueprint with full trait definitions from the Trait Registry.
 
@@ -345,5 +347,5 @@ class BlueprintResourceV1(BaseResource):
         Returns:
             HydratedBlueprint with enriched trait data
         """
-        response = self._http.get(Routes.blueprint_hydrate(blueprint_id))
+        response = await self._http.get(Routes.blueprint_hydrate(blueprint_id))
         return HydratedBlueprint.model_validate(response)

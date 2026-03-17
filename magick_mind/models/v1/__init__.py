@@ -11,7 +11,11 @@ from magick_mind.models.v1.artifact import (
     PresignArtifactRequest,
     PresignArtifactResponse,
 )
-from magick_mind.models.v1.chat import ChatPayload, ChatSendRequest, ChatSendResponse
+from magick_mind.models.v1.chat import (
+    ChatAck,
+    ChatSendRequest,
+    ChatSendResponse,
+)
 from magick_mind.models.v1.corpus import (
     AddArtifactsRequest,
     AddArtifactsResponse,
@@ -58,11 +62,25 @@ from magick_mind.models.v1.personality import (
     TraitConstraint,
     TraitValue,
 )
+from magick_mind.models.v1.trait import (
+    CategoricalConfig,
+    CreateTraitRequest,
+    ListTraitsResponse,
+    LockType,
+    MultilabelConfig,
+    NumericConfig,
+    PatchTraitRequest,
+    Trait,
+    TraitNamespace,
+    TraitType,
+    TraitVisibility,
+    UpdateTraitRequest,
+)
 
 
 __all__ = [
     "ChatSendRequest",
-    "ChatPayload",
+    "ChatAck",
     "ChatSendResponse",
     "ChatHistoryMessage",
     "HistoryResponse",
@@ -110,4 +128,16 @@ __all__ = [
     "GrowthTrigger",
     "TraitConstraint",
     "TraitValue",
+    "CategoricalConfig",
+    "CreateTraitRequest",
+    "ListTraitsResponse",
+    "LockType",
+    "MultilabelConfig",
+    "NumericConfig",
+    "PatchTraitRequest",
+    "Trait",
+    "TraitNamespace",
+    "TraitType",
+    "TraitVisibility",
+    "UpdateTraitRequest",
 ]
