@@ -208,6 +208,44 @@ class MagickMind:
         """Async context manager exit."""
         await self.close()
 
+    def openai_client(self, api_key: str, compute_power: int = 1) -> object:
+        """
+        Return a pre-configured AsyncOpenAI client pointed at Bifrost.
+
+        Bifrost exposes an OpenAI-compatible endpoint at /v1/chat/completions.
+        Auth is a Bearer api_key (not JWT). Pass the api_key you want to use.
+
+        Usage::
+
+            oai = client.openai_client(api_key="sk-...")
+            resp = await oai.chat.completions.create(
+                model="openrouter/meta-llama/llama-4-maverick",
+                messages=[{"role": "user", "content": "hello"}],
+            )
+
+        Args:
+            api_key: API key passed as Bearer token to Bifrost.
+            compute_power: X-Compute-Power header value (default 1).
+
+        Returns:
+            AsyncOpenAI: Pre-configured client pointed at Bifrost /v1.
+
+        Raises:
+            ImportError: If the ``openai`` package is not installed.
+                Install with: ``pip install magick-mind[openai]``
+        """
+        try:
+            from openai import AsyncOpenAI
+        except ImportError:
+            raise ImportError(
+                "openai package required. Install with: pip install magick-mind[openai]"
+            )
+        return AsyncOpenAI(
+            api_key=api_key,
+            base_url=f"{self.config.normalized_base_url()}/v1",
+            default_headers={"X-Compute-Power": str(compute_power)},
+        )
+
     def __repr__(self) -> str:
         """String representation of the client."""
         return f"MagickMind(base_url='{self.config.base_url}', auth='EmailPassword')"
