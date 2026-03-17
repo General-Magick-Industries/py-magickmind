@@ -15,12 +15,10 @@ For production backend services with multiple users, see:
 import asyncio
 import os
 import logging
-from typing import List
 from dotenv import load_dotenv
 
 from magick_mind import MagickMind
 from magick_mind.models.v1.chat import ConfigSchema
-from magick_mind.models.v1.model import Model
 from magick_mind.realtime.events import (
     ChatMessageEvent,
     ImageGenerationEvent,
@@ -91,20 +89,8 @@ async def main():
         await client.realtime.connect()
         logger.info("Realtime client ready!")
 
-        # Verify Models (Client-Side)
-        logger.info("Fetching available models...")
-        try:
-            available_models: List[Model] = await client.models.list()
-            available_ids = [m.id for m in available_models]
-            model_id = "openrouter/openrouter/meta-llama/llama-4-maverick"
-
-            if model_id not in available_ids:
-                logger.info(
-                    f"Model '{model_id}' not in declared list, but using it as default."
-                )
-        except ProblemDetailsException as e:
-            logger.warning(f"Could not fetch models: [{e.status}] {e.detail}")
-            model_id = "openrouter/openrouter/meta-llama/llama-4-maverick"
+        # Default model for chat
+        model_id = "openrouter/openrouter/meta-llama/llama-4-maverick"
 
         # Subscribe to a user's updates
         # Pattern: Service account monitors updates for end users

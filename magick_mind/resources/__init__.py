@@ -28,7 +28,6 @@ class V1Resources:
         from magick_mind.resources.v1.mindspace import MindspaceResourceV1
         from magick_mind.resources.v1.persona import PersonaResourceV1
         from magick_mind.resources.v1.project import ProjectResourceV1
-        from magick_mind.resources.v1.model import ModelsResourceV1
         from magick_mind.resources.v1.runtime import RuntimeResourceV1
         from magick_mind.resources.v1.trait import TraitResourceV1
 
@@ -42,7 +41,6 @@ class V1Resources:
         self.mindspace = MindspaceResourceV1(http_client)
         self.persona = PersonaResourceV1(http_client)
         self.project = ProjectResourceV1(http_client)
-        self.models = ModelsResourceV1(http_client)
         self.runtime = RuntimeResourceV1(http_client)
         self.trait = TraitResourceV1(http_client)
 

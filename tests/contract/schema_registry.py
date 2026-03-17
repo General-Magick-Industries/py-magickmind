@@ -46,7 +46,6 @@ from magick_mind.models.v1.mindspace import (
     CreateMindSpaceRequest,
     UpdateMindSpaceRequest,
 )
-from magick_mind.models.v1.model import ModelsListResponse, Model
 from magick_mind.models.v1.history import HistoryResponse
 from magick_mind.models.auth import TokenResponse, LoginRequest, RefreshRequest
 from magick_mind.models.v1.trait import (
@@ -272,7 +271,9 @@ RESPONSES = [
         QueryEndUserResponse,
     ),  # Alias to existing QueryEndUserResponse
     ContractDef("KeyResponseSchema", status=SchemaStatus.SKIPPED, reason="Component"),
-    ContractDef("ModelsListResp", ModelsListResponse, status=SchemaStatus.TESTED),
+    ContractDef(
+        "ModelsListResp", status=SchemaStatus.SKIPPED, reason="No Bifrost route"
+    ),
     # Trait - Skipped: Apidog spec has garbled enums (e.g. "YSTEM|USER|ORG|PROMOTE")
     # and all nullable fields incorrectly marked required. Models are correct per trait.api.
     ContractDef(
@@ -472,7 +473,7 @@ SHARED_MODELS = [
     ContractDef(
         "Message", status=SchemaStatus.SKIPPED, reason="OpenAI Compat Component"
     ),
-    ContractDef("Model", Model, status=SchemaStatus.TESTED),
+    ContractDef("Model", status=SchemaStatus.SKIPPED, reason="No Bifrost route"),
     # Internal RPC
     ContractDef(
         "CentrifugoRpcError", status=SchemaStatus.SKIPPED, reason="Internal RPC"
