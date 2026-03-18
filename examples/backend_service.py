@@ -18,8 +18,12 @@ import os
 from datetime import datetime
 from typing import Optional, Set
 
+from dotenv import load_dotenv
+
 from magick_mind import MagickMind
 from magick_mind.realtime.events import ChatMessageEvent, ChatMessagePayload
+
+load_dotenv()
 
 # Configure logging
 logging.basicConfig(
@@ -255,7 +259,7 @@ async def main() -> None:
     """Main entry point for the backend service."""
 
     # Load configuration from environment
-    bifrost_url = os.getenv("BIFROST_URL", "https://bifrost.example.com")
+    bifrost_url = os.getenv("BIFROST_BASE_URL", "https://dev-bifrost.magickmind.ai")
     bifrost_email = os.getenv("BIFROST_EMAIL")
     bifrost_password = os.getenv("BIFROST_PASSWORD")
     mindspace_id = os.getenv("MINDSPACE_ID", "mind-123")

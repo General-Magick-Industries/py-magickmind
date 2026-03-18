@@ -11,12 +11,17 @@ Usage:
 
 import asyncio
 import os
+
+from dotenv import load_dotenv
+
 from magick_mind import MagickMind
+
+load_dotenv()
 
 
 async def main():
     # Get config from environment
-    base_url = os.getenv("BIFROST_BASE_URL", "http://localhost:8888")
+    base_url = os.getenv("BIFROST_BASE_URL", "https://dev-bifrost.magickmind.ai")
     email = os.getenv("BIFROST_EMAIL")
     password = os.getenv("BIFROST_PASSWORD")
 

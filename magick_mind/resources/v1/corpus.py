@@ -156,7 +156,11 @@ class CorpusResourceV1(BaseResource):
         await self._http.delete(Routes.corpus(corpus_id))
 
     async def add_artifact(
-        self, corpus_id: str, artifact_id: str
+        self,
+        corpus_id: str,
+        artifact_id: str,
+        *,
+        api_key: Optional[str] = None,
     ) -> AddArtifactsResponse:
         """
         Add a single artifact to corpus and trigger ingestion.
@@ -164,6 +168,8 @@ class CorpusResourceV1(BaseResource):
         Args:
             corpus_id: The corpus ID
             artifact_id: The artifact ID to add
+            api_key: Optional API key (sent as x-api-key header). Required for
+                corpus-scoped operations on dev/prod.
 
         Returns:
             AddArtifactsResponse with result
@@ -171,10 +177,16 @@ class CorpusResourceV1(BaseResource):
         Raises:
             ProblemDetailsException: If the request fails
         """
-        return await self.add_artifacts(corpus_id, [artifact_id])
+        return await self.add_artifacts(
+            corpus_id, [artifact_id], api_key=api_key
+        )
 
     async def add_artifacts(
-        self, corpus_id: str, artifact_ids: list[str]
+        self,
+        corpus_id: str,
+        artifact_ids: list[str],
+        *,
+        api_key: Optional[str] = None,
     ) -> AddArtifactsResponse:
         """
         Add multiple artifacts to corpus (max 20) and trigger batch ingestion.
@@ -184,6 +196,8 @@ class CorpusResourceV1(BaseResource):
         Args:
             corpus_id: The corpus ID
             artifact_ids: List of artifact IDs to add (max 20)
+            api_key: Optional API key (sent as x-api-key header). Required for
+                corpus-scoped operations on dev/prod.
 
         Returns:
             AddArtifactsResponse with result
@@ -193,8 +207,14 @@ class CorpusResourceV1(BaseResource):
         """
         payload = AddArtifactsRequest(artifact_ids=artifact_ids)
 
+        headers = {}
+        if api_key:
+            headers["x-api-key"] = api_key
+
         resp = await self._http.post(
-            Routes.corpus_artifacts(corpus_id), json=payload.model_dump()
+            Routes.corpus_artifacts(corpus_id),
+            json=payload.model_dump(),
+            headers=headers if headers else None,
         )
 
         return AddArtifactsResponse(**resp)

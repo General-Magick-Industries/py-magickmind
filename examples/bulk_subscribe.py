@@ -30,8 +30,13 @@ import asyncio
 import os
 import logging
 from typing import Set
+
+from dotenv import load_dotenv
+
 from magick_mind import MagickMind
 from magick_mind.realtime.events import ChatMessageEvent
+
+load_dotenv()
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -92,9 +97,9 @@ class DeduplicatingProcessor:
 
 async def main():
     # Get config from environment
-    base_url = os.getenv("BIFROST_BASE_URL", "http://localhost:8888")
+    base_url = os.getenv("BIFROST_BASE_URL", "https://dev-bifrost.magickmind.ai")
     ws_endpoint = os.getenv(
-        "BIFROST_WS_ENDPOINT", "ws://localhost:8888/connection/websocket"
+        "BIFROST_WS_ENDPOINT", "wss://dev-centrifugo.magickmind.ai/connection/websocket"
     )
     email = os.getenv("BIFROST_EMAIL")
     password = os.getenv("BIFROST_PASSWORD")

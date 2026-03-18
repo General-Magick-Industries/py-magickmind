@@ -24,3 +24,4 @@ venv.bak/
 
 # Hypothesis Cache
 .hypothesis/
+.pypirc
