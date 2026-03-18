@@ -177,9 +177,7 @@ class CorpusResourceV1(BaseResource):
         Raises:
             ProblemDetailsException: If the request fails
         """
-        return await self.add_artifacts(
-            corpus_id, [artifact_id], api_key=api_key
-        )
+        return await self.add_artifacts(corpus_id, [artifact_id], api_key=api_key)
 
     async def add_artifacts(
         self,
