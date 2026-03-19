@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.2.0] - 2026-03-17
+## [0.2.0] - 2026-03-18
 
 ### Breaking Changes
 - **Async-first client** — `MagickMind` is now fully async. All resource methods
@@ -21,8 +21,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   requests, and `add_users()` → `add_participants()` (deprecated alias kept).
 - **Mindspace list**: `list(user_id=...)` replaced with `participant_id`,
   `project_id`, `type`, `name`, `cursor`, `limit`, `order` params.
+- **Removed `/v1/models`** — Ghost endpoint that Bifrost never implemented.
 
 ### Added
+- **OpenAI-compatible completions** — `client.openai_client(api_key=...)` returns
+  an `AsyncOpenAI` instance pointed at Bifrost's `/v1/chat/completions`.
+  Supports streaming and non-streaming. Install with `pip install magickmind[openai]`.
 - **Trait resource** (`client.v1.traits`) — Full CRUD for `/v1/traits`:
   `create`, `get`, `list`, `update`, `patch`, `delete`.
 - **Typed realtime events** — `ChatMessageEvent`, `ChatMessagePayload`,
@@ -44,10 +48,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Shared personality models** (`models.v1.personality`): `TraitValue`, `TraitConstraint`, `GrowthConfig`, `DyadicConfig`, `BlueprintTrait`, etc.
 - **HTTP PATCH support**: Added `patch()` method to HTTP client
 - **Corpus artifact management** (`client.v1.corpus`): `add_artifact`, `add_artifacts`, `remove_artifact`, `get_artifact_status`, `list_artifact_statuses`
+- **Corpus `api_key` param** — `add_artifact()` and `add_artifacts()` accept optional `api_key` kwarg for dev/prod corpus-scoped operations.
+- **`completions.py` example** — New example demonstrating OpenAI-compatible streaming and non-streaming completions.
 
 ### Fixed
 - Removed `pytest-asyncio` from production dependencies (was in `[project.dependencies]`; now dev-only).
 - Added `asyncio_mode = "auto"` to `[tool.pytest.ini_options]`.
+- Handle Bifrost proto enums returned as strings and null slices returned as `null` instead of `[]`.
+- Examples now load `.env` via `load_dotenv()` and use correct dev environment URLs.
 
 ### Changed
 - All examples updated for async API usage.
