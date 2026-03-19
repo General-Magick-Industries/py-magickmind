@@ -99,7 +99,8 @@ async def main():
     # Get config from environment
     base_url = os.getenv("MAGICKMIND_BASE_URL", "https://dev-api.magickmind.ai")
     ws_endpoint = os.getenv(
-        "MAGICKMIND_WS_ENDPOINT", "wss://dev-centrifugo.magickmind.ai/connection/websocket"
+        "MAGICKMIND_WS_ENDPOINT",
+        "wss://dev-centrifugo.magickmind.ai/connection/websocket",
     )
     email = os.getenv("MAGICKMIND_EMAIL")
     password = os.getenv("MAGICKMIND_PASSWORD")

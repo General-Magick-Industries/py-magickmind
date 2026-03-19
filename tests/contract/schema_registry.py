@@ -271,9 +271,7 @@ RESPONSES = [
         QueryEndUserResponse,
     ),  # Alias to existing QueryEndUserResponse
     ContractDef("KeyResponseSchema", status=SchemaStatus.SKIPPED, reason="Component"),
-    ContractDef(
-        "ModelsListResp", status=SchemaStatus.SKIPPED, reason="No API route"
-    ),
+    ContractDef("ModelsListResp", status=SchemaStatus.SKIPPED, reason="No API route"),
     # Trait - Skipped: Apidog spec has garbled enums (e.g. "YSTEM|USER|ORG|PROMOTE")
     # and all nullable fields incorrectly marked required. Models are correct per trait.api.
     ContractDef(
