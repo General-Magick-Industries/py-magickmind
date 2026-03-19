@@ -127,7 +127,7 @@ class HTTPClient:
                 status_code=response.status_code,
             )
 
-        # RFC 7807 format (98% of Bifrost endpoints)
+        # RFC 7807 format (98% of API endpoints)
         if "error" in data and isinstance(data["error"], dict):
             try:
                 error_response = ErrorResponse.model_validate(data)

@@ -24,9 +24,9 @@ load_dotenv()
 async def main():
     """Demonstrate resource management operations."""
     # Initialize client
-    base_url = os.getenv("BIFROST_BASE_URL", "https://dev-bifrost.magickmind.ai")
-    email = os.getenv("BIFROST_EMAIL", "user@example.com")
-    password = os.getenv("BIFROST_PASSWORD", "your-password")
+    base_url = os.getenv("MAGICKMIND_BASE_URL", "https://dev-api.magickmind.ai")
+    email = os.getenv("MAGICKMIND_EMAIL", "user@example.com")
+    password = os.getenv("MAGICKMIND_PASSWORD", "your-password")
 
     async with MagickMind(base_url=base_url, email=email, password=password) as client:
         print("=" * 60)

@@ -6,10 +6,10 @@ This guide explains architectural patterns for using the Magick Mind SDK in even
 
 **Primary use case: Backend services** 
 
-This Python SDK is designed primarily for **backend services** that integrate Bifrost into your application:
+This Python SDK is designed primarily for **backend services** that integrate the Magick Mind API into your application:
 
 ```
-[Your Frontend]  ←→  [Your Backend + SDK]  ←→  [Bifrost SaaS]
+[Your Frontend]  ←→  [Your Backend + SDK]  ←→  [Magick Mind Platform]
   (You manage)         (SDK lives here)         (We provide)
 ```
 
@@ -23,12 +23,12 @@ This Python SDK is designed primarily for **backend services** that integrate Bi
 - ❌ Native mobile apps: Would need Swift/Kotlin SDKs (not yet available)
 
 **Most common architectures:**
-- **Telegram Bot**: Telegram Chat ← Python Bot (SDK) ← Bifrost
-- **Web App**: React Frontend ← FastAPI Backend (SDK) ← Bifrost
-- **Mobile App**: Flutter App ← Django Backend (SDK) ← Bifrost
-- **Desktop App**: PyQt GUI (SDK) ← Bifrost (direct connection)
+- **Telegram Bot**: Telegram Chat ← Python Bot (SDK) ← the Magick Mind API
+- **Web App**: React Frontend ← FastAPI Backend (SDK) ← the Magick Mind API
+- **Mobile App**: Flutter App ← Django Backend (SDK) ← the Magick Mind API
+- **Desktop App**: PyQt GUI (SDK) ← the Magick Mind API (direct connection)
 
-**Your backend is middleware** - receiving data from Bifrost and managing state for YOUR frontend.
+**Your backend is middleware** - receiving data from the Magick Mind API and managing state for YOUR frontend.
 
 ## Table of Contents
 
@@ -43,12 +43,12 @@ This Python SDK is designed primarily for **backend services** that integrate Bi
 
 As a backend using the SDK, your responsibilities are:
 
-1. **Receive** events/data from Bifrost
+1. **Receive** events/data from the Magick Mind API
 2. **Process** business logic (validate, transform, enrich)
 3. **Store** in your database
 4. **Relay** to your frontend (via your own WebSocket/REST/GraphQL)
 
-The pattern you choose affects **how** you do step #1 (receive from Bifrost).
+The pattern you choose affects **how** you do step #1 (receive from the Magick Mind API).
 
 ### Important: Personal Channel Subscription Pattern
 
@@ -124,12 +124,12 @@ async def on_message(user_id, payload):
 ### How It Works
 
 ```
-Bifrost --event(full message)--> Your Backend --relay--> Your Frontend
+the Magick Mind API --event(full message)--> Your Backend --relay--> Your Frontend
                                       ↓
                                  Store in DB
 ```
 
-The event from Bifrost contains **complete data**. Your backend trusts it and relays it.
+The event from the Magick Mind API contains **complete data**. Your backend trusts it and relays it.
 
 ### Code Example
 
@@ -137,7 +137,7 @@ The event from Bifrost contains **complete data**. Your backend trusts it and re
 """
 Pattern 1: Events as Source of Truth
 
-Your backend receives complete data from Bifrost and relays to your frontend.
+Your backend receives complete data from the Magick Mind API and relays to your frontend.
 """
 
 from magick_mind import MagickMind, ChatPayload
@@ -153,15 +153,15 @@ class ChatBackend:
         self.your_db = YourDatabase()
         self.your_websocket_connections = set()  # Your frontend connections
     
-    async def on_bifrost_event(self, channel: str, data: dict):
+    async def on_api_event(self, channel: str, data: dict):
         """
-        Receives event from Bifrost with complete message data.
+        Receives event from the Magick Mind API with complete message data.
         Backend processes and relays to YOUR frontend.
         """
-        # Parse event from Bifrost
+        # Parse event from the API
         message = ChatPayload.model_validate(data)
         
-        print(f"📥 Received from Bifrost: {message.message_id}")
+        print(f"📥 Received from API: {message.message_id}")
         
         # Business logic: Store in YOUR database
         await self.your_db.messages.insert_one({
@@ -193,22 +193,22 @@ class ChatBackend:
                 self.your_websocket_connections.remove(websocket)
     
     async def start(self, end_user_id: str):
-        """Connect to Bifrost and start listening for this end user"""
-        # Connect SDK to Bifrost
+        """Connect to the Magick Mind API and start listening for this end user"""
+        # Connect SDK to the Magick Mind API
         await self.sdk_client.realtime.connect()
         
         # Subscribe to personal channel for this specific end user
         # Pattern: personal:<target_user_id>#<service_user_id>
         await self.sdk_client.realtime.subscribe(
             target_user_id=end_user_id,
-            on_publication=self.on_bifrost_event
+            on_publication=self.on_api_event
         )
         print(f"✓ Backend listening for user {end_user_id}")
 
 # Your frontend connects to YOUR WebSocket endpoint
 @app.websocket("/ws")
 async def your_frontend_websocket(websocket: WebSocket):
-    """Your frontend connects here, NOT to Bifrost directly"""
+    """Your frontend connects here, NOT to the Magick Mind API directly"""
     await websocket.accept()
     backend.your_websocket_connections.add(websocket)
     
@@ -227,7 +227,7 @@ async def your_frontend_websocket(websocket: WebSocket):
 
 **1. Activity/Status Dashboards**
 ```python
-async def on_bifrost_event(self, channel, data):
+async def on_api_event(self, channel, data):
     activity = parse_activity(data)
     
     # Store in Redis for dashboard queries
@@ -239,7 +239,7 @@ async def on_bifrost_event(self, channel, data):
 
 **2. Notification Relays**
 ```python
-async def on_bifrost_event(self, channel, data):
+async def on_api_event(self, channel, data):
     notification = parse_notification(data)
     
     # Store notification
@@ -251,7 +251,7 @@ async def on_bifrost_event(self, channel, data):
 
 **3. Live Feed Aggregators**
 ```python
-async def on_bifrost_event(self, channel, data):
+async def on_api_event(self, channel, data):
     feed_item = parse_feed_item(data)
     
     # Add to feed cache
@@ -270,12 +270,12 @@ async def on_bifrost_event(self, channel, data):
 ### Pros & Cons
 
 **Pros:**
-- ⚡ **Fast** - Single hop from Bifrost → Your Backend → Your Frontend
+- ⚡ **Fast** - Single hop from the Magick Mind API → Your Backend → Your Frontend
 - 🎯 **Simple** - No extra fetching logic
 - 💾 **Efficient** - Only process data when it changes
 
 **Cons:**
-- ⚠️ **Reliability** - Missed event from Bifrost = data never reaches your frontend
+- ⚠️ **Reliability** - Missed event from the Magick Mind API = data never reaches your frontend
 - 🔄 **No recovery** - If backend is down, you miss events
 - 📊 **Ordering** - Events might arrive out of sequence
 
@@ -291,11 +291,11 @@ class TelegramBotBackend:
     def __init__(self, sdk_client: MagickMind, bot: Bot):
         self.sdk = sdk_client
         self.telegram_bot = bot
-        self.chat_mappings = {}  # Map Bifrost task_id → Telegram chat_id
+        self.chat_mappings = {}  # Map the Magick Mind API task_id → Telegram chat_id
     
     async def on_ai_response(self, channel: str, data: dict):
         """
-        Bifrost sends AI response →
+        the Magick Mind API sends AI response →
         Your bot backend relays to Telegram →
         User sees message in Telegram
         """
@@ -319,9 +319,9 @@ class TelegramBotBackend:
 ### How It Works
 
 ```
-Bifrost --event("message 123 created")--> Your Backend
+the Magick Mind API --event("message 123 created")--> Your Backend
                                               ↓
-                                    Fetch full data from Bifrost
+                                    Fetch full data from the Magick Mind API
                                               ↓
                                          Store in DB
                                               ↓
@@ -346,23 +346,23 @@ class ChatBackendWithFetch:
         self.sdk_client = client
         self.your_db = YourDatabase()
     
-    async def on_bifrost_notification(self, channel: str, data: dict):
+    async def on_api_notification(self, channel: str, data: dict):
         """
-        Receives notification from Bifrost (minimal data).
+        Receives notification from the Magick Mind API (minimal data).
         Backend fetches full data, then relays to frontend.
         """
         # Event: Just says "message created" with ID
         message_id = data.get("message_id")
         
-        print(f"🔔 Notification from Bifrost: message {message_id} created")
+        print(f"🔔 Notification from the Magick Mind API: message {message_id} created")
         
-        # Fetch complete, authoritative data from Bifrost
+        # Fetch complete, authoritative data from the Magick Mind API
         # Note: Future Feature - Individual message fetch endpoint will be added to SDK
         # For now, use HTTP client directly:
         response = self.sdk_client.http.get(f"/v1/messages/{message_id}")
         message = ChatPayload.model_validate(response.json())
         
-        print(f"📥 Fetched from Bifrost: {message.content[:50]}...")
+        print(f"📥 Fetched from the Magick Mind API: {message.content[:50]}...")
         
         # Verify data integrity before storing
         if not message.message_id or not message.content:
@@ -452,8 +452,8 @@ async def on_patient_update_notification(self, channel, data):
 - 📊 **Audit-ready** - Complete records of what was fetched when
 
 **Cons:**
-- 🐌 **Slower** - Extra network round-trip to Bifrost
-- 📈 **More load** - More API calls to Bifrost
+- 🐌 **Slower** - Extra network round-trip to the Magick Mind API
+- 📈 **More load** - More API calls to the Magick Mind API
 - ⚙️ **Complex** - Need fetch logic in your backend
 
 ## Pattern 3: Hybrid Approach (Recommended)
@@ -461,7 +461,7 @@ async def on_patient_update_notification(self, channel, data):
 ### How It Works
 
 ```
-Bifrost --event(full data)--> Your Backend --quick relay--> Your Frontend
+the Magick Mind API --event(full data)--> Your Backend --quick relay--> Your Frontend
                                    ↓
                               Store in DB
                                    ↓
@@ -502,9 +502,9 @@ class ProductionChatBackend:
         self.processed_message_ids: Set[str] = set()
         self.last_sync_cursor = None
     
-    async def on_bifrost_event(self, channel: str, data: dict):
+    async def on_api_event(self, channel: str, data: dict):
         """
-        FAST PATH: Receive event from Bifrost, process immediately.
+        FAST PATH: Receive event from the Magick Mind API, process immediately.
         """
         message = ChatPayload.model_validate(data)
         
@@ -546,7 +546,7 @@ class ProductionChatBackend:
             print("🔄 Running periodic sync...")
             
             try:
-                # Fetch history from Bifrost
+                # Fetch history from the Magick Mind API
                 response = self.sdk_client.http.get(
                     "/v1/mindspaces/messages",
                     params={
@@ -620,14 +620,14 @@ class ProductionChatBackend:
         """
         print("🚀 Starting hybrid backend...")
         
-        # 1. Connect to Bifrost realtime (fast path)
+        # 1. Connect to the Magick Mind API realtime (fast path)
         await self.sdk_client.realtime.connect()
         
         # Subscribe to personal channel for this specific end user
         # Pattern: personal:<end_user_id>#<service_user_id>
         await self.sdk_client.realtime.subscribe(
             target_user_id=end_user_id,
-            on_publication=self.on_bifrost_event
+            on_publication=self.on_api_event
         )
         print(f"  ✓ Realtime connected for user {end_user_id}")
         
@@ -645,7 +645,7 @@ async def main():
     sdk_client = MagickMind(
         email="your-service@example.com",
         password="your-password",
-        base_url="https://bifrost.example.com"
+        base_url="https://api.magickmind.ai"
     )
     
     # Create your production backend
@@ -727,7 +727,7 @@ Can you afford to lose data?
 | Instant frontend updates | ✅ Yes | ❌ Slow | ✅ Yes |
 | Data reliability | ❌ Risky | ✅ Best | ✅ Good |
 | Handle backend downtime | ❌ Poor | ✅ Excellent | ✅ Good |
-| API load to Bifrost | ✅ Low | ❌ High | ⚠️ Medium |
+| API load to the Magick Mind API | ✅ Low | ❌ High | ⚠️ Medium |
 | Implementation complexity | ✅ Simple | ⚠️ Medium | ❌ Complex |
 | Audit/compliance ready | ❌ No | ✅ Yes | ✅ Yes |
 
@@ -737,7 +737,7 @@ Can you afford to lose data?
 
 ```python
 """
-Real architecture of a Telegram bot using Bifrost
+Real architecture of a Telegram bot using the Magick Mind API
 """
 
 # Architecture:
@@ -745,11 +745,11 @@ Real architecture of a Telegram bot using Bifrost
 #     ↕
 # Python Bot Backend + SDK (This is your code)
 #     ↕  
-# Bifrost AI Service (SaaS)
+# the Magick Mind API AI Service (SaaS)
 
 class TelegramBotBackend:
-    async def on_bifrost_ai_response(self, channel, data):
-        """Bifrost sends AI response → Relay to Telegram"""
+    async def on_api_ai_response(self, channel, data):
+        """the Magick Mind API sends AI response → Relay to Telegram"""
         message = ChatPayload.model_validate(data)
         
         # Get Telegram chat to send to
@@ -769,7 +769,7 @@ class TelegramBotBackend:
 
 ```python
 """
-React frontend ← FastAPI backend + SDK ← Bifrost
+React frontend ← FastAPI backend + SDK ← the Magick Mind API
 """
 
 from fastapi import FastAPI, WebSocket
@@ -780,8 +780,8 @@ class WebAppBackend:
     def __init__(self):
         self.frontend_connections = set()  # YOUR frontend's WebSockets
     
-    async def on_bifrost_event(self, channel, data):
-        """Bifrost → Your backend → Your React frontend"""
+    async def on_api_event(self, channel, data):
+        """the Magick Mind API → Your backend → Your React frontend"""
         message = ChatPayload.model_validate(data)
         
         # Store in your DB
@@ -795,7 +795,7 @@ class WebAppBackend:
 
 @app.websocket("/ws")
 async def your_frontend_connects_here(websocket: WebSocket):
-    """Your React app connects to YOUR backend, not to Bifrost"""
+    """Your React app connects to YOUR backend, not to the Magick Mind API"""
     await websocket.accept()
     backend.frontend_connections.add(websocket)
 ```
@@ -807,17 +807,17 @@ Flutter/React Native App (Your Frontend)
             ↕
      Django/FastAPI + SDK (Your Backend)
             ↕
-        Bifrost SaaS
+        the Magick Mind API SaaS
 ```
 
 ## Your Backend's Responsibilities
 
 No matter which pattern you choose, your backend must:
 
-### 1. Process Events from Bifrost
+### 1. Process Events from the Magick Mind API
 ```python
-async def on_event_from_bifrost(self, channel, data):
-    # Parse Bifrost's event
+async def on_event_from_api(self, channel, data):
+    # Parse the Magick Mind API's event
     message = ChatPayload.model_validate(data)
     ...
 ```

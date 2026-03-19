@@ -1,7 +1,7 @@
 """
 End user models for Magick Mind SDK v1 API.
 
-Mirrors Bifrost's /v1/end-users endpoint request/response schemas.
+Mirrors the /v1/end-users endpoint request/response schemas.
 """
 
 from typing import Optional
@@ -13,7 +13,7 @@ from magick_mind.models.common import Cursors, PageInfo
 
 class EndUser(BaseModel):
     """
-    End user schema from Bifrost.
+    End user schema from the platform.
 
     Represents an end user in a multi-tenant agentic SaaS application.
     """

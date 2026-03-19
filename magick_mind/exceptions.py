@@ -37,7 +37,7 @@ class RateLimitError(MagickMindError):
 
 
 class ProblemDetailsException(MagickMindError):
-    """RFC 7807 Problem Details error from Bifrost."""
+    """RFC 7807 Problem Details error from the Magick Mind API."""
 
     def __init__(
         self,

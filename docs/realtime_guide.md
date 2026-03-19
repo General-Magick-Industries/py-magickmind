@@ -10,7 +10,7 @@ This guide explains how to use the Realtime features of the Magick Mind SDK effe
 
 The SDK uses a WebSocket connection to receive real-time updates. Unlike traditional Pub/Sub where you subscribe to arbitrary channels, this SDK uses an **RPC-based subscription model**:
 
-1.  **RPC `subscribe`**: You ask the Bifrost backend to subscribe your connection to a specific `target_user_id`.
+1.  **RPC `subscribe`**: You ask the Magick Mind API backend to subscribe your connection to a specific `target_user_id`.
 2.  **Backend Logic**: The backend validates permissions and subscribes your connection's session to the correct internal channel (e.g., `user:123:updates`).
 3.  **Events**: You receive messages via the standard client event handlers.
 
@@ -380,11 +380,11 @@ class MonitoredHandler(RealtimeEventHandler):
 
 ## Advanced: Relaying to End-Users
 
-In a typical topology, this SDK runs on **your backend service** (the middleware), which sits between Bifrost and your End-Users.
+In a typical topology, this SDK runs on **your backend service** (the middleware), which sits between the Magick Mind API and your End-Users.
 
 ```mermaid
 graph LR
-    B[Bifrost] -- WebSocket --> S[Your Service (SDK)]
+    B[Magick Mind API] -- WebSocket --> S[Your Service (SDK)]
     S -- "WS / SSE / FC" --> U1[End User 1]
     S -- "WS / SSE / FC" --> U2[End User 2]
     S -- "..." --> Un[End User N]
@@ -400,7 +400,7 @@ graph LR
 
 You might wonder: *"Why is there only one handler? Is this a firehose?"*
 
-*   **Multiplexing (Good)**: You connect **once** to Bifrost. Over this single connection, you tell Bifrost: "I want updates for User A, User B, and User C." Bifrost sends *only* those updates down that single wire. This is efficient network usage.
+*   **Multiplexing (Good)**: You connect **once** to the Magick Mind API. Over this single connection, you tell the API: "I want updates for User A, User B, and User C." The API sends *only* those updates down that single wire. This is efficient network usage.
 *   **Firehose (Bad)**: Subscribing to a wildcard channel like `root:*` receiving *everything* for the entire system. We are **not** doing this.
 *   **One Connection per User (Bad)**: Opening 500 separate WebSocket connections from your backend for each user you monitor. This consumes unnecessary resources (file descriptors, memory).
 

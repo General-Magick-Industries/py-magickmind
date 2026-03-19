@@ -1,7 +1,7 @@
 """
-OpenAI-compatible completions via Bifrost.
+OpenAI-compatible completions via the Magick Mind API.
 
-Bifrost exposes POST /v1/chat/completions — a full OpenAI-compatible
+The API exposes POST /v1/chat/completions — a full OpenAI-compatible
 endpoint backed by Brain/Cortex. Use client.openai_client() to get a
 pre-configured AsyncOpenAI pointed at it. No Centrifugo, no mindspace
 context, no ChatHistory service needed — stateless LLM calls only.
@@ -9,7 +9,7 @@ context, no ChatHistory service needed — stateless LLM calls only.
 Install the optional dep first:
     pip install magick-mind[openai]
 
-Set BIFROST_API_KEY in your .env (your platform api key).
+Set MAGICKMIND_API_KEY in your .env (your platform api key).
 """
 
 import asyncio
@@ -23,17 +23,17 @@ load_dotenv()
 
 
 async def main() -> None:
-    api_key = os.getenv("BIFROST_API_KEY", "")
+    api_key = os.getenv("MAGICKMIND_API_KEY", "")
     if not api_key:
         print(
-            "Set BIFROST_API_KEY in .env — your platform api key (Bearer token for /v1/chat/completions)"
+            "Set MAGICKMIND_API_KEY in .env — your platform api key (Bearer token for /v1/chat/completions)"
         )
         return
 
     client = MagickMind(
-        email=os.getenv("BIFROST_EMAIL", ""),
-        password=os.getenv("BIFROST_PASSWORD", ""),
-        base_url=os.getenv("BIFROST_BASE_URL", "https://dev-bifrost.magickmind.ai"),
+        email=os.getenv("MAGICKMIND_EMAIL", ""),
+        password=os.getenv("MAGICKMIND_PASSWORD", ""),
+        base_url=os.getenv("MAGICKMIND_BASE_URL", "https://dev-api.magickmind.ai"),
     )
 
     oai = client.openai_client(api_key=api_key)

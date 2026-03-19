@@ -2,10 +2,10 @@
 
 ## Overview
 
-The Magick Mind SDK is designed for server-side integration with Bifrost using service-level authentication.
+The Magick Mind SDK is designed for server-side integration with the Magick Mind API using service-level authentication.
 
 > [!NOTE]
-> This SDK is intended for backend applications. For browser or mobile app integration, your backend acts as an intermediary between end users and Bifrost.
+> This SDK is intended for backend applications. For browser or mobile app integration, your backend acts as an intermediary between end users and the Magick Mind API.
 
 ---
 
@@ -27,7 +27,7 @@ The Magick Mind SDK is designed for server-side integration with Bifrost using s
          │ SDK calls (authenticated with service account)
          ↓
 ┌─────────────────┐
-│    Bifrost      │  (Magick Mind Platform)
+│   Magick Mind API   │  (Magick Mind Platform)
 └─────────────────┘
 ```
 
@@ -36,19 +36,19 @@ The Magick Mind SDK is designed for server-side integration with Bifrost using s
 - ✅ Your backend verifies end-user credentials
 - ✅ Your backend uses SDK with **service credentials**
 - ✅ Your backend controls permissions and access
-- ✅ Bifrost never sees end users directly
+- ✅ the Magick Mind API never sees end users directly
 
 ---
 
 ## Backend Integration Patterns
 
-Your backend sits between end users and Bifrost. Here are the common patterns for structuring this integration:
+Your backend sits between end users and the Magick Mind API. Here are the common patterns for structuring this integration:
 
 ### Pattern 1: Pure Proxy (No Storage)
 
-**When to use:** Simple apps, low traffic, Bifrost as single source of truth
+**When to use:** Simple apps, low traffic, the Magick Mind API as single source of truth
 
-**Definition:** Backend routes requests to Bifrost without storing data. Still needs to handle pagination, auth, and response formatting.
+**Definition:** Backend routes requests to the Magick Mind API without storing data. Still needs to handle pagination, auth, and response formatting.
 
 ```python
 from magick_mind import MagickMind
@@ -65,7 +65,7 @@ def verify_user(token: str):
 # Send chat message
 @app.post("/chat/send")
 async def send(request: ChatRequest, user = Depends(verify_user)):
-    # Proxy to Bifrost
+    # Proxy to the Magick Mind API
     response = client.v1.chat.send(
         api_key=request.api_key,
         mindspace_id=request.mindspace_id,
@@ -86,14 +86,14 @@ async def get_messages(
     if not user.can_access(mindspace_id):
         raise Forbidden()
     
-    # Proxy to Bifrost with pagination
+    # Proxy to the Magick Mind API with pagination
     result = client.v1.history.get_messages(
         mindspace_id=mindspace_id,
         after_id=cursor,  # Cursor-based pagination
         limit=limit
     )
     
-    # Return Bifrost's response (optionally transform format)
+    # Return the Magick Mind API's response (optionally transform format)
     return {
         "messages": result.chat_histories,
         "next_cursor": result.next_after_id,  # For next page
@@ -113,26 +113,26 @@ resp = await fetch(`/messages?mindspace_id=mind-123&cursor=${resp.next_cursor}&l
 **Pros:**
 - ✅ Simple implementation
 - ✅ No storage complexity
-- ✅ Bifrost is single source of truth
+- ✅ the Magick Mind API is single source of truth
 - ✅ No data sync issues
 
 **Cons:**
-- ⚠️ Every request hits Bifrost (latency + cost)
+- ⚠️ Every request hits the Magick Mind API (latency + cost)
 - ⚠️ No caching
-- ⚠️ Depends on Bifrost availability
+- ⚠️ Depends on the Magick Mind API availability
 - ⚠️ Can't query locally (full-text search, etc.)
 
 ---
 
 ### Pattern 2: Caching Layer
 
-**When to use:** High traffic, need fast responses, want to reduce Bifrost load
+**When to use:** High traffic, need fast responses, want to reduce the Magick Mind API load
 
 **Challenge:** Pagination makes caching complex. You need to choose: cache pages, or cache individual items?
 
 #### Recommended: Cache Individual Messages
 
-**Strategy:** Don't cache paginated lists. Cache individual messages by ID and always fetch lists from Bifrost.
+**Strategy:** Don't cache paginated lists. Cache individual messages by ID and always fetch lists from the Magick Mind API.
 
 ```python
 import redis
@@ -140,7 +140,7 @@ import json
 
 redis_client = redis.Redis()
 
-# List endpoint: ALWAYS fetch from Bifrost (don't cache pagination)
+# List endpoint: ALWAYS fetch from the Magick Mind API (don't cache pagination)
 @app.get("/messages")
 async def get_messages(
     mindspace_id: str,
@@ -173,7 +173,7 @@ async def get_message(message_id: str, user = Depends(verify_user)):
     if cached:
         return json.loads(cached)
     
-    # Miss: Fetch from Bifrost
+    # Miss: Fetch from the Magick Mind API
     msg = client.v1.messages.get(message_id=message_id)
     
     # Cache it
@@ -196,7 +196,7 @@ async def send_message(request: SendRequest, user = Depends(verify_user)):
 # Update: Invalidate single message
 @app.patch("/messages/{message_id}")
 async def update_message(message_id: str, update: UpdateRequest):
-    # Update Bifrost
+    # Update the Magick Mind API
     response = client.v1.messages.update(message_id, update.content)
     
     # Invalidate JUST this message
@@ -206,7 +206,7 @@ async def update_message(message_id: str, update: UpdateRequest):
 ```
 
 **Why this works:**
-- ✅ Pagination always fresh (from Bifrost)
+- ✅ Pagination always fresh (from the Magick Mind API)
 - ✅ Detail views cached (faster)
 - ✅ Simple invalidation (one key per message)
 - ✅ No stale list issues
@@ -225,7 +225,7 @@ async def get_messages(mindspace_id: str, cursor: str = None, limit: int = 50):
         if cached:
             return json.loads(cached)
     
-    # Fetch from Bifrost
+    # Fetch from the Magick Mind API
     result = client.v1.history.get_messages(
         mindspace_id=mindspace_id,
         after_id=cursor,
@@ -270,12 +270,12 @@ cache_key = f"messages:{mindspace_id}:cursor:{cursor}:limit:{limit}"
 
 **Pros:**
 - ✅ Individual messages cached (fast detail views)
-- ✅ Lists always fresh (from Bifrost)
+- ✅ Lists always fresh (from the Magick Mind API)
 - ✅ Simple invalidation
 - ✅ No stale data issues
 
 **Cons:**
-- ⚠️ List requests always hit Bifrost
+- ⚠️ List requests always hit the Magick Mind API
 - ⚠️ Not ideal for very high traffic
 
 ---
@@ -290,16 +290,16 @@ class MessageHandler(RealtimeEventHandler):
         # Store in your database
         await db.messages.insert({
             "id": generate_id(),  # Your ID
-            "bifrost_message_id": payload["message_id"],
+            "api_message_id": payload["message_id"],
             "reply_to_message_id": payload.get("reply_to_message_id"),
             "user_id": user_id,
             "content": payload["content"],
             "created_at": datetime.utcnow(),
-            "bifrost_version": payload.get("version")  # Track staleness
+            "api_version": payload.get("version")  # Track staleness
         })
 
 # Periodic sync to catch missed messages
-async def sync_with_bifrost():
+async def sync_with_api():
     last_cursor = await db.get_last_cursor()
     
     history = client.v1.history.get_messages(
@@ -309,9 +309,9 @@ async def sync_with_bifrost():
     
     for msg in history.messages:
         await db.messages.upsert({
-            "bifrost_message_id": msg.id,
+            "api_message_id": msg.id,
             "content": msg.content,
-            "bifrost_version": msg.version
+            "api_version": msg.version
         })
 ```
 
@@ -322,7 +322,7 @@ async def sync_with_bifrost():
 - ✅ Analytics and reporting
 
 **Cons:**
-- ⚠️ Need to sync with Bifrost
+- ⚠️ Need to sync with the Magick Mind API
 - ⚠️ Handle updates/deletes
 - ⚠️ Two sources of truth
 - ⚠️ More storage
@@ -352,7 +352,7 @@ class NotificationHandler(RealtimeEventHandler):
         asyncio.create_task(fetch_from_history(user_id))
 
 async def fetch_from_history(user_id):
-    """Fetch latest from Bifrost history API."""
+    """Fetch latest from the Magick Mind API history API."""
     messages = client.v1.history.get_messages(
         mindspace_id=get_mindspace(user_id),
         after_id=get_last_cursor(user_id)
@@ -361,7 +361,7 @@ async def fetch_from_history(user_id):
 ```
 
 **Benefits:**
-- ✅ Bifrost history is source of truth
+- ✅ the Magick Mind API history is source of truth
 - ✅ Proper pagination/versioning
 - ✅ Realtime for speed, history for correctness
 
@@ -438,8 +438,8 @@ async def cache_from_history(message_id):
 ### 1. Never Expose Service Credentials
 ```bash
 # ✅ Good: Environment variables
-export BIFROST_EMAIL="service@company.com"
-export BIFROST_PASSWORD="secure_password"
+export MAGICKMIND_EMAIL="service@company.com"
+export MAGICKMIND_PASSWORD="secure_password"
 
 # ❌ Bad: Hardcoded in code
 client = MagickMind(email="service@company.com", password="abc123")
@@ -497,10 +497,10 @@ logger.info(f"User {user.id} sent chat message", extra={
 A: No. This requires service credentials that should never be exposed. Use your backend as a proxy.
 
 **Q: How do I authenticate end users?**  
-A: Use your own auth system (JWT, sessions, Firebase Auth, etc.). The SDK authenticates your **backend** to Bifrost.
+A: Use your own auth system (JWT, sessions, Firebase Auth, etc.). The SDK authenticates your **backend** to the Magick Mind API.
 
-**Q: What if I want end users to call Bifrost directly?**  
-A: This would require Bifrost to support end-user authentication with scoped tokens. Contact Bifrost team for this feature.
+**Q: What if I want end users to call the Magick Mind API directly?**  
+A: This would require the API to support end-user authentication with scoped tokens. Contact the Magick Mind team for this feature.
 
 **Q: How does this compare to Supabase?**  
 A: Supabase offers both patterns (service role + anon key with RLS). This SDK is service-role only (like Firebase Admin).

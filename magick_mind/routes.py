@@ -6,7 +6,7 @@ across the SDK and make updates easier when the API changes.
 
 
 class Routes:
-    """API v1 route paths for Bifrost."""
+    """API v1 route paths for the Magick Mind API."""
 
     # Auth endpoints
     AUTH_LOGIN = "/v1/auth/login"

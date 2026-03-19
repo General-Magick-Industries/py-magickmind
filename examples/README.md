@@ -6,10 +6,10 @@ This directory contains working examples demonstrating key patterns for the Magi
 
 1. **Set up your environment:**
    ```bash
-   export BIFROST_BASE_URL="http://localhost:8888"
-   export BIFROST_EMAIL="user@example.com"
-   export BIFROST_PASSWORD="your_password"
-   export BIFROST_WS_ENDPOINT="ws://localhost:8888/connection/websocket"
+   export MAGICKMIND_BASE_URL="http://localhost:8888"
+   export MAGICKMIND_EMAIL="user@example.com"
+   export MAGICKMIND_PASSWORD="your_password"
+   export MAGICKMIND_WS_ENDPOINT="ws://localhost:8888/connection/websocket"
    ```
 
 2. **Create required resources:**
@@ -115,7 +115,7 @@ Demonstrates:
 
 **Architecture:**
 ```
-[Your Frontend/App] ←→ [Your Backend + This SDK] ←→ [Bifrost SaaS]
+[Your Frontend/App] ←→ [Your Backend + This SDK] ←→ [Magick Mind API]
 ```
 
 ```bash
@@ -170,7 +170,7 @@ from magick_mind import MagickMind
 client = MagickMind(
     email="user@example.com",
     password="your_password",
-    base_url="https://bifrost.example.com"
+    base_url="https://api.example.com"
 )
 ```
 
@@ -213,10 +213,10 @@ except ProblemDetailsException as e:
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `BIFROST_BASE_URL` | Yes | Bifrost API URL (e.g., `http://localhost:8888`) |
-| `BIFROST_EMAIL` | Yes | Service account email |
-| `BIFROST_PASSWORD` | Yes | Service account password |
-| `BIFROST_WS_ENDPOINT` | For realtime | WebSocket endpoint (e.g., `ws://localhost:8888/connection/websocket`) |
+| `MAGICKMIND_BASE_URL` | Yes | Magick Mind API URL (e.g., `http://localhost:8888`) |
+| `MAGICKMIND_EMAIL` | Yes | Service account email |
+| `MAGICKMIND_PASSWORD` | Yes | Service account password |
+| `MAGICKMIND_WS_ENDPOINT` | For realtime | WebSocket endpoint (e.g., `ws://localhost:8888/connection/websocket`) |
 | `USER_ID` | Optional | End user ID for testing (default: `user-test-456`) |
 | `MINDSPACE_ID` | Optional | Mindspace ID for testing (default: `mind-test-123`) |
 | `PROJECT_ID` | Optional | Project ID for testing |
@@ -246,13 +246,13 @@ uv run pyright --version
 
 ### Authentication Errors
 If authentication fails:
-1. Verify `BIFROST_EMAIL` and `BIFROST_PASSWORD` are correct
-2. Check that Bifrost is running at `BIFROST_BASE_URL`
+1. Verify `MAGICKMIND_EMAIL` and `MAGICKMIND_PASSWORD` are correct
+2. Check that the API is running at `MAGICKMIND_BASE_URL`
 3. Ensure your service account has proper permissions
 
 ### WebSocket Connection Errors
 If realtime examples fail:
-1. Verify `BIFROST_WS_ENDPOINT` is set correctly
+1. Verify `MAGICKMIND_WS_ENDPOINT` is set correctly
 2. Check that WebSocket endpoint is accessible
 3. Ensure firewall allows WebSocket connections
 

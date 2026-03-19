@@ -1,7 +1,7 @@
 """
 Trait models for Magick Mind SDK v1 API.
 
-Mirrors Bifrost's /v1/traits endpoint request/response schemas.
+Mirrors the /v1/traits endpoint request/response schemas.
 """
 
 from __future__ import annotations
@@ -37,7 +37,7 @@ class MultilabelConfig(BaseModel):
 
 
 class Trait(BaseModel):
-    """A trait definition in Bifrost."""
+    """A trait definition in the Magick Mind API."""
 
     id: str
     name: str

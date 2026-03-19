@@ -35,7 +35,7 @@ def compute_token_expiry(
 
 class EmailPasswordAuth(AuthProvider):
     """
-    Email/password authentication using bifrost's /v1/auth/login endpoint.
+    Email/password authentication using the Magick Mind /v1/auth/login endpoint.
 
     Automatically handles token refresh when the access token expires.
 
@@ -43,7 +43,7 @@ class EmailPasswordAuth(AuthProvider):
         auth = EmailPasswordAuth(
             email="user@example.com",
             password="your_password",
-            base_url="https://bifrost.example.com"
+            base_url="https://api.magickmind.ai"
         )
         # Login happens automatically on first request
         headers = await auth.get_headers_async()
@@ -56,7 +56,7 @@ class EmailPasswordAuth(AuthProvider):
         Args:
             email: User email address
             password: User password
-            base_url: Base URL of the Bifrost API
+            base_url: Base URL of the Magick Mind API
             timeout: Request timeout in seconds
         """
         if not email or not password:

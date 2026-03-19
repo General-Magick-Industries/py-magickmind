@@ -23,7 +23,7 @@ class EndUserResourceV1(BaseResource):
     """
     End user resource for managing end users in agentic SaaS applications.
 
-    End users represent the actual users of applications built on the bifrost
+    End users represent the actual users of applications built on the Magick Mind
     platform in a multi-tenant architecture.
     """
 

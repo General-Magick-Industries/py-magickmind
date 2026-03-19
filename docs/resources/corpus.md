@@ -24,7 +24,7 @@ from magick_mind import MagickMind
 
 # Initialize client
 client = MagickMind(
-    base_url="https://bifrost.example.com",
+    base_url="https://api.magickmind.ai",
     email="user@example.com",
     password="password"
 )

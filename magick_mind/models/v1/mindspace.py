@@ -1,6 +1,6 @@
 """V1 mindspace API models.
 
-These models mirror the bifrost API types for /v1/mindspaces endpoint.
+These models mirror the API types for /v1/mindspaces endpoint.
 """
 
 from __future__ import annotations
@@ -16,7 +16,7 @@ from magick_mind.models.v1.history import HistoryResponse
 # Type alias for mindspace type enum (uppercase to match apidog)
 MindSpaceType = Literal["PRIVATE", "GROUP"]
 
-# Bifrost returns proto enum .String() values with MINDSPACE_TYPE_ prefix.
+# The API returns proto enum .String() values with MINDSPACE_TYPE_ prefix.
 # We normalize to short form for SDK consumers.
 _TYPE_NORMALIZE: dict[str, MindSpaceType] = {
     "PRIVATE": "PRIVATE",
@@ -76,7 +76,7 @@ class MindSpace(BaseModel):
     @field_validator("corpus_ids", "participant_ids", mode="before")
     @classmethod
     def _coerce_null_list(cls, v: object) -> object:
-        """Bifrost returns null for empty Go slices; coerce to []."""
+        """The API returns null for empty Go slices; coerce to []."""
         return v if v is not None else []
 
     @field_validator("type", mode="before")
@@ -113,7 +113,7 @@ class GetMindSpaceListResponse(BaseModel):
     """
     Response from listing mindspaces.
 
-    Uses standardized Bifrost pagination format: {data: [], paging: {}}.
+    Uses standardized pagination format: {data: [], paging: {}}.
     """
 
     data: list[MindSpace] = Field(

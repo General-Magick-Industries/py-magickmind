@@ -144,7 +144,7 @@ class CorpusResourceV1(BaseResource):
             corpus_id: The corpus ID to delete
 
         Returns:
-            None (Bifrost returns 204 No Content)
+            None (The API returns 204 No Content)
 
         Example:
             await client.v1.corpus.delete(corpus_id="corpus-123")

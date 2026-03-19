@@ -21,11 +21,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   requests, and `add_users()` → `add_participants()` (deprecated alias kept).
 - **Mindspace list**: `list(user_id=...)` replaced with `participant_id`,
   `project_id`, `type`, `name`, `cursor`, `limit`, `order` params.
-- **Removed `/v1/models`** — Ghost endpoint that Bifrost never implemented.
+- **Removed `/v1/models`** — Ghost endpoint that the Magick Mind API never implemented.
 
 ### Added
 - **OpenAI-compatible completions** — `client.openai_client(api_key=...)` returns
-  an `AsyncOpenAI` instance pointed at Bifrost's `/v1/chat/completions`.
+  an `AsyncOpenAI` instance pointed at the Magick Mind API's `/v1/chat/completions`.
   Supports streaming and non-streaming. Install with `pip install magickmind[openai]`.
 - **Trait resource** (`client.v1.traits`) — Full CRUD for `/v1/traits`:
   `create`, `get`, `list`, `update`, `patch`, `delete`.
@@ -54,7 +54,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Removed `pytest-asyncio` from production dependencies (was in `[project.dependencies]`; now dev-only).
 - Added `asyncio_mode = "auto"` to `[tool.pytest.ini_options]`.
-- Handle Bifrost proto enums returned as strings and null slices returned as `null` instead of `[]`.
+- Handle Magick Mind API proto enums returned as strings and null slices returned as `null` instead of `[]`.
 - Examples now load `.env` via `load_dotenv()` and use correct dev environment URLs.
 
 ### Changed

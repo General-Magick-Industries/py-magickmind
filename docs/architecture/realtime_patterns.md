@@ -19,7 +19,7 @@ There are three common patterns, but only one is correct for personal user data.
 ```
 Backend Service (Your SDK Instance)
     │
-    └─ Single WebSocket Connection to Bifrost
+    └─ Single WebSocket Connection to the Magick Mind API
         ├─ subscribe("user_1")  
         ├─ subscribe("user_2")  
         ├─ subscribe("user_3")  

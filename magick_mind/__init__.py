@@ -1,5 +1,5 @@
 """
-Magick Mind SDK - Python client for Bifrost Magick Mind AI platform.
+Magick Mind SDK - Python client for the Magick Mind AI platform.
 
 Simple, powerful SDK for authentication and interaction with the Magick Mind API.
 """

@@ -78,7 +78,7 @@ class AuthenticationError(MagickMindError):
 **Common Causes:**
 - Wrong credentials
 - Account doesn't exist
-- Bifrost service is down
+- The Magick Mind API is down
 - Network connectivity issues
 
 **Recovery:**
@@ -89,7 +89,7 @@ try:
     client = MagickMind(
         email="user@example.com",
         password="password",
-        base_url="https://bifrost.example.com"
+        base_url="https://api.magickmind.ai"
     )
 except AuthenticationError as e:
     logger.error(f"Authentication failed: {e.message}")
@@ -132,13 +132,13 @@ except TokenExpiredError as e:
 
 ### ProblemDetailsException
 
-**RFC 7807 Problem Details error from Bifrost API.**
+**RFC 7807 Problem Details error from the Magick Mind API.**
 
-This is the **most common exception** you'll encounter when using the SDK. It represents any HTTP error response (4xx, 5xx) from the Bifrost API formatted according to RFC 7807.
+This is the **most common exception** you'll encounter when using the SDK. It represents any HTTP error response (4xx, 5xx) from the Magick Mind API formatted according to RFC 7807.
 
 ```python
 class ProblemDetailsException(MagickMindError):
-    """RFC 7807 Problem Details error from Bifrost."""
+    """RFC 7807 Problem Details error from the Magick Mind API."""
     type_uri: str
     title: str
     status: int
@@ -198,9 +198,9 @@ except ProblemDetailsException as e:
 | 403 | Forbidden | Insufficient permissions |
 | 404 | Not Found | Resource doesn't exist |
 | 409 | Conflict | Resource already exists |
-| 500 | Internal Server Error | Bifrost server error |
+| 500 | Internal Server Error | Magick Mind API server error |
 | 502 | Bad Gateway | Upstream service error |
-| 503 | Service Unavailable | Bifrost temporarily down |
+| 503 | Service Unavailable | Magick Mind API temporarily down |
 
 ---
 
@@ -345,7 +345,7 @@ Comprehensive mapping of HTTP status codes to SDK exceptions and recommended act
 | **404** | `ProblemDetailsException` | Resource not found | Verify IDs are correct and resource exists |
 | **409** | `ProblemDetailsException` | Resource conflict (e.g., already exists) | Use different identifier or update existing |
 | **429** | `RateLimitError` | Rate limit exceeded | Implement exponential backoff retry |
-| **500** | `ProblemDetailsException` | Bifrost server error | Retry with backoff, contact support if persists |
+| **500** | `ProblemDetailsException` | Magick Mind API server error | Retry with backoff, contact support if persists |
 | **502** | `ProblemDetailsException` | Bad gateway (upstream error) | Retry with backoff |
 | **503** | `ProblemDetailsException` | Service temporarily unavailable | Retry with backoff |
 
@@ -477,7 +477,7 @@ except ProblemDetailsException as e:
 
 ### Scenario 5: Server Error (500)
 
-**Problem:** Bifrost is experiencing an internal error.
+**Problem:** The Magick Mind API is experiencing an internal error.
 
 **Solution:** Retry with backoff and log request_id for support.
 
@@ -556,7 +556,7 @@ except MagickMindError as e:  # Too broad!
 
 ### 2. Always Log request_id for Support
 
-The `request_id` is **critical for debugging** with Bifrost support:
+The `request_id` is **critical for debugging** with Magick Mind support:
 
 ```python
 except ProblemDetailsException as e:
@@ -772,8 +772,8 @@ class ChatService:
             
         except ProblemDetailsException as e:
             # Log API errors with full context
-            logger.error(
-                f"Bifrost API error: [{e.status}] {e.title}",
+                logger.error(
+                f"Magick Mind API error: [{e.status}] {e.title}",
                 extra={
                     "request_id": e.request_id,
                     "status": e.status,
@@ -855,7 +855,7 @@ for msg in messages:
 
 ---
 
-### "How do I report a bug to Bifrost support?"
+### "How do I report a bug to Magick Mind support?"
 
 **Always include:**
 1. ✅ `request_id` from the exception

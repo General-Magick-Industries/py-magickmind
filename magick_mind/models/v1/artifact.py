@@ -19,7 +19,7 @@ class Artifact(BaseModel):
     Canonical artifact model representing an uploaded file.
 
     Artifacts are files (documents, images, etc.) uploaded to S3 and
-    associated with a corpus or other container in the bifrost backend.
+    associated with a corpus or other container in the backend.
     """
 
     model_config = ConfigDict(

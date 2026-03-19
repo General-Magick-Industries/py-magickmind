@@ -3,9 +3,9 @@
 Example demonstrating email/password authentication with automatic token refresh.
 
 Usage:
-    export BIFROST_BASE_URL="http://localhost:8888"
-    export BIFROST_EMAIL="user@example.com"
-    export BIFROST_PASSWORD="your_password"
+    export MAGICKMIND_BASE_URL="http://localhost:8888"
+    export MAGICKMIND_EMAIL="user@example.com"
+    export MAGICKMIND_PASSWORD="your_password"
     python examples/email_password_auth.py
 """
 
@@ -21,13 +21,13 @@ load_dotenv()
 
 async def main():
     # Get config from environment
-    base_url = os.getenv("BIFROST_BASE_URL", "https://dev-bifrost.magickmind.ai")
-    email = os.getenv("BIFROST_EMAIL")
-    password = os.getenv("BIFROST_PASSWORD")
+    base_url = os.getenv("MAGICKMIND_BASE_URL", "https://dev-api.magickmind.ai")
+    email = os.getenv("MAGICKMIND_EMAIL")
+    password = os.getenv("MAGICKMIND_PASSWORD")
 
     if not email or not password:
         print(
-            "Error: BIFROST_EMAIL and BIFROST_PASSWORD environment variables are required"
+            "Error: MAGICKMIND_EMAIL and MAGICKMIND_PASSWORD environment variables are required"
         )
         return
 
