@@ -12,6 +12,8 @@ from magick_mind.models.v1.persona import (
     Persona,
     PersonaVersion,
     PersonaWithVersion,
+    PreparePersonaRequest,
+    PreparePersonaResponse,
     SetActiveVersionRequest,
     UpdatePersonaRequest,
 )
@@ -154,6 +156,32 @@ class PersonaResourceV1(BaseResource):
             persona_id: Persona ID
         """
         await self._http.delete(Routes.persona(persona_id))
+
+    async def prepare(
+        self,
+        persona_id: str,
+        *,
+        user_id: Optional[str] = None,
+    ) -> PreparePersonaResponse:
+        """
+        Prepare a persona's system prompt.
+
+        Resolves the persona's traits, active version constraints, and optional
+        user-specific context into a ready-to-use system prompt string.
+
+        Args:
+            persona_id: Persona ID
+            user_id: Optional user ID for user-specific prompt context
+
+        Returns:
+            PreparePersonaResponse with the system_prompt string
+        """
+        request = PreparePersonaRequest(user_id=user_id)
+        response = await self._http.post(
+            Routes.persona_prepare(persona_id),
+            json=request.model_dump(exclude_none=True),
+        )
+        return PreparePersonaResponse.model_validate(response)
 
     async def create_from_blueprint(
         self,

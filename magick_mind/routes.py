@@ -92,6 +92,11 @@ class Routes:
         return f"/v1/persona/{persona_id}/version/{version}"
 
     @staticmethod
+    def persona_prepare(persona_id: str) -> str:
+        """Get path for preparing a persona's system prompt."""
+        return f"/v1/persona/{persona_id}/prepare"
+
+    @staticmethod
     def persona_active_version(persona_id: str) -> str:
         """Get path for persona active version."""
         return f"/v1/persona/{persona_id}/version/active"

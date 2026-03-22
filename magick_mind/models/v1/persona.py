@@ -102,6 +102,18 @@ class PersonaWithVersion(BaseModel):
     version: PersonaVersion
 
 
+class PreparePersonaRequest(BaseModel):
+    """Request to prepare a persona's system prompt."""
+
+    user_id: Optional[str] = None
+
+
+class PreparePersonaResponse(BaseModel):
+    """Response containing the generated system prompt."""
+
+    system_prompt: str
+
+
 class ListPersonaVersionsResponse(BaseModel):
     """Paginated list of persona versions."""
 
