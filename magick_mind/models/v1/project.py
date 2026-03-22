@@ -1,7 +1,7 @@
 """
 Project models for Magick Mind SDK v1 API.
 
-Mirrors Bifrost's /v1/projects endpoint request/response schemas.
+Mirrors the /v1/projects endpoint request/response schemas.
 """
 
 from typing import Optional, List
@@ -13,7 +13,7 @@ from magick_mind.models.v1.end_user import PageInfo
 
 class Project(BaseModel):
     """
-    Project schema from Bifrost.
+    Project schema from the API.
 
     Represents an agentic SaaS project with associated corpus IDs.
     """
@@ -50,7 +50,7 @@ class GetProjectListResponse(BaseModel):
     """
     Response schema for listing projects.
 
-    Matches Bifrost's {data: list[Project], paging: PageInfo} structure.
+    Matches the {data: list[Project], paging: PageInfo} structure.
     """
 
     data: list[Project] = Field(..., description="List of projects")
@@ -61,7 +61,7 @@ class UpdateProjectRequest(BaseModel):
     """
     Request schema for updating a project.
 
-    Both name and corpus_ids are REQUIRED (matching Bifrost API).
+    Both name and corpus_ids are REQUIRED (matching the API).
     """
 
     name: str = Field(..., description="Project name (required)")

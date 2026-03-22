@@ -198,9 +198,9 @@ except HTTPError as e:
         print(f"API error: {e}")
 ```
 
-## Integration with Bifrost Backend
+## Integration with the Magick Mind API
 
-The project resource maps directly to Bifrost's `/v1/projects` API endpoints:
+The project resource maps directly to the Magick Mind API's `/v1/projects` endpoints:
 
 - **POST** `/v1/projects` - Create project
 - **GET** `/v1/projects/:id` - Get project by ID
@@ -229,4 +229,4 @@ pytest tests/test_project_* -v
 
 - [History Resource](../history.py) - For fetching chat history
 - [Chat Resource](../chat.py) - For sending chat messages
-- [Bifrost API Documentation](../../../bifrost/api/v1/project.api) - Backend API spec
+- [API Documentation](../../../bifrost/api/v1/project.api) - Backend API spec

@@ -4,7 +4,7 @@ A comprehensive guide to using the Mindspace resource in the Magick Mind SDK for
 
 ## Overview
 
-**Mindspace is central to Bifrost** - it's where everything starts and ends. Conversations, knowledge, and users all come together in mindspaces.
+**Mindspace is central to the Magick Mind API** - it's where everything starts and ends. Conversations, knowledge, and users all come together in mindspaces.
 
 **Mindspaces** are organizational containers that group together:
 - **Chat conversations** - Message history and interactions
@@ -55,7 +55,7 @@ from magick_mind import MagickMind
 
 # Initialize client
 client = MagickMind(
-    base_url="https://bifrost.example.com",
+    base_url="https://api.magickmind.ai",
     email="user@example.com",
     password="password"
 )
@@ -329,7 +329,7 @@ while True:
 
 ### Thinking Mindspace-First
 
-When architecting your Bifrost application, **start with mindspaces**:
+When architecting your Magick Mind application, **start with mindspaces**:
 
 #### 1. **Define Your Conversation Contexts**
 

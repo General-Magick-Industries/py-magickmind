@@ -15,7 +15,7 @@ class MagickMind:
     """
     Main client for the Magick Mind SDK.
 
-    This is the primary interface for interacting with the Bifrost Magick Mind API.
+    This is the primary interface for interacting with the Magick Mind API.
 
     Provides:
     - Authentication (email/password with JWT, automatic refresh)
@@ -28,7 +28,7 @@ class MagickMind:
         client = MagickMind(
             email="user@example.com",
             password="your_password",
-            base_url="https://bifrost.example.com"
+            base_url="https://api.magickmind.ai"
         )
 
         # Use typed resources (recommended)
@@ -65,7 +65,7 @@ class MagickMind:
         Initialize the Magick Mind client.
 
         Args:
-            base_url: Base URL of the Bifrost API (e.g., https://bifrost.example.com)
+            base_url: Base URL of the Magick Mind API (e.g., https://api.magickmind.ai)
             email: User email for authentication
             password: User password for authentication
             timeout: Request timeout in seconds
@@ -115,7 +115,7 @@ class MagickMind:
         - Auto-refreshes expired tokens
 
         Intended for:
-        - Bifrost developers testing new endpoints
+        - Developers testing new endpoints
         - Power users needing direct API access
         - Experimenting with endpoints before implementing resources
 
@@ -143,7 +143,7 @@ class MagickMind:
 
         Features:
         - Authenticated WebSocket connection
-        - RPC subscriptions (Bifrost specific)
+        - RPC subscriptions
         - Handling disconnects/reconnects (via centrifuge-python)
 
         Returns:
@@ -210,9 +210,9 @@ class MagickMind:
 
     def openai_client(self, api_key: str, compute_power: int = 1) -> object:
         """
-        Return a pre-configured AsyncOpenAI client pointed at Bifrost.
+        Return a pre-configured AsyncOpenAI client pointed at the Magick Mind API.
 
-        Bifrost exposes an OpenAI-compatible endpoint at /v1/chat/completions.
+        The API exposes an OpenAI-compatible endpoint at /v1/chat/completions.
         Auth is a Bearer api_key (not JWT). Pass the api_key you want to use.
 
         Usage::
@@ -224,11 +224,11 @@ class MagickMind:
             )
 
         Args:
-            api_key: API key passed as Bearer token to Bifrost.
+            api_key: API key passed as Bearer token.
             compute_power: X-Compute-Power header value (default 1).
 
         Returns:
-            AsyncOpenAI: Pre-configured client pointed at Bifrost /v1.
+            AsyncOpenAI: Pre-configured client pointed at the Magick Mind /v1 API.
 
         Raises:
             ImportError: If the ``openai`` package is not installed.

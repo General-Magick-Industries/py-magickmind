@@ -9,7 +9,7 @@ class SDKConfig:
     """Configuration for the Magick Mind SDK."""
 
     base_url: str
-    """Base URL for the Bifrost API (e.g., https://bifrost.example.com)"""
+    """Base URL for the Magick Mind API (e.g., https://api.magickmind.ai)"""
 
     timeout: float = 30.0
     """Request timeout in seconds"""

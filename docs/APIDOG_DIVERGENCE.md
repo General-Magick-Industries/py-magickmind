@@ -1,29 +1,29 @@
-# Apidog vs Bifrost Reality - Divergence Report
+# Apidog vs Magick Mind API Reality - Divergence Report
 
 **Generated:** 2026-02-01  
-**Bifrost Sync:** `fb381fa` (latest)  
+**API Sync:** `fb381fa` (latest)  
 **Apidog Main Export:** 102KB  
 **Apidog Develop Export:** 42KB (schema-only, incomplete)
 
 ## Executive Summary
 
-The SDK was built from Apidog documentation which **incorrectly documented response structures**. The actual Bifrost implementation (Go .api files) returns different formats. This document tracks the divergence and the fixes applied.
+The SDK was built from Apidog documentation which **incorrectly documented response structures**. The actual Magick Mind API implementation (Go .api files) returns different formats. This document tracks the divergence and the fixes applied.
 
 ## Root Cause
 
 Apidog was manually documented without contract tests. Documentation drifted from implementation over time.
 
 **Going forward:**
-- ✅ Bifrost `.api` files = source of truth
-- ✅ OpenAPI generated from Bifrost via `goctl`
-- ✅ SDK models validated against Bifrost-generated spec
+- ✅ Magick Mind API `.api` files = source of truth
+- ✅ OpenAPI generated from the API via `goctl`
+- ✅ SDK models validated against API-generated spec
 - ⚠️ Apidog updated manually from generated spec (if needed for frontend docs)
 
 ## Critical Response Structure Mismatches
 
 ### 1. CRUD Operations Return FLAT Schemas (Not Wrapped)
 
-| Endpoint | Apidog Documented | Bifrost Reality | Status |
+| Endpoint | Apidog Documented | API Reality | Status |
 |----------|-------------------|-----------------|--------|
 | `POST /v1/projects` | `{success, message, project: {...}}` | **FLAT** `ProjectSchema` | ❌ BREAKING |
 | `GET /v1/projects/{id}` | `{success, message, project: {...}}` | **FLAT** `ProjectSchema` | ❌ BREAKING |
@@ -39,11 +39,11 @@ Apidog was manually documented without contract tests. Documentation drifted fro
 | `GET /v1/end-users/{id}` | `{success, message, ...}` | **FLAT** `EndUserSchema` | ❌ BREAKING |
 | `PUT /v1/end-users/{id}` | `{success, message, ...}` | **FLAT** `EndUserSchema` | ❌ BREAKING |
 
-**Evidence:** Bifrost `.api` files define return types as `returns (ProjectSchema)`, not `returns (CreateProjectResponse)`.
+**Evidence:** The API `.api` files define return types as `returns (ProjectSchema)`, not `returns (CreateProjectResponse)`.
 
 ### 2. List Endpoints Use Standardized Pagination
 
-| Endpoint | Apidog Documented | Bifrost Reality | Status |
+| Endpoint | Apidog Documented | API Reality | Status |
 |----------|-------------------|-----------------|--------|
 | `GET /v1/projects` | `{success, message, projects: [...]}` | `{data: [...], paging: {}}` | ❌ BREAKING |
 | `GET /v1/mindspaces` | `{success, message, mindspaces: [...]}` | `{data: [...], paging: {}}` | ❌ BREAKING |
@@ -51,7 +51,7 @@ Apidog was manually documented without contract tests. Documentation drifted fro
 | `GET /v1/end-users` | `{data: [...], paging: {}}` | `{data: [...], paging: {}}` | ✅ CORRECT |
 | `GET /v1/mindspaces/messages` | `{chat_histories: [...], last_id, ...}` | `{data: [...], paging: {}}` | ❌ BREAKING |
 
-**Bifrost standardized pagination structure (from `common.api`):**
+**The API standardized pagination structure (from `common.api`):**
 ```json
 {
   "data": [...],
@@ -68,7 +68,7 @@ Apidog was manually documented without contract tests. Documentation drifted fro
 
 ### 3. Chat Response Has No Wrapper
 
-| Endpoint | Apidog Documented | Bifrost Reality | Status |
+| Endpoint | Apidog Documented | API Reality | Status |
 |----------|-------------------|-----------------|--------|
 | `POST /v1/chat/magickmind` | `{success, message, content: {...}}` | `{content: {...}}` | ❌ BREAKING |
 
@@ -76,7 +76,7 @@ Apidog was manually documented without contract tests. Documentation drifted fro
 
 ### 4. Field Optionality Differences
 
-| Schema.Field | Apidog | Bifrost | Impact |
+| Schema.Field | Apidog | API | Impact |
 |--------------|--------|---------|--------|
 | `UpdateEndUserRequest.name` | Required | Optional | ⚠️ SDK over-validates |
 | `UpdateProjectRequest.name` | Optional | **Required** | ⚠️ SDK under-validates |
@@ -85,9 +85,9 @@ Apidog was manually documented without contract tests. Documentation drifted fro
 
 ### 5. ChatHistoryMessage Field Mismatch
 
-| Field | SDK Has | Bifrost Has | Status |
+| Field | SDK Has | API Has | Status |
 |-------|---------|-------------|--------|
-| `artifact_ids` | ✅ Yes | ❌ No (not in `ChatHistoryItem`) | Ghost field - remove |
+| `artifact_ids` | ✅ Yes | ❌ No (not in API's `ChatHistoryItem`) | Ghost field - remove |
 | `create_at` | ✅ Yes (alias) | ✅ Yes | Correct |
 | `update_at` | ✅ Yes (alias) | ✅ Yes | Correct |
 
@@ -111,7 +111,7 @@ This appears to be an Apidog export configuration issue. The develop branch shou
 
 ### Breaking Changes (v2.0.0)
 
-All response models updated to match Bifrost reality:
+All response models updated to match the Magick Mind API reality:
 
 | Model | Before | After |
 |-------|--------|-------|
@@ -140,16 +140,16 @@ All response models updated to match Bifrost reality:
 
 | Model | Field | Reason |
 |-------|-------|--------|
-| `ChatHistoryMessage` | `artifact_ids` | Not in Bifrost's `ChatHistoryItem` |
+| `ChatHistoryMessage` | `artifact_ids` | Not in API's `ChatHistoryItem` |
 
-## How to Validate Against Bifrost
+## How to Validate Against the Magick Mind API
 
 ### Generate Latest Spec
 
 ```bash
-cd services/bifrost
+cd services/bifrost  # API gateway service
 goctl api plugin -p goctl-openapi -api bifrost.api -dir .
-cp openapi.json ../../libs/sdk/tests/contract/bifrost-actual.json
+cp openapi.json ../../libs/sdk/tests/contract/api-actual.json
 ```
 
 ### Run Contract Tests
@@ -159,7 +159,7 @@ cd libs/sdk
 uv run pytest tests/contract/ -v
 ```
 
-Tests now validate against `bifrost-actual.json` (Bifrost-generated), not Apidog exports.
+Tests now validate against `api-actual.json` (API-generated), not Apidog exports.
 
 ## Migration Guide for SDK Users
 
@@ -201,7 +201,7 @@ print(project.id)  # CORRECT
 
 ### For Backend Devs
 
-1. **Trust Bifrost .api files** - This is what the server actually implements
+1. **Trust the API .api files** - This is what the server actually implements
 2. **Don't trust Apidog alone** - Verify against generated OpenAPI or actual API calls
 3. **Use goctl-generated spec** - `goctl api plugin -p goctl-openapi` for source of truth
 
@@ -213,7 +213,7 @@ print(project.id)  # CORRECT
 
 ### For QA/Integration
 
-1. **Contract tests now validate Bifrost reality** - Not Apidog documentation
+1. **Contract tests now validate API reality** - Not Apidog documentation
 2. **Run tests before releases** - `uv run pytest tests/contract/`
 3. **Check coverage report** - ❌ warnings indicate unimplemented features (technical debt)
 
@@ -228,8 +228,8 @@ Documented in contract tests as "NOT REGISTERED":
 
 | Source | Location | Purpose |
 |--------|----------|---------|
-| Bifrost API definitions | `services/bifrost/api/v1/*.api` | Server implementation (SOURCE OF TRUTH) |
-| Bifrost-generated OpenAPI | `services/bifrost/openapi.json` | Generated via goctl |
-| SDK contract spec | `libs/sdk/tests/contract/bifrost-actual.json` | Copy of Bifrost-generated |
+| API definitions | `services/bifrost/api/v1/*.api` | Server implementation (SOURCE OF TRUTH) |
+| API-generated OpenAPI | `services/bifrost/openapi.json` | Generated via goctl |
+| SDK contract spec | `libs/sdk/tests/contract/api-actual.json` | Copy of API-generated |
 | Apidog legacy | `libs/sdk/tests/contract/apidog-legacy.json` | Historical reference (WRONG!) |
 | SDK models | `libs/sdk/magick_mind/models/v1/*.py` | Python Pydantic models |

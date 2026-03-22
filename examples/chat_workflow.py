@@ -43,15 +43,15 @@ logger = logging.getLogger("realtime_chat")
 
 async def main():
     # Load credentials from environment
-    email = os.environ.get("BIFROST_EMAIL")
-    password = os.environ.get("BIFROST_PASSWORD")
-    base_url = os.environ.get("BIFROST_BASE_URL", "https://dev-bifrost.magickmind.ai")
-    ws_endpoint = os.environ.get("BIFROST_WS_ENDPOINT")
+    email = os.environ.get("MAGICKMIND_EMAIL")
+    password = os.environ.get("MAGICKMIND_PASSWORD")
+    base_url = os.environ.get("MAGICKMIND_BASE_URL", "https://dev-api.magickmind.ai")
+    ws_endpoint = os.environ.get("MAGICKMIND_WS_ENDPOINT")
 
     # Required vars
     if not all([email, password, ws_endpoint]):
         logger.error(
-            "Missing required environment variables (BIFROST_EMAIL, BIFROST_PASSWORD, BIFROST_WS_ENDPOINT)"
+            "Missing required environment variables (MAGICKMIND_EMAIL, MAGICKMIND_PASSWORD, MAGICKMIND_WS_ENDPOINT)"
         )
         return
 
@@ -171,18 +171,18 @@ if __name__ == "__main__":
     Run this example:
     
     Environment variables:
-        BIFROST_EMAIL       - Your service account email
-        BIFROST_PASSWORD    - Your service account password
-        BIFROST_BASE_URL    - Bifrost API URL (optional)
-        BIFROST_WS_ENDPOINT - WebSocket endpoint (required)
-        USER_ID             - End user ID (optional, default: user-test-456)
-        MINDSPACE_ID        - Mindspace ID (optional, default: mind-test-123)
-        OPENROUTER_API_KEY  - API key for LLM (optional)
+        MAGICKMIND_EMAIL       - Your service account email
+        MAGICKMIND_PASSWORD    - Your service account password
+        MAGICKMIND_BASE_URL    - Magick Mind API URL (optional)
+        MAGICKMIND_WS_ENDPOINT - WebSocket endpoint (required)
+        USER_ID                - End user ID (optional, default: user-test-456)
+        MINDSPACE_ID           - Mindspace ID (optional, default: mind-test-123)
+        OPENROUTER_API_KEY     - API key for LLM (optional)
     
     Example:
-        export BIFROST_EMAIL="service@example.com"
-        export BIFROST_PASSWORD="your-password"
-        export BIFROST_WS_ENDPOINT="wss://dev-bifrost.magickmind.ai/connection/websocket"
-        python examples/realtime_chat.py
+        export MAGICKMIND_EMAIL="service@example.com"
+        export MAGICKMIND_PASSWORD="your-password"
+        export MAGICKMIND_WS_ENDPOINT="wss://dev-centrifugo.magickmind.ai/connection/websocket"
+        python examples/chat_workflow.py
     """
     asyncio.run(main())

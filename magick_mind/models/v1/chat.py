@@ -56,15 +56,15 @@ class ChatSendRequest(BaseModel):
 
 
 # ---------------------------------------------------------------------------
-# REST response models (Bifrost /v1/chat/magickmind)
+# REST response models (the API /v1/chat/magickmind)
 # ---------------------------------------------------------------------------
 
 
 class ChatAck(BaseModel):
     """
-    REST acknowledgement payload from Bifrost POST /v1/chat/magickmind.
+    REST acknowledgement payload from the API POST /v1/chat/magickmind.
 
-    Bifrost ChatSchema: { message_id, content, reply_to }
+    API ChatSchema: { message_id, content, reply_to }
 
     The message_id is useful for registering reply anchors before the
     realtime event arrives via Centrifugo.
@@ -82,7 +82,7 @@ class ChatAck(BaseModel):
 
 class ChatSendResponse(BaseModel):
     """
-    Response from Bifrost POST /v1/chat/magickmind.
+    Response from the API POST /v1/chat/magickmind.
 
     This is an acknowledgement only. The actual AI response text arrives
     via Centrifugo realtime — subscribe via client.realtime and handle

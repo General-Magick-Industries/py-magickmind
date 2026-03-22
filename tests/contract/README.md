@@ -34,7 +34,7 @@ Located in `specs/`:
 
 **To update specs:**
 ```bash
-# From bifrost repo, generate new spec
+# From API gateway repo, generate new spec
 goctl api plugin -p goctl-openapi -api api/v1/*.api -dir .
 
 # Copy to SDK

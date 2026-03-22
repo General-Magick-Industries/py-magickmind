@@ -4,7 +4,7 @@ This directory contains the **base structure** for API resource clients.
 
 ## Recommended Pattern: Versioned Folders
 
-When implementing resources, use **explicit versioned folders** that mirror bifrost's API structure:
+When implementing resources, use **explicit versioned folders** that mirror the Magick Mind API structure:
 
 ```
 magick_mind/resources/
@@ -20,11 +20,11 @@ magick_mind/resources/
     └── history.py       # HistoryResourceV2
 ```
 
-**Why versioned folders?** They mirror bifrost's API structure and keep versions isolated.
+**Why versioned folders?** They mirror the Magick Mind API structure and keep versions isolated.
 
 ## Beta and Experimental Features
 
-Beta features can be organized in two ways depending on how bifrost implements them:
+Beta features can be organized in two ways depending on how the API implements them:
 
 ### Pattern A: Beta as Separate Container
 
@@ -90,7 +90,7 @@ client.v1.chat_beta.send(                    # Same structure, new features
 
 ### Pattern C: Both (Flexible)
 
-You can use both patterns if bifrost has both types of beta features:
+You can use both patterns if the API has both types of beta features:
 
 ```python
 class V1Resources:
@@ -108,7 +108,7 @@ client.v1.chat_beta.send(...)   # Beta feature in v1 (non-breaking)
 client.beta.chat.send(...)      # Beta API version (breaking)
 ```
 
-**Guideline:** Match the pattern to how bifrost actually implements the endpoint. Check the API path structure first.
+**Guideline:** Match the pattern to how the API actually implements the endpoint. Check the API path structure first.
 
 ## Example: V1 Chat Resource
 
@@ -196,6 +196,6 @@ See **[docs/examples/chat_implementation/](../../../docs/examples/chat_implement
 
 1. **Explicit versioning** - `client.v1.chat` vs `client.v2.chat`
 2. **Type safety** - Pydantic models validate requests/responses
-3. **Mirrors Bifrost** - SDK structure matches API structure
+3. **Mirrors the API** - SDK structure matches API structure
 4. **Safe evolution** - Breaking changes require explicit opt-in
 

@@ -43,7 +43,7 @@ class ChatBackendService:
     - Recovery from disconnects
 
     Architecture:
-        [Your Frontend] <-> [This Service + SDK] <-> [Bifrost]
+        [Your Frontend] <-> [This Service + SDK] <-> [MagickMind]
     """
 
     def __init__(self, client: MagickMind):
@@ -136,7 +136,7 @@ class ChatBackendService:
         self, mindspace_id: str, since_message_id: Optional[str] = None
     ) -> None:
         """
-        Sync chat history from Bifrost.
+        Sync chat history from the API.
 
         This is the reliable fallback that catches any missed events.
 
@@ -259,22 +259,22 @@ async def main() -> None:
     """Main entry point for the backend service."""
 
     # Load configuration from environment
-    bifrost_url = os.getenv("BIFROST_BASE_URL", "https://dev-bifrost.magickmind.ai")
-    bifrost_email = os.getenv("BIFROST_EMAIL")
-    bifrost_password = os.getenv("BIFROST_PASSWORD")
+    base_url = os.getenv("MAGICKMIND_BASE_URL", "https://dev-api.magickmind.ai")
+    email = os.getenv("MAGICKMIND_EMAIL")
+    password = os.getenv("MAGICKMIND_PASSWORD")
     mindspace_id = os.getenv("MINDSPACE_ID", "mind-123")
     user_id = os.getenv("USER_ID", "service-user")
 
-    if not bifrost_email or not bifrost_password:
-        logger.error("BIFROST_EMAIL and BIFROST_PASSWORD must be set!")
+    if not email or not password:
+        logger.error("MAGICKMIND_EMAIL and MAGICKMIND_PASSWORD must be set!")
         return
 
     # Initialize SDK client
-    logger.info(f"Initializing client (URL: {bifrost_url})...")
+    logger.info(f"Initializing client (URL: {base_url})...")
     client = MagickMind(
-        base_url=bifrost_url,
-        email=bifrost_email,
-        password=bifrost_password,
+        base_url=base_url,
+        email=email,
+        password=password,
     )
 
     # Create and start backend service
@@ -301,16 +301,16 @@ if __name__ == "__main__":
     Run the backend service.
 
     Environment variables:
-        BIFROST_URL         - Bifrost API URL
-        BIFROST_EMAIL       - Service account email
-        BIFROST_PASSWORD    - Service account password
+        MAGICKMIND_BASE_URL - Magick Mind API URL
+        MAGICKMIND_EMAIL    - Service account email
+        MAGICKMIND_PASSWORD - Service account password
         MINDSPACE_ID        - Mindspace to monitor
         USER_ID             - Service user ID
 
     Example:
-        export BIFROST_URL="https://bifrost.yourcompany.com"
-        export BIFROST_EMAIL="service@yourcompany.com"
-        export BIFROST_PASSWORD="your-password"
+        export MAGICKMIND_BASE_URL="https://api.yourcompany.com"
+        export MAGICKMIND_EMAIL="service@yourcompany.com"
+        export MAGICKMIND_PASSWORD="your-password"
         export MINDSPACE_ID="mind-123"
         export USER_ID="service-user-456"
 

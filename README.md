@@ -1,6 +1,6 @@
 # Magick Mind SDK
 
-Python SDK for backend services integrating with the Magick Mind platform (Bifrost). Provides type-safe, validated access to chat, mindspace, and realtime features.
+Python SDK for backend services integrating with the Magick Mind platform. Provides type-safe, validated access to chat, mindspace, and realtime features.
 
 ## Installation
 
@@ -35,7 +35,7 @@ from magick_mind import MagickMind
 client = MagickMind(
     email="user@example.com",
     password="your_password",
-    base_url="https://bifrost.example.com"
+    base_url="https://api.magickmind.ai"
 )
 
 # Authentication happens automatically on first API call
@@ -80,8 +80,8 @@ async def main():
     client = MagickMind(
         email="user@example.com",
         password="password", 
-        base_url="https://bifrost.example.com",
-        ws_endpoint="wss://bifrost.example.com/connection/websocket"
+        base_url="https://api.magickmind.ai",
+        ws_endpoint="wss://api.magickmind.ai/connection/websocket"
     )
     
     # Connect and subscribe
@@ -98,7 +98,7 @@ asyncio.run(main())
 
 ### Mindspaces
 
-**Mindspace is the central organizing concept in Bifrost** - it's where conversations, knowledge, and collaboration converge:
+**Mindspace is the central organizing concept in the Magick Mind API** - it's where conversations, knowledge, and collaboration converge:
 
 - All chat conversations happen within a mindspace
 - Knowledge (corpus) attaches to mindspaces to provide context for AI responses  
@@ -113,10 +113,10 @@ This SDK is designed for **service-level authentication** (email/password). Your
 
 **Common architecture:**
 ```
-[Your Frontend/App] ←→ [Your Backend + This SDK] ←→ [Bifrost SaaS]
+[Your Frontend/App] ←→ [Your Backend + This SDK] ←→ [Magick Mind API]
 ```
 
-For direct device-to-Bifrost patterns (robotics/IoT), see [Event-Driven Patterns](docs/architecture/event_driven_patterns.md#self-service-pattern-roboticsiot).
+For direct device-to-API patterns (robotics/IoT), see [Event-Driven Patterns](docs/architecture/event_driven_patterns.md#self-service-pattern-roboticsiot).
 
 ## Documentation
 
@@ -204,9 +204,9 @@ Quick start:
 
 ```bash
 # 1. Set environment variables
-export BIFROST_BASE_URL="http://localhost:8888"
-export BIFROST_EMAIL="user@example.com"
-export BIFROST_PASSWORD="your_password"
+export MAGICKMIND_BASE_URL="http://localhost:8888"
+export MAGICKMIND_EMAIL="user@example.com"
+export MAGICKMIND_PASSWORD="your_password"
 
 # 2. Create test resources
 uv run python examples/setup_resources.py

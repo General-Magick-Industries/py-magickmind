@@ -19,10 +19,10 @@ Production Note:
 - For production, use Redis (see docs/realtime_guide.md)
 
 Usage:
-    export BIFROST_BASE_URL="http://localhost:8888"
-    export BIFROST_EMAIL="service@example.com"
-    export BIFROST_PASSWORD="your_password"
-    export BIFROST_WS_ENDPOINT="ws://localhost:8888/connection/websocket"
+    export MAGICKMIND_BASE_URL="http://localhost:8888"
+    export MAGICKMIND_EMAIL="service@example.com"
+    export MAGICKMIND_PASSWORD="your_password"
+    export MAGICKMIND_WS_ENDPOINT="ws://localhost:8888/connection/websocket"
     uv run python examples/bulk_subscribe.py
 """
 
@@ -97,15 +97,16 @@ class DeduplicatingProcessor:
 
 async def main():
     # Get config from environment
-    base_url = os.getenv("BIFROST_BASE_URL", "https://dev-bifrost.magickmind.ai")
+    base_url = os.getenv("MAGICKMIND_BASE_URL", "https://dev-api.magickmind.ai")
     ws_endpoint = os.getenv(
-        "BIFROST_WS_ENDPOINT", "wss://dev-centrifugo.magickmind.ai/connection/websocket"
+        "MAGICKMIND_WS_ENDPOINT",
+        "wss://dev-centrifugo.magickmind.ai/connection/websocket",
     )
-    email = os.getenv("BIFROST_EMAIL")
-    password = os.getenv("BIFROST_PASSWORD")
+    email = os.getenv("MAGICKMIND_EMAIL")
+    password = os.getenv("MAGICKMIND_PASSWORD")
 
     if not email or not password:
-        logger.error("BIFROST_EMAIL and BIFROST_PASSWORD are required")
+        logger.error("MAGICKMIND_EMAIL and MAGICKMIND_PASSWORD are required")
         return
 
     # Create client

@@ -4,14 +4,14 @@ The `client.http` property provides direct access to the underlying authenticate
 
 ## Why Use Direct HTTP Access?
 
-### For Bifrost Developers
-- **Rapid Prototyping:** Test new endpoints immediately after they are deployed to Bifrost without waiting for SDK updates.
+### For API Developers
+- **Rapid Prototyping:** Test new endpoints immediately after they are deployed to the Magick Mind API without waiting for SDK updates.
 - **Beta Testing:** Experiment with experimental features in `/beta` or `/experimental` namespaces.
 - **Deep Debugging:** Inspect raw response headers, status codes, and JSON payloads exactly as they come from the server.
 
 ### For Power Users
 - **Custom Integrations:** Build specialized logic that requires direct manipulation of request parameters.
-- **Feature Gap Filling:** Use new Bifrost capabilities as soon as they are available, even before they are added to the SDK's typed resources.
+- **Feature Gap Filling:** Use new Magick Mind API capabilities as soon as they are available, even before they are added to the SDK's typed resources.
 - **One-off Calls:** Perform maintenance or administrative tasks that don't justify a full resource implementation.
 
 ## Usage Examples
@@ -56,4 +56,4 @@ Even when making direct calls, the HTTP client remains a "Smart Client" that han
 While powerful, direct HTTP access should be used judiciously:
 1. **Prefer Typed Resources:** If a resource exists in `client.v1.*`, use it. It provides better type safety and validation.
 2. **Handle Exceptions:** Always wrap direct calls in try/except blocks using the SDK's custom exceptions.
-3. **Log Request IDs:** In case of errors, the `ProblemDetailsException` contains a `request_id`. Always log this for debugging with the Bifrost team.
+3. **Log Request IDs:** In case of errors, the `ProblemDetailsException` contains a `request_id`. Always log this for debugging with the Magick Mind team.

@@ -1,7 +1,7 @@
-"""RFC 7807 Problem Details error models for Bifrost API responses.
+"""RFC 7807 Problem Details error models for the Magick Mind API responses.
 
 This module defines Pydantic models for parsing RFC 7807 compliant error
-responses from the Bifrost API.
+responses from the Magick Mind API.
 
 See: https://datatracker.ietf.org/doc/html/rfc7807
 """
@@ -42,8 +42,8 @@ class ProblemDetails(BaseModel):
         status: HTTP status code (400-599)
         detail: Human-readable explanation specific to this occurrence
         instance: URI reference identifying the specific occurrence (e.g., request path)
-        request_id: Trace ID for debugging (Bifrost extension field)
-        errors: List of field-level validation errors (Bifrost extension field)
+        request_id: Trace ID for debugging (API extension field)
+        errors: List of field-level validation errors (API extension field)
 
     Additional fields are allowed per RFC 7807 extension mechanism.
     """
@@ -60,11 +60,11 @@ class ProblemDetails(BaseModel):
 
 
 class ErrorResponse(BaseModel):
-    """Bifrost error response wrapper.
+    """The Magick Mind API error response wrapper.
 
-    Wraps the RFC 7807 ProblemDetails in an "error" envelope as returned by Bifrost.
+    Wraps the RFC 7807 ProblemDetails in an "error" envelope as returned by the API.
 
-    Bifrost returns: {"error": {...problem details...}}
+    The API returns: {"error": {...problem details...}}
 
     Attributes:
         error: The RFC 7807 problem details

@@ -6,21 +6,21 @@ from pydantic import BaseModel, Field
 
 
 class BaseResponse(BaseModel):
-    """Base response structure from Bifrost API."""
+    """Base response structure from Magick Mind API."""
 
     success: bool
     message: str
 
 
 class Cursors(BaseModel):
-    """Pagination cursors for Bifrost paginated responses."""
+    """Pagination cursors for paginated responses."""
 
     after: Optional[str] = Field(default=None, description="Cursor for next page")
     before: Optional[str] = Field(default=None, description="Cursor for previous page")
 
 
 class PageInfo(BaseModel):
-    """Pagination information for Bifrost paginated responses."""
+    """Pagination information for paginated responses."""
 
     cursors: Cursors = Field(
         default_factory=lambda: Cursors(after=None, before=None),

@@ -1,16 +1,16 @@
 # Backend Integration Guide
 
-This guide is for the **primary use case**: Backend services using the SDK to integrate with Bifrost.
+This guide is for the **primary use case**: Backend services using the SDK to integrate with the Magick Mind API.
 
 > **Note**: The SDK also works for desktop applications and CLI tools. If you're building one of those, many patterns here still apply, just without the "relay to your frontend" step.
 
 ## Your Architecture (Backend as Middleware)
 
 ```
-[Your Frontend/App] ←→ [Your Backend + SDK] ←→ [Bifrost API]
+[Your Frontend/App] ←→ [Your Backend + SDK] ←→ [Magick Mind API]
 ```
 
-As a backend, you're **middleware** - receiving data from Bifrost and managing state for your own frontend/application.
+As a backend, you're **middleware** - receiving data from the Magick Mind API and managing state for your own frontend/application.
 
 ## Key Challenges for Backend Users
 
@@ -24,7 +24,7 @@ Messages might arrive out of order. You need a strategy to handle this.
 If your backend goes down or disconnects, you'll miss realtime events. You need to fill these gaps.
 
 ### 4. Consistency
-Your database state needs to stay consistent with Bifrost's truth.
+Your database state needs to stay consistent with the Magick Mind API's truth.
 
 ## Recommended Architecture Pattern
 
@@ -113,7 +113,7 @@ class ChatBackendService:
         since_message_id: Optional[str] = None
     ):
         """
-        Sync chat history from Bifrost.
+        Sync chat history from the Magick Mind API.
         
         Use cases:
         - On startup: Get recent history
@@ -212,9 +212,9 @@ from magick_mind import MagickMind
 async def main():
     # Initialize SDK client
     client = MagickMind(
-        base_url=os.getenv("BIFROST_URL"),
-        email=os.getenv("BIFROST_EMAIL"),
-        password=os.getenv("BIFROST_PASSWORD"),
+        base_url=os.getenv("MAGICKMIND_BASE_URL"),
+        email=os.getenv("MAGICKMIND_EMAIL"),
+        password=os.getenv("MAGICKMIND_PASSWORD"),
     )
     
     # Create backend service
@@ -257,12 +257,12 @@ last_disconnect_time = None
 ### DON'T Necessarily:
 
 ❌ **Store full message content long-term**
-- Bifrost is the source of truth
+- The Magick Mind API is the source of truth
 - Only cache if you need offline capability or have specific business requirements
 
 ❌ **Implement complex ordering logic**
 - Use `after_id` pagination from history endpoint
-- Bifrost handles ordering
+- The Magick Mind API handles ordering
 
 ❌ **Trust realtime as only source**
 - Always have HTTP fallback
@@ -337,13 +337,13 @@ async def on_reconnect():
 ### Periodic Health Check
 ```python
 async def health_check():
-    """Verify your state matches Bifrost."""
-    # Compare your message count with Bifrost's
+    """Verify your state matches the Magick Mind API."""
+    # Compare your message count with the API's
     our_count = await db.messages.count()
-    bifrost_history = await get_full_history()
+    api_history = await get_full_history()
     
-    if our_count != len(bifrost_history):
-        logger.warning(f"Count mismatch: {our_count} vs {len(bifrost_history)}")
+    if our_count != len(api_history):
+        logger.warning(f"Count mismatch: {our_count} vs {len(api_history)}")
         await full_resync()
 ```
 

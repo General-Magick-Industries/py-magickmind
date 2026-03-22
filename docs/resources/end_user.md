@@ -4,7 +4,7 @@ The End User Resource provides a complete CRUD interface for managing end users 
 
 ## Overview
 
-End users represent the actual users of applications built on the bifrost platform in a multi-tenant architecture. Each end user belongs to a specific tenant and can be mapped to external systems via an optional external ID.
+End users represent the actual users of applications built on the Magick Mind platform in a multi-tenant architecture. Each end user belongs to a specific tenant and can be mapped to external systems via an optional external ID.
 
 ## Installation
 
@@ -261,8 +261,8 @@ external_users = client.v1.end_user.query(
     external_id="salesforce-contact-456"
 )
 if external_users:
-    bifrost_user = external_users[0]
-    print(f"Bifrost user ID: {bifrost_user.id}")
+    api_user = external_users[0]
+    print(f"API user ID: {api_user.id}")
 ```
 
 ## Error Handling
@@ -283,9 +283,9 @@ except HTTPError as e:
         print(f"API error: {e}")
 ```
 
-## Integration with Bifrost Backend
+## Integration with the Magick Mind API
 
-The end user resource maps directly to Bifrost's `/v1/end-users` API endpoints:
+The end user resource maps directly to the Magick Mind API's `/v1/end-users` endpoints:
 
 - **POST** `/v1/end-users` - Create end user
 - **GET** `/v1/end-users/:id` - Get end user by ID
@@ -314,4 +314,4 @@ pytest tests/test_end_user_* -v
 
 - [Project Resource](project.md) - For managing projects
 - [Backend Integration Guide](../guides/backend_integration.md) - For integrating with backends
-- [Bifrost API Documentation](../../../bifrost/api/v1/end_users.api) - Backend API spec
+- [API Documentation](../../../bifrost/api/v1/end_users.api) - Backend API spec

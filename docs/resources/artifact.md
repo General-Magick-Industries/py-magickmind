@@ -14,7 +14,7 @@ The artifact upload flow follows modern best practices:
 ## Architecture
 
 ```
-Client → Bifrost API (presign) → S3 (upload) → Lambda → Webhook → Artifact Service
+Client → Magick Mind API (presign) → S3 (upload) → Lambda → Webhook → Artifact Service
 ```
 
 - **Presigned URLs**: Secure, time-limited upload URLs that keep file data off application servers
@@ -399,5 +399,5 @@ response2 = client.v1.chat.send(
 ## See Also
 
 
-- [Bifrost ADR-004: Upload and Notifications](../../bifrost/docs/adr/ADR-004-upload-and-notifications.md)
+- [ADR-004: Upload and Notifications](../../bifrost/docs/adr/ADR-004-upload-and-notifications.md)
 - [Example Code](../examples/artifact_example.py)

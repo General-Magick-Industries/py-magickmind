@@ -53,22 +53,22 @@ async def main():
     logger.info("=" * 60)
 
     # 1. Validate Credentials
-    email = os.getenv("BIFROST_EMAIL")
-    password = os.getenv("BIFROST_PASSWORD")
-    base_url = os.getenv("BIFROST_BASE_URL", "https://dev-bifrost.magickmind.ai")
-    ws_endpoint = os.getenv("BIFROST_WS_ENDPOINT")
+    email = os.getenv("MAGICKMIND_EMAIL")
+    password = os.getenv("MAGICKMIND_PASSWORD")
+    base_url = os.getenv("MAGICKMIND_BASE_URL", "https://dev-api.magickmind.ai")
+    ws_endpoint = os.getenv("MAGICKMIND_WS_ENDPOINT")
 
     if not email or not password:
         logger.error("ERROR: Missing credentials!")
         logger.error(
-            "Please ensure BIFROST_EMAIL and BIFROST_PASSWORD are set in your .env file"
+            "Please ensure MAGICKMIND_EMAIL and MAGICKMIND_PASSWORD are set in your .env file"
         )
         return
 
     if not ws_endpoint:
-        logger.warning("WARNING: BIFROST_WS_ENDPOINT is not set!")
+        logger.warning("WARNING: MAGICKMIND_WS_ENDPOINT is not set!")
         logger.warning(
-            "Realtime examples will fail without it. Please add it to your .env file."
+            "Realtime examples will fail without it. Please add MAGICKMIND_WS_ENDPOINT to your .env file."
         )
 
     # Initialize client - authentication happens on first API call

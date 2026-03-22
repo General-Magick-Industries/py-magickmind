@@ -54,7 +54,7 @@ class ListCorpusResponse(BaseModel):
     """
     Response for listing corpus.
 
-    Matches Bifrost's {data: list[Corpus], paging: PageInfo} structure.
+    Matches the API's {data: list[Corpus], paging: PageInfo} structure.
     """
 
     data: list[Corpus] = Field(..., description="List of corpus")
@@ -75,7 +75,7 @@ class DeleteCorpusResponse:
     """
     Response for deleting a corpus.
 
-    Bifrost returns 204 No Content with no response body.
+    The API returns 204 No Content with no response body.
     """
 
     pass
@@ -110,3 +110,16 @@ class ListArtifactStatusesResponse(BaseModel):
     """Response for listing artifact statuses."""
 
     statuses: list[ArtifactStatus]
+
+
+class QueryCorpusRequest(BaseModel):
+    """Request for querying a corpus."""
+
+    query: str = Field(..., description="The search query text")
+    mode: str = Field("hybrid", description="Query mode: naive|local|global|hybrid")
+
+
+class QueryCorpusResponse(BaseModel):
+    """Response for querying a corpus."""
+
+    result: str = Field(..., description="Query result text")

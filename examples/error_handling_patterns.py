@@ -10,9 +10,9 @@ Demonstrates:
 - Error monitoring patterns (Sentry-ready)
 
 Run this example to see proper error handling in action:
-    export BIFROST_EMAIL="your@email.com"
-    export BIFROST_PASSWORD="your_password"
-    export BIFROST_BASE_URL="https://dev-bifrost.magickmind.ai"
+    export MAGICKMIND_EMAIL="your@email.com"
+    export MAGICKMIND_PASSWORD="your_password"
+    export MAGICKMIND_BASE_URL="https://dev-api.magickmind.ai"
     python examples/error_handling_patterns.py
 """
 
@@ -179,7 +179,7 @@ async def example_1_authentication_errors():
         client = MagickMind(
             email="wrong@example.com",
             password="wrongpassword",
-            base_url=os.getenv("BIFROST_BASE_URL", "https://dev-bifrost.magickmind.ai"),
+            base_url=os.getenv("MAGICKMIND_BASE_URL", "https://dev-api.magickmind.ai"),
         )
         # Try to make a request
         await client.http.get("/v1/mindspaces")
@@ -358,18 +358,18 @@ async def main():
     await example_1_authentication_errors()
 
     # Get valid credentials for remaining examples
-    email = os.getenv("BIFROST_EMAIL")
-    password = os.getenv("BIFROST_PASSWORD")
-    base_url = os.getenv("BIFROST_BASE_URL", "https://dev-bifrost.magickmind.ai")
+    email = os.getenv("MAGICKMIND_EMAIL")
+    password = os.getenv("MAGICKMIND_PASSWORD")
+    base_url = os.getenv("MAGICKMIND_BASE_URL", "https://dev-api.magickmind.ai")
 
     if not email or not password:
         logger.warning(
-            "\n⚠️  Set BIFROST_EMAIL and BIFROST_PASSWORD to run remaining examples"
+            "\n⚠️  Set MAGICKMIND_EMAIL and MAGICKMIND_PASSWORD to run remaining examples"
         )
         logger.info("\nExample commands:")
-        logger.info('  export BIFROST_EMAIL="your@email.com"')
-        logger.info('  export BIFROST_PASSWORD="your_password"')
-        logger.info('  export BIFROST_BASE_URL="https://dev-bifrost.magickmind.ai"')
+        logger.info('  export MAGICKMIND_EMAIL="your@email.com"')
+        logger.info('  export MAGICKMIND_PASSWORD="your_password"')
+        logger.info('  export MAGICKMIND_BASE_URL="https://dev-api.magickmind.ai"')
         return
 
     # Initialize valid client
@@ -406,16 +406,16 @@ if __name__ == "__main__":
     Run error handling examples.
 
     Environment variables:
-        BIFROST_EMAIL       - Your service account email
-        BIFROST_PASSWORD    - Your service account password
-        BIFROST_BASE_URL    - Bifrost API URL (default: https://dev-bifrost.magickmind.ai)
+        MAGICKMIND_EMAIL    - Your service account email
+        MAGICKMIND_PASSWORD - Your service account password
+        MAGICKMIND_BASE_URL - Magick Mind API URL (default: https://dev-api.magickmind.ai)
         MINDSPACE_ID        - Mindspace ID for testing (optional)
         USER_ID             - End user ID for testing (optional)
         OPENROUTER_API_KEY  - API key for LLM (optional)
 
     Example:
-        export BIFROST_EMAIL="service@example.com"
-        export BIFROST_PASSWORD="your-password"
+        export MAGICKMIND_EMAIL="service@example.com"
+        export MAGICKMIND_PASSWORD="your-password"
         python examples/error_handling_patterns.py
     """
     asyncio.run(main())

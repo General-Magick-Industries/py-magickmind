@@ -1,1 +1,1 @@
-# Integration tests - Test against live Bifrost
+# Integration tests - Test against live MagickMind API

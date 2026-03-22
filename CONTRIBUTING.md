@@ -24,7 +24,7 @@ uv run pytest tests/unit/ -v
 
 ## Contract Testing Workflow
 
-We use serialization-based contract testing to ensure SDK models match the bifrost API.
+We use serialization-based contract testing to ensure SDK models match the Magick Mind API.
 
 ### How It Works
 
@@ -34,10 +34,10 @@ We use serialization-based contract testing to ensure SDK models match the bifro
 
 ### Updating Specs
 
-When bifrost API changes:
+When the Magick Mind API changes:
 
 ```bash
-# 1. Generate new spec in bifrost
+# 1. Generate new spec in the API gateway (services/bifrost)
 cd ../bifrost
 goctl api plugin -p goctl-openapi -api api/v1/*.api -dir .
 

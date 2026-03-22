@@ -1,7 +1,7 @@
 """
 History models for Magick Mind SDK v1 API.
 
-Mirrors Bifrost's /v1/mindspaces/messages endpoint response.
+Mirrors the /v1/mindspaces/messages endpoint response.
 """
 
 from typing import Optional
@@ -13,9 +13,9 @@ from magick_mind.models.common import Cursors, PageInfo
 
 class ChatHistoryMessage(BaseModel):
     """
-    Individual chat history message from Bifrost.
+    Individual chat history message from the API.
 
-    Maps to ChatHistoryItem from Bifrost's magickmind.api.
+    Maps to ChatHistoryItem from the magickmind.api.
     """
 
     model_config = ConfigDict(populate_by_name=True)
@@ -42,9 +42,9 @@ class ChatHistoryMessage(BaseModel):
 
 class HistoryResponse(BaseModel):
     """
-    Response from Bifrost's /v1/mindspaces/messages endpoint.
+    Response from the /v1/mindspaces/messages endpoint.
 
-    Uses standardized Bifrost pagination format:
+    Uses standardized pagination format:
     {
         "data": [...],
         "paging": {

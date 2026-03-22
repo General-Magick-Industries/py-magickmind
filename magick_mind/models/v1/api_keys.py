@@ -2,7 +2,7 @@
 API Keys models for Magick Mind SDK v1 API.
 
 Provides Pydantic models for creating and managing API keys
-for authenticating requests to the Bifrost backend.
+for authenticating requests to the backend.
 """
 
 from typing import Optional
@@ -76,7 +76,7 @@ class ListApiKeysResponse(BaseModel):
     """
     Response for listing API keys.
 
-    Uses standardized Bifrost pagination format: {data: [], paging: {}}.
+    Uses standardized pagination format: {data: [], paging: {}}.
     """
 
     data: list[ApiKey] = Field(

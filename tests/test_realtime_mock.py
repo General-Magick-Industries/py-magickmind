@@ -24,7 +24,7 @@ async def test_realtime_client_logic():
     mock_auth.get_token_async = AsyncMock(return_value=fake_token)
 
     # Initialize Client
-    ws_url = "wss://api.bifrost.com/connection/websocket"
+    ws_url = "wss://api.magickmind.ai/connection/websocket"
     rt = RealtimeClient(auth=mock_auth, ws_url=ws_url)
 
     # Mock the internal centrifuge client

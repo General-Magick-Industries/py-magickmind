@@ -239,7 +239,7 @@ RESPONSES = [
         "GetMindSpaceListResponse",
         GetMindSpaceListResponse,
         status=SchemaStatus.SKIPPED,
-        reason="OpenAPI spec outdated - uses BaseSchema+mindspaces, SDK uses data+paging (Bifrost reality)",
+        reason="OpenAPI spec outdated - uses BaseSchema+mindspaces, SDK uses data+paging (API reality)",
     ),
     ContractDef(
         "UpdateMindSpaceResponse",
@@ -271,9 +271,7 @@ RESPONSES = [
         QueryEndUserResponse,
     ),  # Alias to existing QueryEndUserResponse
     ContractDef("KeyResponseSchema", status=SchemaStatus.SKIPPED, reason="Component"),
-    ContractDef(
-        "ModelsListResp", status=SchemaStatus.SKIPPED, reason="No Bifrost route"
-    ),
+    ContractDef("ModelsListResp", status=SchemaStatus.SKIPPED, reason="No API route"),
     # Trait - Skipped: Apidog spec has garbled enums (e.g. "YSTEM|USER|ORG|PROMOTE")
     # and all nullable fields incorrectly marked required. Models are correct per trait.api.
     ContractDef(
@@ -329,13 +327,13 @@ REQUESTS = [
         UpdateEndUserRequest,
         factory=UpdateEndUserRequestFactory.build,
     ),
-    # MindSpace - Skipped: Apidog spec requires "user_ids" but Bifrost was
+    # MindSpace - Skipped: Apidog spec requires "user_ids" but API was
     # refactored to "participant_ids". SDK model is correct per mindspace.api.
     ContractDef(
         "CreateMindspaceRequest",
         CreateMindSpaceRequest,
         status=SchemaStatus.SKIPPED,
-        reason="Apidog spec outdated - requires user_ids, Bifrost uses participant_ids",
+        reason="Apidog spec outdated - requires user_ids, API uses participant_ids",
     ),
     ContractDef(
         "UpdateMindSpaceRequest",
@@ -473,7 +471,7 @@ SHARED_MODELS = [
     ContractDef(
         "Message", status=SchemaStatus.SKIPPED, reason="OpenAI Compat Component"
     ),
-    ContractDef("Model", status=SchemaStatus.SKIPPED, reason="No Bifrost route"),
+    ContractDef("Model", status=SchemaStatus.SKIPPED, reason="No API route"),
     # Internal RPC
     ContractDef(
         "CentrifugoRpcError", status=SchemaStatus.SKIPPED, reason="Internal RPC"

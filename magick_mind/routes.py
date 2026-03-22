@@ -6,7 +6,7 @@ across the SDK and make updates easier when the API changes.
 
 
 class Routes:
-    """API v1 route paths for Bifrost."""
+    """API v1 route paths for the Magick Mind API."""
 
     # Auth endpoints
     AUTH_LOGIN = "/v1/auth/login"
@@ -92,6 +92,11 @@ class Routes:
         return f"/v1/persona/{persona_id}/version/{version}"
 
     @staticmethod
+    def persona_prepare(persona_id: str) -> str:
+        """Get path for preparing a persona's system prompt."""
+        return f"/v1/persona/{persona_id}/prepare"
+
+    @staticmethod
     def persona_active_version(persona_id: str) -> str:
         """Get path for persona active version."""
         return f"/v1/persona/{persona_id}/version/active"
@@ -147,6 +152,11 @@ class Routes:
     def corpus_artifacts_status(corpus_id: str) -> str:
         """Get path for listing artifact statuses within a corpus."""
         return f"/v1/corpus/{corpus_id}/artifacts/status"
+
+    @staticmethod
+    def corpus_query(corpus_id: str) -> str:
+        """Get path for querying a corpus."""
+        return f"/v1/corpus/{corpus_id}/query"
 
     # Artifact endpoints
     ARTIFACTS = "/v1/artifacts"
