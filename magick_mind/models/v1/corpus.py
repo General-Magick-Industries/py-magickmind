@@ -110,3 +110,16 @@ class ListArtifactStatusesResponse(BaseModel):
     """Response for listing artifact statuses."""
 
     statuses: list[ArtifactStatus]
+
+
+class QueryCorpusRequest(BaseModel):
+    """Request for querying a corpus."""
+
+    query: str = Field(..., description="The search query text")
+    mode: str = Field("hybrid", description="Query mode: naive|local|global|hybrid")
+
+
+class QueryCorpusResponse(BaseModel):
+    """Response for querying a corpus."""
+
+    result: str = Field(..., description="Query result text")

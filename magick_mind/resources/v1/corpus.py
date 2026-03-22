@@ -16,6 +16,8 @@ from magick_mind.models.v1.corpus import (
     CreateCorpusRequest,
     ListArtifactStatusesResponse,
     ListCorpusResponse,
+    QueryCorpusRequest,
+    QueryCorpusResponse,
     UpdateCorpusRequest,
 )
 from magick_mind.resources.base import BaseResource
@@ -282,3 +284,41 @@ class CorpusResourceV1(BaseResource):
 
         data = ListArtifactStatusesResponse(**resp)
         return data.statuses
+
+    async def query(
+        self,
+        corpus_id: str,
+        *,
+        query: str,
+        mode: str = "hybrid",
+        api_key: Optional[str] = None,
+    ) -> QueryCorpusResponse:
+        """
+        Query a corpus using semantic search.
+
+        Args:
+            corpus_id: The corpus ID to query
+            query: The search query text
+            mode: Query mode — one of naive|local|global|hybrid (default: hybrid)
+            api_key: Optional API key (sent as x-api-key header). Required for
+                corpus-scoped operations on dev/prod.
+
+        Returns:
+            QueryCorpusResponse with the result text
+
+        Raises:
+            ProblemDetailsException: If the request fails
+        """
+        payload = QueryCorpusRequest(query=query, mode=mode)
+
+        headers = {}
+        if api_key:
+            headers["x-api-key"] = api_key
+
+        resp = await self._http.post(
+            Routes.corpus_query(corpus_id),
+            json=payload.model_dump(),
+            headers=headers if headers else None,
+        )
+
+        return QueryCorpusResponse(**resp)
