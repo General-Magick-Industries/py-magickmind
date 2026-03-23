@@ -291,6 +291,7 @@ class CorpusResourceV1(BaseResource):
         *,
         query: str,
         mode: str = "hybrid",
+        only_need_context: bool = False,
         api_key: Optional[str] = None,
     ) -> QueryCorpusResponse:
         """
@@ -300,6 +301,7 @@ class CorpusResourceV1(BaseResource):
             corpus_id: The corpus ID to query
             query: The search query text
             mode: Query mode — one of naive|local|global|hybrid (default: hybrid)
+            only_need_context: If True, return raw context without LLM synthesis.
             api_key: Optional API key (sent as x-api-key header). Required for
                 corpus-scoped operations on dev/prod.
 
@@ -309,7 +311,9 @@ class CorpusResourceV1(BaseResource):
         Raises:
             ProblemDetailsException: If the request fails
         """
-        payload = QueryCorpusRequest(query=query, mode=mode)
+        payload = QueryCorpusRequest(
+            query=query, mode=mode, only_need_context=only_need_context
+        )
 
         headers = {}
         if api_key:

@@ -117,6 +117,10 @@ class QueryCorpusRequest(BaseModel):
 
     query: str = Field(..., description="The search query text")
     mode: str = Field("hybrid", description="Query mode: naive|local|global|hybrid")
+    only_need_context: bool = Field(
+        False,
+        description="If true, return raw retrieved context without LLM synthesis",
+    )
 
 
 class QueryCorpusResponse(BaseModel):
