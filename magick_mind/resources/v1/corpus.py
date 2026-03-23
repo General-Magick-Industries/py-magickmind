@@ -256,6 +256,8 @@ class CorpusResourceV1(BaseResource):
             params={"artifact_ids": [artifact_id]},
         )
         data = ListArtifactStatusesResponse(**resp)
+        if not data.statuses:
+            return ArtifactStatus(artifact_id=artifact_id, status="NOT_FOUND")
         return data.statuses[0]
 
     async def list_artifact_statuses(

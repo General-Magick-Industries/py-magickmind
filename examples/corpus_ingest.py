@@ -163,15 +163,10 @@ async def main() -> None:
             print("5. Waiting for ingestion...")
             t0 = time.time()
             while True:
+                status = await client.v1.corpus.get_artifact_status(
+                    corpus_id, artifact_id
+                )
                 elapsed = time.time() - t0
-                try:
-                    status = await client.v1.corpus.get_artifact_status(
-                        corpus_id, artifact_id
-                    )
-                except (IndexError, Exception):
-                    print(f"   [{elapsed:5.0f}s] (status not yet available)")
-                    await asyncio.sleep(POLL_INTERVAL)
-                    continue
                 print(f"   [{elapsed:5.0f}s] {status.status}")
 
                 if status.status.upper() == "PROCESSED":
