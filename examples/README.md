@@ -1,194 +1,216 @@
 # SDK Examples
 
-This directory contains working examples demonstrating key patterns for the Magick Mind SDK.
+Working examples for the Magick Mind Python SDK.
 
-## Quick Start
+## Setup
 
-1. **Set up your environment:**
-   ```bash
-   export MAGICKMIND_BASE_URL="http://localhost:8888"
-   export MAGICKMIND_EMAIL="user@example.com"
-   export MAGICKMIND_PASSWORD="your_password"
-   export MAGICKMIND_WS_ENDPOINT="ws://localhost:8888/connection/websocket"
-   ```
-
-2. **Create required resources:**
-   ```bash
-   uv run python examples/setup_resources.py
-   ```
-   This creates test End User, Project, and Mindspace, and updates your `.env` file.
-
-3. **Run an example:**
-   ```bash
-   uv run python examples/authentication.py
-   ```
-
-## Examples
-
-### 1. authentication.py
-**Basic email/password authentication with automatic token refresh.**
-
-Demonstrates:
-- Creating a client with email/password credentials
-- Automatic login on first API call
-- Automatic token refresh when tokens expire
-- Context manager usage for cleanup
-
-**Use this when:** You need to understand basic SDK authentication.
+### 1. Install dependencies
 
 ```bash
-uv run python examples/authentication.py
+cd libs/sdk
+uv sync --all-extras
 ```
 
----
-
-### 2. resource_management.py
-**CRUD operations for core resources: End Users, Projects, and Mindspaces.**
-
-Demonstrates:
-- End User management (create, query, update, delete)
-- Project management (create, list, update, delete)
-- Mindspace management (create, list, get messages, update, delete)
-- Message pagination (forward and backward)
-- Proper cleanup patterns
-
-**Use this when:** You need to manage users, projects, or mindspaces programmatically.
+### 2. Create `.env` in the `libs/sdk/` directory
 
 ```bash
-uv run python examples/resource_management.py
+# Required for all examples
+MAGICKMIND_BASE_URL="https://dev-bifrost.magickmind.ai"
+MAGICKMIND_EMAIL="your@email.com"
+MAGICKMIND_PASSWORD="your_password"
+
+# Required for corpus ingest & query examples
+MAGICKMIND_API_KEY="sk-your-litellm-virtual-key"
+
+# Required for realtime/chat examples
+MAGICKMIND_WS_ENDPOINT="wss://dev-centrifugo.magickmind.ai/connection/websocket"
+
+# Optional — created by setup_resources.py if not set
+USER_ID="user-test-456"
+MINDSPACE_ID=""
+PROJECT_ID=""
+
+# Optional — for chat examples
+OPENROUTER_API_KEY="sk-or-..."
 ```
 
----
+All examples call `load_dotenv()` so the `.env` file is picked up automatically.
 
-### 3. chat_workflow.py
-**Complete chat workflow with realtime streaming.**
-
-Demonstrates:
-- Using `RealtimeEventHandler` for clean message handling
-- Subscribing to a single user's updates
-- Sending chat messages with proper configuration
-- Receiving AI responses in real-time via WebSocket
-- Error handling with `ProblemDetailsException`
-- Model verification and selection
-
-**Use this when:** You're building a simple chat interface with realtime updates.
-
-```bash
-uv run python examples/chat_workflow.py
-```
-
----
-
-### 4. bulk_subscribe.py
-**Bulk subscriptions with message deduplication.**
-
-Demonstrates:
-- Subscribing to many users efficiently (50 users in example)
-- **Message deduplication** (CRITICAL for production!)
-- Why deduplication is needed when users share groups/mindspaces
-- Bulk subscribe/unsubscribe operations
-- Metrics tracking for duplicate detection
-
-**Use this when:** You're building a relay service, admin dashboard, or any backend that monitors multiple users.
-
-**Production Note:** This example uses in-memory deduplication. For production, use Redis (see [Realtime Guide](../docs/realtime_guide.md)).
-
-```bash
-uv run python examples/bulk_subscribe.py
-```
-
----
-
-### 5. backend_service.py
-**Production-ready backend service pattern.**
-
-Demonstrates:
-- Message deduplication for reliable processing
-- Hybrid realtime + periodic sync pattern
-- Recovery from WebSocket disconnects
-- Initial history sync on startup
-- Periodic background sync to catch missed events
-- Production-ready error handling
-- Metrics tracking
-
-**Use this when:** You're building a production backend that needs reliable message processing.
-
-**Architecture:**
-```
-[Your Frontend/App] ←→ [Your Backend + This SDK] ←→ [Magick Mind API]
-```
-
-```bash
-uv run python examples/backend_service.py
-```
-
----
-
-### 6. error_handling_patterns.py
-**Comprehensive error handling patterns.**
-
-Demonstrates:
-- All SDK exception types (`AuthenticationError`, `ValidationError`, `ProblemDetailsException`, `RateLimitError`)
-- Field-level validation error extraction
-- Request ID usage for support tickets
-- Retry patterns with exponential backoff
-- Production-ready error handling
-- Logging integration (Sentry-ready)
-
-**Use this when:** You need to implement robust error handling in production.
-
-```bash
-uv run python examples/error_handling_patterns.py
-```
-
----
-
-### 7. setup_resources.py
-**Setup script for creating test resources.**
-
-Demonstrates:
-- Creating End User, Project, and Mindspace
-- Updating `.env` file with resource IDs
-- Error handling with `ProblemDetailsException` and `ValidationError`
-- Checking for existing resources before creating new ones
-
-**Use this when:** You're setting up a new development environment.
+### 3. Create test resources (optional)
 
 ```bash
 uv run python examples/setup_resources.py
 ```
 
+This creates an End User, Project, and Mindspace, and writes their IDs back to `.env`.
+
+### 4. Run an example
+
+```bash
+uv run python examples/authentication.py
+```
+
+## Environment Variables
+
+| Variable | Used by | Description |
+|----------|---------|-------------|
+| `MAGICKMIND_BASE_URL` | All | API gateway URL |
+| `MAGICKMIND_EMAIL` | All | Login email |
+| `MAGICKMIND_PASSWORD` | All | Login password |
+| `MAGICKMIND_API_KEY` | corpus_ingest, resource_management | LiteLLM virtual key for per-tenant LLM/embedding usage |
+| `MAGICKMIND_WS_ENDPOINT` | chat_workflow, bulk_subscribe, backend_service | Centrifugo WebSocket URL |
+| `USER_ID` | chat_workflow, backend_service, setup_resources | End-user ID for subscriptions |
+| `MINDSPACE_ID` | chat_workflow, backend_service, error_handling | Mindspace to send messages to |
+| `PROJECT_ID` | setup_resources | Project ID (auto-created if missing) |
+| `OPENROUTER_API_KEY` | chat_workflow, error_handling | LLM provider API key for chat |
+
+## Examples
+
+### corpus_ingest.py — Full Document Ingest & Query
+
+The most complete example. Demonstrates the entire corpus lifecycle:
+
+1. Create a corpus
+2. Upload a document (presign → S3 PUT → finalize)
+3. Add artifact to corpus (triggers ingestion)
+4. Poll status: `NOT_FOUND` → `PENDING` → `PROCESSING` → `PROCESSED`
+5. Query with LLM synthesis
+6. Query context-only (raw retrieved chunks, no LLM)
+7. Cleanup
+
+```bash
+# Use the built-in sample document
+uv run python examples/corpus_ingest.py --sample
+
+# Or provide your own file
+uv run python examples/corpus_ingest.py path/to/document.pdf
+```
+
+**Requires:** `MAGICKMIND_BASE_URL`, `MAGICKMIND_EMAIL`, `MAGICKMIND_PASSWORD`, `MAGICKMIND_API_KEY`
+
 ---
+
+### authentication.py — Lazy Auth & Token Refresh
+
+Shows that authentication is lazy (happens on first API call, not on construction) and that token refresh is automatic.
+
+```bash
+uv run python examples/authentication.py
+```
+
+**Requires:** `MAGICKMIND_BASE_URL`, `MAGICKMIND_EMAIL`, `MAGICKMIND_PASSWORD`
+
+---
+
+### resource_management.py — CRUD for All Resources
+
+End Users, Projects, Mindspaces, Corpus, and Artifacts — create, list, query, update, delete. Also includes corpus query examples (LLM and context-only).
+
+```bash
+uv run python examples/resource_management.py
+```
+
+**Requires:** `MAGICKMIND_BASE_URL`, `MAGICKMIND_EMAIL`, `MAGICKMIND_PASSWORD`, `MAGICKMIND_API_KEY`
+
+---
+
+### completions.py — OpenAI-Compatible Chat
+
+Uses `client.openai_client()` for streaming and non-streaming completions via the MagickMind API's OpenAI-compatible endpoint.
+
+```bash
+uv run python examples/completions.py
+```
+
+**Requires:** `MAGICKMIND_BASE_URL`, `MAGICKMIND_EMAIL`, `MAGICKMIND_PASSWORD`, `OPENROUTER_API_KEY`
+
+---
+
+### chat_workflow.py — Realtime Chat
+
+Decorator-based event handling, subscribing to a user's channel, sending a chat message, and receiving AI responses in real-time via WebSocket.
+
+```bash
+uv run python examples/chat_workflow.py
+```
+
+**Requires:** `MAGICKMIND_BASE_URL`, `MAGICKMIND_EMAIL`, `MAGICKMIND_PASSWORD`, `MAGICKMIND_WS_ENDPOINT`
+
+---
+
+### bulk_subscribe.py — Multi-User Subscriptions
+
+Subscribing to 50 users on a single connection with message deduplication. Critical for production backends where users share groups.
+
+```bash
+uv run python examples/bulk_subscribe.py
+```
+
+**Requires:** `MAGICKMIND_BASE_URL`, `MAGICKMIND_EMAIL`, `MAGICKMIND_PASSWORD`, `MAGICKMIND_WS_ENDPOINT`
+
+---
+
+### backend_service.py — Production Backend Pattern
+
+Combines realtime events with periodic history sync for reliable message processing. Includes deduplication, reconnect recovery, and metrics.
+
+```bash
+uv run python examples/backend_service.py
+```
+
+**Requires:** `MAGICKMIND_BASE_URL`, `MAGICKMIND_EMAIL`, `MAGICKMIND_PASSWORD`, `MAGICKMIND_WS_ENDPOINT`, `MINDSPACE_ID`, `USER_ID`
+
+---
+
+### error_handling_patterns.py — Exception Handling
+
+All SDK exception types, field-level validation errors, request IDs for support, retry with exponential backoff.
+
+```bash
+uv run python examples/error_handling_patterns.py
+```
+
+**Requires:** `MAGICKMIND_BASE_URL`, `MAGICKMIND_EMAIL`, `MAGICKMIND_PASSWORD`
+
+---
+
+### setup_resources.py — Bootstrap Dev Environment
+
+Creates End User, Project, and Mindspace if they don't exist. Writes IDs to `.env` for other examples to use.
+
+```bash
+uv run python examples/setup_resources.py
+```
+
+**Requires:** `MAGICKMIND_BASE_URL`, `MAGICKMIND_EMAIL`, `MAGICKMIND_PASSWORD`
 
 ## Common Patterns
 
-### Authentication
-All examples use email/password authentication:
-```python
-from magick_mind import MagickMind
+### Authentication (all examples)
 
-client = MagickMind(
+```python
+async with MagickMind(
+    base_url="https://dev-bifrost.magickmind.ai",
     email="user@example.com",
-    password="your_password",
-    base_url="https://api.example.com"
-)
+    password="password",
+) as client:
+    # Auth happens automatically on first API call
+    await client.v1.corpus.list()
 ```
 
-### Realtime Events
-Use `RealtimeEventHandler` for clean event handling:
+### Realtime Events (decorator API)
+
 ```python
-from magick_mind.realtime.handler import RealtimeEventHandler
+@client.realtime.on("chat_message")
+async def handle_chat(event: ChatMessageEvent) -> None:
+    print(event.payload.message)
 
-class MyHandler(RealtimeEventHandler):
-    async def on_message(self, user_id: str, payload: dict):
-        print(f"Message for {user_id}: {payload}")
-
-await client.realtime.connect(events=MyHandler())
+await client.realtime.connect()
 await client.realtime.subscribe(target_user_id="user-123")
 ```
 
 ### Error Handling
-Always handle SDK exceptions:
+
 ```python
 from magick_mind.exceptions import (
     AuthenticationError,
@@ -198,64 +220,31 @@ from magick_mind.exceptions import (
 )
 
 try:
-    response = client.v1.chat.send(...)
+    response = await client.v1.chat.send(...)
 except ValidationError as e:
-    # Handle field-level validation errors
     for field, messages in e.get_field_errors().items():
         print(f"{field}: {messages}")
 except ProblemDetailsException as e:
-    # Handle other API errors
     print(f"[{e.status}] {e.title}: {e.detail}")
-    print(f"Request ID: {e.request_id}")  # Save for support
+    print(f"Request ID: {e.request_id}")  # save for support
 ```
-
-## Environment Variables
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `MAGICKMIND_BASE_URL` | Yes | Magick Mind API URL (e.g., `http://localhost:8888`) |
-| `MAGICKMIND_EMAIL` | Yes | Service account email |
-| `MAGICKMIND_PASSWORD` | Yes | Service account password |
-| `MAGICKMIND_WS_ENDPOINT` | For realtime | WebSocket endpoint (e.g., `ws://localhost:8888/connection/websocket`) |
-| `USER_ID` | Optional | End user ID for testing (default: `user-test-456`) |
-| `MINDSPACE_ID` | Optional | Mindspace ID for testing (default: `mind-test-123`) |
-| `PROJECT_ID` | Optional | Project ID for testing |
-| `OPENROUTER_API_KEY` | Optional | API key for LLM (for chat examples) |
-
-## Next Steps
-
-- **Production Integration:** See [Backend Integration Guide](../docs/guides/backend_integration.md)
-- **Realtime Patterns:** See [Realtime Guide](../docs/realtime_guide.md)
-- **Error Handling:** See [Error Handling Guide](../docs/guides/error_handling.md)
-- **Architecture:** See [Backend Architecture](../docs/architecture/backend_architecture.md)
 
 ## Troubleshooting
 
-### Import Errors
-If you see "Import X could not be resolved":
+### DNS / Connection errors
+If you see `nodename nor servname provided`, verify `MAGICKMIND_BASE_URL` resolves:
 ```bash
-# Make sure you're in the SDK directory
-cd libs/sdk
-
-# Sync dependencies
-uv sync --all-extras
-
-# Verify installation
-uv run pyright --version
+nslookup dev-bifrost.magickmind.ai
 ```
 
-### Authentication Errors
-If authentication fails:
-1. Verify `MAGICKMIND_EMAIL` and `MAGICKMIND_PASSWORD` are correct
-2. Check that the API is running at `MAGICKMIND_BASE_URL`
-3. Ensure your service account has proper permissions
+### Authentication errors
+- Verify email/password in `.env`
+- Auth errors happen on the first API call, not on client construction
 
-### WebSocket Connection Errors
-If realtime examples fail:
-1. Verify `MAGICKMIND_WS_ENDPOINT` is set correctly
-2. Check that WebSocket endpoint is accessible
-3. Ensure firewall allows WebSocket connections
+### Corpus query returns empty
+- Ensure `MAGICKMIND_API_KEY` is set (LiteLLM virtual key)
+- Check artifact status is `PROCESSED` before querying
 
-## Contributing
-
-Found a bug or have a suggestion? See [Contributing Guide](../docs/contributing/README.md).
+### WebSocket connection errors
+- Verify `MAGICKMIND_WS_ENDPOINT` is set and accessible
+- Check firewall allows WebSocket connections
