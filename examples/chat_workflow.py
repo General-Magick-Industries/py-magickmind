@@ -25,7 +25,6 @@ from magick_mind.realtime.events import (
     UnknownEvent,
 )
 from magick_mind.exceptions import (
-    AuthenticationError,
     ProblemDetailsException,
     ValidationError,
     RateLimitError,
@@ -55,17 +54,13 @@ async def main():
         )
         return
 
-    # Initialize SDK with error handling
-    try:
-        client = MagickMind(
-            email=email,  # type: ignore (validated above)
-            password=password,  # type: ignore (validated above)
-            base_url=base_url,
-            ws_endpoint=ws_endpoint,
-        )
-    except AuthenticationError as e:
-        logger.error(f"Authentication failed: {e}")
-        return
+    # Initialize SDK — auth is lazy (happens on first API call)
+    client = MagickMind(
+        email=email,  # type: ignore (validated above)
+        password=password,  # type: ignore (validated above)
+        base_url=base_url,
+        ws_endpoint=ws_endpoint,
+    )
 
     try:
         # Register event handlers using decorator API

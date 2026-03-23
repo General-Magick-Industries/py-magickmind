@@ -109,60 +109,57 @@ async def main():
         logger.error("MAGICKMIND_EMAIL and MAGICKMIND_PASSWORD are required")
         return
 
-    # Create client
-    client = MagickMind(
+    async with MagickMind(
         base_url=base_url, email=email, password=password, ws_endpoint=ws_endpoint
-    )
+    ) as client:
+        # Create deduplicating processor
+        processor = DeduplicatingProcessor()
 
-    # Create deduplicating processor
-    processor = DeduplicatingProcessor()
+        # Register event handler using decorator API
+        @client.realtime.on("chat_message")
+        async def handle_chat(event: ChatMessageEvent) -> None:
+            await processor.handle_chat(event)
 
-    # Register event handler using decorator API
-    @client.realtime.on("chat_message")
-    async def handle_chat(event: ChatMessageEvent) -> None:
-        await processor.handle_chat(event)
+        try:
+            # Connect to realtime
+            logger.info("Connecting to realtime...")
+            await client.realtime.connect()
+            logger.info("✅ Connected!")
 
-    try:
-        # Connect to realtime
-        logger.info("Connecting to realtime...")
-        await client.realtime.connect()
-        logger.info("✅ Connected!")
+            # Simulate subscribing to many users (e.g., relay service, admin dashboard)
+            # Per-user subscription model: 50 users = 50 subscriptions (on 1 connection)
+            user_ids = [f"user_{i}" for i in range(50)]
 
-        # Simulate subscribing to many users (e.g., relay service, admin dashboard)
-        # Per-user subscription model: 50 users = 50 subscriptions (on 1 connection)
-        user_ids = [f"user_{i}" for i in range(50)]
+            logger.info(f"Subscribing to {len(user_ids)} users concurrently...")
+            logger.info(
+                "Note: If these users are in the same group/mindspace, "
+                "we'll receive duplicate messages!"
+            )
+            await client.realtime.subscribe_many(user_ids)
+            logger.info("✅ All subscriptions successful!")
 
-        logger.info(f"Subscribing to {len(user_ids)} users concurrently...")
-        logger.info(
-            "Note: If these users are in the same group/mindspace, "
-            "we'll receive duplicate messages!"
-        )
-        await client.realtime.subscribe_many(user_ids)
-        logger.info("✅ All subscriptions successful!")
+            # Keep listening
+            logger.info("Listening for 30 seconds...")
+            logger.info("Watch for duplicate messages being skipped!")
+            await asyncio.sleep(30)
 
-        # Keep listening
-        logger.info("Listening for 30 seconds...")
-        logger.info("Watch for duplicate messages being skipped!")
-        await asyncio.sleep(30)
+            # Show final metrics
+            processor.log_metrics()
+            logger.info(
+                f"Processed IDs count: {len(processor.processed_ids)} unique messages"
+            )
 
-        # Show final metrics
-        processor.log_metrics()
-        logger.info(
-            f"Processed IDs count: {len(processor.processed_ids)} unique messages"
-        )
+            # Bulk unsubscribe
+            logger.info(f"Unsubscribing from {len(user_ids)} users...")
+            await client.realtime.unsubscribe_many(user_ids)
+            logger.info("✅ All unsubscribed!")
 
-        # Bulk unsubscribe
-        logger.info(f"Unsubscribing from {len(user_ids)} users...")
-        await client.realtime.unsubscribe_many(user_ids)
-        logger.info("✅ All unsubscribed!")
-
-    except KeyboardInterrupt:
-        logger.info("\n👋 Shutting down...")
-    except Exception as e:
-        logger.error(f"❌ Error: {e}", exc_info=True)
-    finally:
-        await client.realtime.disconnect()
-        await client.close()
+        except KeyboardInterrupt:
+            logger.info("\n👋 Shutting down...")
+        except Exception as e:
+            logger.error(f"❌ Error: {e}", exc_info=True)
+        finally:
+            await client.realtime.disconnect()
 
 
 if __name__ == "__main__":

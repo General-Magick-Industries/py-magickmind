@@ -65,10 +65,10 @@ async def main():
         for user in all_end_users[:3]:  # Show first 3
             print(f"  - {user.name} (ID: {user.id})")
 
-        # 4. Query end users by tenant
-        print(f"\n4. Querying end users for tenant {end_user.tenant_id}...")
-        tenant_users = await client.v1.end_user.query()
-        print(f"✓ Found {len(tenant_users)} end user(s) in this tenant")
+        # 4. Query end users by name
+        print(f"\n4. Querying end users by name '{end_user.name}'...")
+        matched_users = await client.v1.end_user.query(name=end_user.name)
+        print(f"✓ Found {len(matched_users)} matching end user(s)")
 
         # 5. Query end users by external ID
         if end_user.external_id:

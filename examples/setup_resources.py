@@ -18,7 +18,6 @@ from dotenv import load_dotenv, set_key
 
 from magick_mind import MagickMind
 from magick_mind.exceptions import (
-    AuthenticationError,
     ProblemDetailsException,
     ValidationError,
     RateLimitError,
@@ -71,13 +70,12 @@ async def main():
             "Realtime examples will fail without it. Please add MAGICKMIND_WS_ENDPOINT to your .env file."
         )
 
-    # Initialize client - authentication happens on first API call
-    try:
-        client = MagickMind(email=email, password=password, base_url=base_url)
-    except AuthenticationError as e:
-        logger.error(f"ERROR: Authentication failed: {e}")
-        return
+    # Initialize client — auth is lazy (happens on first API call)
+    async with MagickMind(email=email, password=password, base_url=base_url) as client:
+        await _setup(client)
 
+
+async def _setup(client: MagickMind):
     updates = {}
 
     # 2. Setup End User

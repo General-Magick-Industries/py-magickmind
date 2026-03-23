@@ -6,7 +6,7 @@ Usage:
     export MAGICKMIND_BASE_URL="http://localhost:8888"
     export MAGICKMIND_EMAIL="user@example.com"
     export MAGICKMIND_PASSWORD="your_password"
-    python examples/email_password_auth.py
+    python examples/authentication.py
 """
 
 import asyncio
@@ -34,20 +34,15 @@ async def main():
     print(f"Connecting to: {base_url}")
     print(f"Authenticating as: {email}")
 
-    # Create client with email/password
-    # Login happens automatically on first API call
+    # Create client — auth is lazy (happens on first API call, not here)
     async with MagickMind(base_url=base_url, email=email, password=password) as client:
-        print(f"\nClient: {client}")
+        print(f"Authenticated (before API call): {client.is_authenticated()}")  # False
 
-        # Check authentication status
-        print(f"Authenticated: {client.is_authenticated()}")
+        # Trigger lazy login by making any API call
+        await client.v1.end_user.query()
 
-        # The client will automatically refresh tokens when they expire
-        # You can now use the client to make API calls
-        # Example: await client.http.get("/v1/some-endpoint")
-
-        print("\n✅ Authentication successful!")
-        print("✅ Token refresh is automatic - no need to manually refresh!")
+        print(f"Authenticated (after API call): {client.is_authenticated()}")  # True
+        print("\nToken refresh is automatic — no need to manually refresh!")
 
 
 if __name__ == "__main__":

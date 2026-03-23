@@ -174,20 +174,22 @@ async def example_1_authentication_errors():
     logger.info("EXAMPLE 1: Authentication Errors")
     logger.info("=" * 70)
 
-    try:
-        # Intentionally use wrong credentials
-        client = MagickMind(
-            email="wrong@example.com",
-            password="wrongpassword",
-            base_url=os.getenv("MAGICKMIND_BASE_URL", "https://dev-api.magickmind.ai"),
-        )
-        # Try to make a request
-        await client.http.get("/v1/mindspaces")
+    # Auth is lazy — constructor never raises AuthenticationError.
+    # The error surfaces on the first API call that triggers login.
+    client = MagickMind(
+        email="wrong@example.com",
+        password="wrongpassword",
+        base_url=os.getenv("MAGICKMIND_BASE_URL", "https://dev-api.magickmind.ai"),
+    )
 
+    try:
+        await client.http.get("/v1/mindspaces")
     except AuthenticationError as e:
         logger.error(f"❌ Authentication failed: {e.message}")
         logger.info("ℹ️  Action: Check your email and password")
         logger.info("✓ Caught AuthenticationError correctly")
+    finally:
+        await client.close()
 
 
 async def example_2_validation_errors(client: MagickMind):
@@ -372,13 +374,9 @@ async def main():
         logger.info('  export MAGICKMIND_BASE_URL="https://dev-api.magickmind.ai"')
         return
 
-    # Initialize valid client
-    try:
-        client = MagickMind(email=email, password=password, base_url=base_url)
-        logger.info(f"\n✓ Authenticated as: {email}")
-    except AuthenticationError as e:
-        logger.error(f"\n❌ Authentication failed: {e}")
-        return
+    # Initialize client — auth is lazy (happens on first API call)
+    client = MagickMind(email=email, password=password, base_url=base_url)
+    logger.info(f"\nClient initialized for: {email}")
 
     try:
         # Example 2: Validation errors

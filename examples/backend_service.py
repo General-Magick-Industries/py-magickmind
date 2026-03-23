@@ -160,7 +160,7 @@ class ChatBackendService:
                 },
             )
 
-            messages = response.get("chat_histories", [])
+            messages = response.get("data", [])
 
             logger.info(f"Fetched {len(messages)} messages from history")
 
@@ -221,7 +221,7 @@ class ChatBackendService:
 
         Args:
             mindspace_id: Mindspace to monitor
-            user_id: Service user ID for authentication
+            user_id: End-user ID whose channel to subscribe to
         """
         logger.info("=" * 60)
         logger.info("Starting Chat Backend Service")
