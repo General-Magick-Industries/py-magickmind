@@ -311,7 +311,9 @@ class CorpusResourceV1(BaseResource):
         Raises:
             ProblemDetailsException: If the request fails
         """
-        payload = QueryCorpusRequest(query=query, mode=mode, only_need_context=only_need_context)
+        payload = QueryCorpusRequest(
+            query=query, mode=mode, only_need_context=only_need_context
+        )
 
         headers = {}
         if api_key:
