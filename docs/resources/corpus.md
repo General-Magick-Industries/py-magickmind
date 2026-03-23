@@ -194,6 +194,63 @@ statuses = client.v1.corpus.list_artifact_statuses(
 )
 ```
 
+## Querying a Corpus
+
+Once artifacts are ingested (`PROCESSED`), you can run semantic queries against the corpus.
+
+### Basic Query
+
+```python
+# Ask a question against the corpus
+result = await client.v1.corpus.query(
+    corpus_id,
+    query="What are the key takeaways?",
+    api_key="sk-..."  # LiteLLM virtual key
+)
+print(result.result)
+```
+
+### Query Modes
+
+LightRAG supports four query modes, each suited for different kinds of questions:
+
+```python
+# Hybrid (default) — combines local + global for balanced results
+result = await client.v1.corpus.query(
+    corpus_id, query="Explain the architecture", mode="hybrid", api_key=api_key
+)
+
+# Local — focuses on specific entities and their relationships
+result = await client.v1.corpus.query(
+    corpus_id, query="What does the AuthService do?", mode="local", api_key=api_key
+)
+
+# Global — broad thematic summaries across the entire corpus
+result = await client.v1.corpus.query(
+    corpus_id, query="What are the main themes?", mode="global", api_key=api_key
+)
+
+# Naive — direct chunk retrieval (traditional RAG, no knowledge graph)
+result = await client.v1.corpus.query(
+    corpus_id, query="Find the error handling section", mode="naive", api_key=api_key
+)
+```
+
+### Context-Only Mode
+
+Get raw retrieved context without LLM synthesis — useful for debugging, building custom prompts, or feeding context to your own model:
+
+```python
+# Return raw context chunks instead of an LLM-synthesized answer
+result = await client.v1.corpus.query(
+    corpus_id,
+    query="What is the deployment process?",
+    only_need_context=True,
+    api_key=api_key,
+)
+print(result.result)  # Raw context passages from the knowledge graph
+```
+
 ## Common Patterns
 
 ### Building a Knowledge Base from Scratch
@@ -615,6 +672,21 @@ List ingestion statuses for artifacts in a corpus.
 - `artifact_ids` (list[str], optional): Filter to specific artifact IDs
 
 **Returns:** `list[ArtifactStatus]`
+
+---
+
+### `query()`
+
+Query a corpus using semantic search (RAG).
+
+**Parameters:**
+- `corpus_id` (str, required): Corpus ID to query
+- `query` (str, required): Natural language query text
+- `mode` (str, optional): Query mode — `"hybrid"` (default), `"local"`, `"global"`, `"naive"`
+- `only_need_context` (bool, optional): If `True`, return raw context without LLM synthesis (default: `False`)
+- `api_key` (str, optional): LiteLLM virtual key for per-tenant tracking
+
+**Returns:** `QueryCorpusResponse` (`result`)
 
 ## Related Resources
 

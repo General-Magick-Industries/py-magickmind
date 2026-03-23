@@ -316,6 +316,33 @@ async def main():
         except Exception as e:
             print(f"  Skipped: {e}")
 
+        # 7. Query the corpus (semantic search)
+        # api_key is a LiteLLM virtual key for per-tenant LLM usage tracking
+        api_key = os.getenv("MAGICKMIND_API_KEY", "")
+        print("\n7. Querying corpus (LLM-synthesized answer)...")
+        try:
+            result = await client.v1.corpus.query(
+                corpus_id, query="What is this document about?", api_key=api_key
+            )
+            print(f"\u2713 Query result ({len(result.result)} chars):")
+            print(f"  {result.result[:200]}...")
+        except Exception as e:
+            print(f"  Skipped (no ingested artifacts): {e}")
+
+        # 8. Query with context-only mode (raw chunks, no LLM)
+        print("\n8. Querying corpus (context-only, no LLM)...")
+        try:
+            result = await client.v1.corpus.query(
+                corpus_id,
+                query="What is this document about?",
+                only_need_context=True,
+                api_key=api_key,
+            )
+            print(f"\u2713 Raw context ({len(result.result)} chars):")
+            print(f"  {result.result[:200]}...")
+        except Exception as e:
+            print(f"  Skipped (no ingested artifacts): {e}")
+
         # ========================================================================
         # CLEANUP
         # ========================================================================
