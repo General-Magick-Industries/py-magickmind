@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.1] - 2026-03-23
+
+### Added
+- **Context-only queries** — `client.v1.corpus.query(..., only_need_context=True)` returns
+  raw retrieved context without LLM synthesis.
+- **Corpus query documentation** — Query modes, context-only mode, and `query()` API
+  reference in `docs/resources/corpus.md`.
+- **Query examples** in `examples/resource_management.py`.
+
 ## [0.2.0] - 2026-03-18
 
 ### Breaking Changes
