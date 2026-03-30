@@ -63,7 +63,7 @@ class TestProblemDetailsException:
         )
 
         with caplog.at_level(logging.DEBUG):
-            exc = ProblemDetailsException(problem)
+            ProblemDetailsException(problem)
 
         assert len(caplog.records) == 1
         log_msg = caplog.records[0].message

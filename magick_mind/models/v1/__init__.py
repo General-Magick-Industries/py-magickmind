@@ -85,6 +85,7 @@ __all__ = [
     "HistoryResponse",
     "Project",
     "CreateProjectRequest",
+    "UpdateProjectRequest",
     "GetProjectListResponse",
     "EndUser",
     "CreateEndUserRequest",

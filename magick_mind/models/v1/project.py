@@ -4,7 +4,7 @@ Project models for Magick Mind SDK v1 API.
 Mirrors the /v1/projects endpoint request/response schemas.
 """
 
-from typing import Optional, List
+from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 

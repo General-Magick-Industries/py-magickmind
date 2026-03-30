@@ -7,6 +7,8 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Type, Optional, Callable, Any
 
+from polyfactory.factories.pydantic_factory import ModelFactory
+
 # SDK Models
 from magick_mind.models.v1.chat import ChatSendResponse, ChatSendRequest, ConfigSchema
 from magick_mind.models.v1.artifact import (
@@ -81,8 +83,6 @@ class ContractDef:
 # =============================================================================
 # FACTORIES (Requests Only)
 # =============================================================================
-
-from polyfactory.factories.pydantic_factory import ModelFactory
 
 
 class ChatSendRequestFactory(ModelFactory):

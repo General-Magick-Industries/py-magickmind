@@ -9,7 +9,7 @@ from typing import Literal, Optional
 
 from pydantic import BaseModel, Field, field_validator
 
-from magick_mind.models.common import BaseResponse, PageInfo
+from magick_mind.models.common import PageInfo
 from magick_mind.models.v1.history import HistoryResponse
 
 

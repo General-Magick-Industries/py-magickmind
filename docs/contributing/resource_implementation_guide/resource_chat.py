@@ -87,7 +87,7 @@ class ChatResource(BaseResource):
         )
 
         # Make request
-        response = self._http.post(f"/v1/magickmind/chat", json=request.model_dump())
+        response = self._http.post("/v1/magickmind/chat", json=request.model_dump())
 
         # Parse and validate response
         return ChatSendResponse.model_validate(response.json())
@@ -112,7 +112,7 @@ class ChatResource(BaseResource):
         )
 
         # Make request
-        response = self._http.post(f"/v2/magickmind/chat", json=request.model_dump())
+        response = self._http.post("/v2/magickmind/chat", json=request.model_dump())
 
         # Parse and validate response
         return ChatSendResponse.model_validate(response.json())

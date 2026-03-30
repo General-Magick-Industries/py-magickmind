@@ -12,7 +12,6 @@ import httpx
 
 from magick_mind.models.v1.artifact import (
     Artifact,
-    ArtifactStatus,
     FinalizeArtifactRequest,
     FinalizeArtifactResponse,
     GetArtifactResponse,
