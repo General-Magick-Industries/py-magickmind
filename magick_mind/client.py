@@ -238,7 +238,7 @@ class MagickMind:
             from openai import AsyncOpenAI
         except ImportError:
             raise ImportError(
-                "openai package required. Install with: pip install magick-mind[openai]"
+                "openai package required. Install with: pip install magickmind[openai]"
             )
         return AsyncOpenAI(
             api_key=api_key,

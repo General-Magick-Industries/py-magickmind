@@ -7,20 +7,20 @@ Python SDK for backend services integrating with the Magick Mind platform. Provi
 Using `uv` (recommended):
 
 ```bash
-uv add magick-mind
+uv add magickmind
 ```
 
 Using pip:
 
 ```bash
-pip install magick-mind
+pip install magickmind
 ```
 
 For development:
 
 ```bash
-git clone <repository-url>
-cd magick-mind-sdk
+git clone https://github.com/General-Magick-Industries/py-magickmind
+cd py-magickmind
 uv sync --all-extras
 ```
 
@@ -29,40 +29,48 @@ uv sync --all-extras
 ### Authentication
 
 ```python
+import asyncio
 from magick_mind import MagickMind
 
-# Create client with email/password
-client = MagickMind(
-    email="user@example.com",
-    password="your_password",
-    base_url="https://api.magickmind.ai"
-)
+async def main():
+    async with MagickMind(
+        email="user@example.com",
+        password="your_password",
+        base_url="https://api.magickmind.ai",
+    ) as client:
+        # Authentication happens automatically on first API call.
+        # Tokens are automatically refreshed when needed.
+        user_id = await client.get_user_id()
+        print(f"Authenticated as: {user_id}")
 
-# Authentication happens automatically on first API call
-# Tokens are automatically refreshed when needed
-print(f"Authenticated: {client.is_authenticated()}")
+asyncio.run(main())
 ```
 
-> **Note**: The `api_key` you might see in chat requests is **not for SDK authentication**. 
-> It's a parameter you pass when calling LLM endpoints (for tracking/billing). 
+> **Note**: The `api_key` you might see in chat requests is **not for SDK authentication**.
+> It's a parameter you pass when calling LLM endpoints (for tracking/billing).
 > The SDK itself authenticates with JWT tokens from `/v1/auth/login`.
 
 ### Basic Chat
 
 ```python
-# Make a chat request
-response = client.http.post(
-    "/v1/magickmind/chat",
-    json={
-        "api_key": "sk-your-llm-key",
-        "message": "Hello!",
-        "chat_id": "chat-123",
-        "sender_id": "user-456",
-        "mindspace_id": "mind-789"
-    }
-)
+import asyncio
+from magick_mind import MagickMind
 
-# Response streams via Centrifugo WebSocket (see Realtime section)
+async def main():
+    async with MagickMind(
+        email="user@example.com",
+        password="your_password",
+        base_url="https://api.magickmind.ai",
+    ) as client:
+        response = await client.v1.chat.send(
+            api_key="sk-your-llm-key",
+            mindspace_id="mind-789",
+            message="Hello!",
+            enduser_id="user-456",
+        )
+        print(response.content.content)  # AI response text
+
+asyncio.run(main())
 ```
 
 ### Realtime (Decorator API)
@@ -154,8 +162,8 @@ For direct device-to-API patterns (robotics/IoT), see [Event-Driven Patterns](do
 
 ```bash
 # Clone repository
-git clone <repository-url>
-cd magick-mind-sdk
+git clone https://github.com/General-Magick-Industries/py-magickmind
+cd py-magickmind
 
 # Install dependencies
 uv sync --all-extras

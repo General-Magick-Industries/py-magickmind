@@ -3,10 +3,9 @@
 ## Development Setup
 
 ```bash
-# Clone and install
 git clone https://github.com/General-Magick-Industries/py-magickmind.git
 cd py-magickmind
-uv sync
+uv sync --all-extras
 ```
 
 ## Running Tests
@@ -19,7 +18,7 @@ uv run pytest
 uv run pytest -m contract -v
 
 # Unit tests
-uv run pytest tests/unit/ -v
+uv run pytest tests/ -v
 ```
 
 ## Contract Testing Workflow
@@ -34,22 +33,14 @@ We use serialization-based contract testing to ensure SDK models match the Magic
 
 ### Updating Specs
 
-When the Magick Mind API changes:
+When the Magick Mind API changes, download the updated OpenAPI spec and replace the
+relevant file in `specs/` (e.g. `specs/openapi.dev.json`), then run the contract tests:
 
 ```bash
-# 1. Generate new spec in the API gateway (services/bifrost)
-cd ../bifrost
-goctl api plugin -p goctl-openapi -api api/v1/*.api -dir .
-
-# 2. Copy to SDK (dev or main depending on branch)
-cp api/openapi.json ../py-magickmind/specs/openapi.dev.json
-
-# 3. Run contract tests
-cd ../py-magickmind
 uv run pytest -m contract -v
-
-# 4. Fix any failures by updating SDK models
 ```
+
+Fix any failures by updating the SDK models to match the new spec.
 
 ### Adding New Models
 
@@ -67,8 +58,9 @@ See `tests/contract/README.md` for detailed instructions.
 
 ## Pull Request Process
 
-1. Create feature branch
-2. Make changes
+1. Create a feature branch from `main`
+2. Make your changes
 3. Run tests: `uv run pytest`
 4. Run contract tests: `uv run pytest -m contract`
-5. Submit PR
+5. Ensure lint and formatting pass: `uv run ruff check . && uv run ruff format --check .`
+6. Submit a pull request against `main`
