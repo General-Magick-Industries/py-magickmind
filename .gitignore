@@ -21,6 +21,7 @@ env.bak/
 venv.bak/
 
 *.egg-info/
+dist/
 
 # Hypothesis Cache
 .hypothesis/
