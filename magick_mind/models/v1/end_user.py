@@ -8,7 +8,7 @@ from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from magick_mind.models.common import Cursors, PageInfo
+from magick_mind.models.common import PageInfo
 
 
 class EndUser(BaseModel):

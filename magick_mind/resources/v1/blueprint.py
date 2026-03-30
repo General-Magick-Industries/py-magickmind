@@ -26,7 +26,7 @@ from magick_mind.resources.base import BaseResource
 from magick_mind.routes import Routes
 
 if TYPE_CHECKING:
-    from magick_mind.http import HTTPClient
+    pass
 
 
 class BlueprintResourceV1(BaseResource):

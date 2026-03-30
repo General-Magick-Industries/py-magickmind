@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import sys
 from unittest.mock import patch
 
 import pytest
@@ -33,7 +32,7 @@ def test_openai_client_raises_without_openai() -> None:
         base_url="https://api.magickmind.ai",
     )
     with patch.dict("sys.modules", {"openai": None}):
-        with pytest.raises(ImportError, match="pip install magick-mind"):
+        with pytest.raises(ImportError, match="pip install magickmind"):
             client.openai_client(api_key="test-key")
 
 

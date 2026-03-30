@@ -19,7 +19,6 @@ Run this example to see proper error handling in action:
 import asyncio
 import logging
 import os
-import time
 from typing import Optional
 
 from dotenv import load_dotenv
@@ -129,7 +128,7 @@ async def send_with_retry(
             )
             return response
 
-        except RateLimitError as e:
+        except RateLimitError:
             if attempt == max_retries - 1:
                 logger.error("Max retries reached for rate limit")
                 raise
@@ -200,7 +199,7 @@ async def example_2_validation_errors(client: MagickMind):
 
     try:
         # Send invalid request - empty required fields
-        response = await client.v1.chat.send(
+        await client.v1.chat.send(
             api_key="",  # Invalid: empty
             mindspace_id="",  # Invalid: empty
             message="",  # Invalid: empty
@@ -231,7 +230,7 @@ async def example_3_problem_details_with_request_id(client: MagickMind):
 
     try:
         # Try to access non-existent mindspace
-        response = await client.v1.chat.send(
+        await client.v1.chat.send(
             api_key="sk-test",
             mindspace_id="nonexistent-mindspace-id",
             message="Hello",
@@ -337,7 +336,7 @@ async def example_5_production_error_handling(client: MagickMind):
         if e.status_code:
             logger.error(f"Status: {e.status_code}")
 
-    except Exception as e:
+    except Exception:
         # Unexpected errors
         logger.exception("Unexpected error occurred")
 
