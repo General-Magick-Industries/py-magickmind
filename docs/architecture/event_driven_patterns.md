@@ -102,9 +102,10 @@ response = client.v1.chat.send(
 )
 
 # Receive own AI responses
-async def on_message(user_id, payload):
-    # user_id == "robot-001" (self)
-    print(f"AI response: {payload['content']}")
+@client.realtime.on("chat_message")
+async def handle(event: ChatMessageEvent, ctx: EventContext):
+    # ctx.target_user_id == "robot-001" (self)
+    print(f"AI response: {event.payload.message}")
 ```
 
 **Use Cases:**
@@ -140,7 +141,8 @@ Pattern 1: Events as Source of Truth
 Your backend receives complete data from the Magick Mind API and relays to your frontend.
 """
 
-from magick_mind import MagickMind, ChatPayload
+from magick_mind import MagickMind
+from magick_mind.realtime.events import ChatMessageEvent, EventContext
 from fastapi import FastAPI, WebSocket
 import asyncio
 
@@ -152,38 +154,39 @@ class ChatBackend:
         self.sdk_client = client
         self.your_db = YourDatabase()
         self.your_websocket_connections = set()  # Your frontend connections
-    
-    async def on_api_event(self, channel: str, data: dict):
+
+    async def on_api_event(self, event: ChatMessageEvent, ctx: EventContext):
         """
         Receives event from the Magick Mind API with complete message data.
+        ctx.target_user_id identifies which end-user this event is for.
         Backend processes and relays to YOUR frontend.
         """
-        # Parse event from the API
-        message = ChatPayload.model_validate(data)
-        
-        print(f"📥 Received from API: {message.message_id}")
-        
+        payload = event.payload
+
+        print(f"📥 Received from API for {ctx.target_user_id}: {payload.message_id}")
+
         # Business logic: Store in YOUR database
         await self.your_db.messages.insert_one({
-            "id": message.message_id,
-            "task_id": message.task_id,
-            "content": message.content,
-            "reply_to": message.reply_to,
+            "id": payload.message_id,
+            "task_id": payload.task_id,
+            "content": payload.message,
+            "reply_to": payload.reply_to,
+            "user_id": ctx.target_user_id,
             "received_at": datetime.now()
         })
-        
+
         # Relay to YOUR frontend via YOUR WebSocket
         await self.broadcast_to_your_frontend({
             "type": "new_message",
             "data": {
-                "id": message.message_id,
-                "content": message.content,
-                "task_id": message.task_id
+                "id": payload.message_id,
+                "content": payload.message,
+                "task_id": payload.task_id
             }
         })
-        
+
         print(f"✓ Stored and relayed to frontend")
-    
+
     async def broadcast_to_your_frontend(self, data: dict):
         """Send to YOUR frontend's WebSocket connections"""
         for websocket in self.your_websocket_connections:
@@ -191,18 +194,20 @@ class ChatBackend:
                 await websocket.send_json(data)
             except:
                 self.your_websocket_connections.remove(websocket)
-    
+
     async def start(self, end_user_id: str):
         """Connect to the Magick Mind API and start listening for this end user"""
+        # Register handler — EventContext provides user identity
+        @self.sdk_client.realtime.on("chat_message")
+        async def handle(event: ChatMessageEvent, ctx: EventContext):
+            await self.on_api_event(event, ctx)
+
         # Connect SDK to the Magick Mind API
         await self.sdk_client.realtime.connect()
-        
+
         # Subscribe to personal channel for this specific end user
         # Pattern: personal:<target_user_id>#<service_user_id>
-        await self.sdk_client.realtime.subscribe(
-            target_user_id=end_user_id,
-            on_publication=self.on_api_event
-        )
+        await self.sdk_client.realtime.subscribe(target_user_id=end_user_id)
         print(f"✓ Backend listening for user {end_user_id}")
 
 # Your frontend connects to YOUR WebSocket endpoint
@@ -227,37 +232,40 @@ async def your_frontend_websocket(websocket: WebSocket):
 
 **1. Activity/Status Dashboards**
 ```python
-async def on_api_event(self, channel, data):
-    activity = parse_activity(data)
-    
+@client.realtime.on("chat_message")
+async def on_activity(event: ChatMessageEvent, ctx: EventContext):
+    activity = parse_activity(event.payload)
+
     # Store in Redis for dashboard queries
     await redis.lpush("activities", json.dumps(activity))
-    
+
     # Push to your frontend Dashboard
-    await self.broadcast_to_dashboard(activity)
+    await broadcast_to_dashboard(activity)
 ```
 
 **2. Notification Relays**
 ```python
-async def on_api_event(self, channel, data):
-    notification = parse_notification(data)
-    
+@client.realtime.on("chat_message")
+async def on_notification(event: ChatMessageEvent, ctx: EventContext):
+    notification = parse_notification(event.payload)
+
     # Store notification
     await db.notifications.insert(notification)
-    
-    # Send push notification via FCM/APNS to your app
-    await send_push_notification(notification.user_id, notification)
+
+    # Send push notification via FCM/APNS — ctx identifies the user
+    await send_push_notification(ctx.target_user_id, notification)
 ```
 
 **3. Live Feed Aggregators**
 ```python
-async def on_api_event(self, channel, data):
-    feed_item = parse_feed_item(data)
-    
+@client.realtime.on("chat_message")
+async def on_feed(event: ChatMessageEvent, ctx: EventContext):
+    feed_item = parse_feed_item(event.payload)
+
     # Add to feed cache
     await redis.zadd("feed", {feed_item.id: time.now()})
-    
-    # Relay to your frontend  
+
+    # Relay to your frontend
     await broadcast_to_feed_subscribers(feed_item)
 ```
 
@@ -285,33 +293,35 @@ async def on_api_event(self, channel, data):
 """Real-world: Telegram bot receiving AI responses"""
 
 from telegram import Bot
-from magick_mind import MagickMind, ChatPayload
+from magick_mind import MagickMind
+from magick_mind.realtime.events import ChatMessageEvent, EventContext
 
 class TelegramBotBackend:
     def __init__(self, sdk_client: MagickMind, bot: Bot):
         self.sdk = sdk_client
         self.telegram_bot = bot
         self.chat_mappings = {}  # Map the Magick Mind API task_id → Telegram chat_id
-    
-    async def on_ai_response(self, channel: str, data: dict):
-        """
-        the Magick Mind API sends AI response →
-        Your bot backend relays to Telegram →
-        User sees message in Telegram
-        """
-        message = ChatPayload.model_validate(data)
-        
-        # Get which Telegram chat this belongs to
-        telegram_chat_id = self.chat_mappings.get(message.task_id)
-        
-        if telegram_chat_id:
-            # Relay to YOUR frontend (Telegram)
-            await self.telegram_bot.send_message(
-                chat_id=telegram_chat_id,
-                text=message.content
-            )
-            
-            print(f"✓ Relayed to Telegram chat {telegram_chat_id}")
+
+        @sdk_client.realtime.on("chat_message")
+        async def on_ai_response(event: ChatMessageEvent, ctx: EventContext):
+            """
+            the Magick Mind API sends AI response →
+            Your bot backend relays to Telegram →
+            User sees message in Telegram
+            """
+            payload = event.payload
+
+            # Get which Telegram chat this belongs to
+            telegram_chat_id = self.chat_mappings.get(payload.task_id)
+
+            if telegram_chat_id:
+                # Relay to YOUR frontend (Telegram)
+                await self.telegram_bot.send_message(
+                    chat_id=telegram_chat_id,
+                    text=payload.message,
+                )
+
+                print(f"✓ Relayed to Telegram chat {telegram_chat_id}")
 ```
 
 ## Pattern 2: Events as Notifications
@@ -482,7 +492,8 @@ Fast path: Trust and relay events
 Slow path: Periodic sync to catch gaps
 """
 
-from magick_mind import MagickMind, ChatPayload
+from magick_mind import MagickMind
+from magick_mind.realtime.events import ChatMessageEvent, EventContext
 import asyncio
 from typing import Set
 
@@ -502,23 +513,25 @@ class ProductionChatBackend:
         self.processed_message_ids: Set[str] = set()
         self.last_sync_cursor = None
     
-    async def on_api_event(self, channel: str, data: dict):
+    async def on_api_event(self, event: ChatMessageEvent, ctx: EventContext):
         """
         FAST PATH: Receive event from the Magick Mind API, process immediately.
+        ctx.target_user_id identifies which end-user this event is for.
         """
-        message = ChatPayload.model_validate(data)
+        payload = event.payload
         
         # Deduplicate
-        if message.message_id in self.processed_message_ids:
+        if payload.message_id in self.processed_message_ids:
             return
         
-        print(f"⚡ Quick path: {message.message_id}")
+        print(f"⚡ Quick path [{ctx.target_user_id}]: {payload.message_id}")
         
         # Store in YOUR database
         await self.your_db.messages.insert_one({
-            "id": message.message_id,
-            "content": message.content,
-            "task_id": message.task_id,
+            "id": payload.message_id,
+            "content": payload.message,
+            "task_id": payload.task_id,
+            "user_id": ctx.target_user_id,
             "source": "realtime_event",
             "received_at": datetime.now()
         })
@@ -526,11 +539,11 @@ class ProductionChatBackend:
         # Relay to YOUR frontend immediately
         await self.broadcast_to_frontend({
             "type": "new_message",
-            "data": message.model_dump()
+            "data": payload.model_dump()
         })
         
         # Track it
-        self.processed_message_ids.add(message.message_id)
+        self.processed_message_ids.add(payload.message_id)
         
         print(f"✓ Stored and relayed")
     
@@ -547,16 +560,13 @@ class ProductionChatBackend:
             
             try:
                 # Fetch history from the Magick Mind API
-                response = self.sdk_client.http.get(
-                    "/v1/mindspaces/messages",
-                    params={
-                        "mindspace_id": mindspace_id,
-                        "after_id": self.last_sync_cursor or "",
-                        "limit": 100
-                    }
+                resp = await self.sdk_client.v1.mindspace.get_messages(
+                    mindspace_id,
+                    cursor=self.last_sync_cursor,
+                    limit=100,
                 )
                 
-                messages = response.json().get("chat_histories", [])
+                messages = resp.data
                 
                 # Find any we missed
                 gaps_found = 0
@@ -620,15 +630,17 @@ class ProductionChatBackend:
         """
         print("🚀 Starting hybrid backend...")
         
+        # Register handler — EventContext provides user identity
+        @self.sdk_client.realtime.on("chat_message")
+        async def handle(event: ChatMessageEvent, ctx: EventContext):
+            await self.on_api_event(event, ctx)
+        
         # 1. Connect to the Magick Mind API realtime (fast path)
         await self.sdk_client.realtime.connect()
         
         # Subscribe to personal channel for this specific end user
         # Pattern: personal:<end_user_id>#<service_user_id>
-        await self.sdk_client.realtime.subscribe(
-            target_user_id=end_user_id,
-            on_publication=self.on_api_event
-        )
+        await self.sdk_client.realtime.subscribe(target_user_id=end_user_id)
         print(f"  ✓ Realtime connected for user {end_user_id}")
         
         # 2. Start periodic sync (reliability)
@@ -748,21 +760,23 @@ Real architecture of a Telegram bot using the Magick Mind API
 # the Magick Mind API AI Service (SaaS)
 
 class TelegramBotBackend:
-    async def on_api_ai_response(self, channel, data):
-        """the Magick Mind API sends AI response → Relay to Telegram"""
-        message = ChatPayload.model_validate(data)
-        
-        # Get Telegram chat to send to
-        telegram_chat_id = self.task_to_chat_mapping[message.task_id]
-        
-        # Relay to YOUR frontend (Telegram)
-        await self.telegram_bot.send_message(
-            chat_id=telegram_chat_id,
-            text=message.content
-        )
-        
-        # Store in your DB
-        await self.db.messages.insert(message)
+    def setup_handlers(self, client):
+        @client.realtime.on("chat_message")
+        async def on_ai_response(event: ChatMessageEvent, ctx: EventContext):
+            """the Magick Mind API sends AI response → Relay to Telegram"""
+            payload = event.payload
+
+            # Get Telegram chat to send to
+            telegram_chat_id = self.task_to_chat_mapping[payload.task_id]
+
+            # Relay to YOUR frontend (Telegram)
+            await self.telegram_bot.send_message(
+                chat_id=telegram_chat_id,
+                text=payload.message,
+            )
+
+            # Store in your DB
+            await self.db.messages.insert(payload.model_dump())
 ```
 
 ### Web App Backend (Pattern 3: Hybrid)
@@ -777,21 +791,22 @@ from fastapi import FastAPI, WebSocket
 app = FastAPI()
 
 class WebAppBackend:
-    def __init__(self):
+    def __init__(self, client: MagickMind):
         self.frontend_connections = set()  # YOUR frontend's WebSockets
-    
-    async def on_api_event(self, channel, data):
-        """the Magick Mind API → Your backend → Your React frontend"""
-        message = ChatPayload.model_validate(data)
-        
-        # Store in your DB
-        await db.messages.insert(message)
-        
-        # Relay to YOUR frontend
-        await self.broadcast_to_react_app({
-            "type": "ai_message",
-            "data": message.model_dump()
-        })
+
+        @client.realtime.on("chat_message")
+        async def on_api_event(event: ChatMessageEvent, ctx: EventContext):
+            """the Magick Mind API → Your backend → Your React frontend"""
+            payload = event.payload
+
+            # Store in your DB
+            await db.messages.insert(payload.model_dump())
+
+            # Relay to YOUR frontend
+            await self.broadcast_to_react_app({
+                "type": "ai_message",
+                "data": payload.model_dump(),
+            })
 
 @app.websocket("/ws")
 async def your_frontend_connects_here(websocket: WebSocket):
@@ -816,9 +831,10 @@ No matter which pattern you choose, your backend must:
 
 ### 1. Process Events from the Magick Mind API
 ```python
-async def on_event_from_api(self, channel, data):
-    # Parse the Magick Mind API's event
-    message = ChatPayload.model_validate(data)
+@client.realtime.on("chat_message")
+async def on_event_from_api(event: ChatMessageEvent, ctx: EventContext):
+    # event.payload contains typed data, ctx.target_user_id identifies the user
+    payload = event.payload
     ...
 ```
 

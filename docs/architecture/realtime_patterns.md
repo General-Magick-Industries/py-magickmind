@@ -31,17 +31,19 @@ Each subscription is multiplexed over the same connection.
 ### Implementation
 
 ```python
+from magick_mind.realtime.events import ChatMessageEvent, EventContext
+
 # Subscribe to multiple users
 await client.realtime.subscribe_many([
     "user_1", "user_2", "user_3", ..., "user_500"
 ])
 
-# Handler receives per-user messages
-class Handler(RealtimeEventHandler):
-    async def on_message(self, user_id: str, payload):
-        # user_id is already parsed
-        # Only receives messages for subscribed users
-        print(f"Message for {user_id}: {payload}")
+# Handler receives per-user messages with EventContext
+@client.realtime.on("chat_message")
+async def handle(event: ChatMessageEvent, ctx: EventContext):
+    # ctx.target_user_id is parsed from the channel automatically
+    # Only receives messages for subscribed users
+    print(f"Message for {ctx.target_user_id}: {event.payload.message}")
 ```
 
 ### Why This is Correct
@@ -89,16 +91,12 @@ Backend Service
 # ❌ DON'T DO THIS for personal messages
 await client.realtime.subscribe("room_mindspace_123")
 
-class Handler(RealtimeEventHandler):
-    async def on_raw_message(self, channel, payload):
-        # Receive EVERYTHING
-        # Must manually check: is this for the current user?
-        if payload.get("user_id") == current_user_id:
-            # Process it
-            pass
-        else:
-            # Discard (but you still received it over network!)
-            pass
+# Receives EVERYTHING — must manually filter
+@client.realtime.on("chat_message")
+async def handle(event: ChatMessageEvent, ctx: EventContext):
+    if ctx.target_user_id != current_user_id:
+        return  # Discard (but you still received it over network!)
+    # Process it...
 ```
 
 ### Why This is Wrong
@@ -210,10 +208,10 @@ If you currently use room channels for personal data:
 await client.realtime.subscribe("room_project_123")
 
 # Receive all messages, filter manually
-class Handler(RealtimeEventHandler):
-    async def on_raw_message(self, channel, payload):
-        if payload["user_id"] in my_users:
-            process(payload)
+@client.realtime.on("chat_message")
+async def handle(event: ChatMessageEvent, ctx: EventContext):
+    if ctx.target_user_id in my_users:
+        process(event.payload)
 ```
 
 ### After (Correct Pattern)
@@ -222,11 +220,11 @@ class Handler(RealtimeEventHandler):
 # ✅ Subscribe to each user
 await client.realtime.subscribe_many(my_users)
 
-# Receive only relevant messages  
-class Handler(RealtimeEventHandler):
-    async def on_message(self, user_id, payload):
-        # Already filtered server-side
-        process(user_id, payload)
+# Receive only relevant messages — EventContext identifies the user
+@client.realtime.on("chat_message")
+async def handle(event: ChatMessageEvent, ctx: EventContext):
+    # Already filtered server-side, ctx.target_user_id parsed for you
+    process(ctx.target_user_id, event.payload)
 ```
 
 ### Benefits After Migration

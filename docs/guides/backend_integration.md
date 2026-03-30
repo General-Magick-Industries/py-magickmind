@@ -33,7 +33,8 @@ Your database state needs to stay consistent with the Magick Mind API's truth.
 This combines the **speed of realtime events** with the **reliability of HTTP polling**:
 
 ```python
-from magick_mind import MagickMind, ChatPayload
+from magick_mind import MagickMind
+from magick_mind.realtime.events import ChatMessageEvent, ChatMessagePayload, EventContext
 import asyncio
 from typing import Set, Optional
 
@@ -57,18 +58,16 @@ class ChatBackendService:
         # Track last sync position for pagination
         self.last_sync_cursor: Optional[str] = None
     
-    async def handle_realtime_event(self, channel: str, data: dict):
+    async def handle_realtime_event(
+        self, event: ChatMessageEvent, ctx: EventContext
+    ):
         """
         Handle incoming realtime event.
         
         Called when WebSocket receives a message publication.
+        ctx.target_user_id identifies which end-user the event is for.
         """
-        # Parse the event payload
-        try:
-            payload = ChatPayload.model_validate(data)
-        except Exception as e:
-            logger.error(f"Invalid payload: {e}")
-            return
+        payload = event.payload
         
         # Deduplicate - critical for backends!
         if payload.message_id in self.processed_messages:
@@ -123,19 +122,13 @@ class ChatBackendService:
         Note: Requires mindspaces.get_messages() to be implemented
               in the SDK (coming soon!)
         """
-        # Note: Future Feature - Typed history resource will be added to SDK
-        # When available: messages = await self.client.v1.mindspaces.get_messages(...)
-        # For now, use the HTTP client to call the endpoint directly:
-        response = self.client.http.get(
-            "/v1/mindspaces/messages",
-            params={
-                "mindspace_id": mindspace_id,
-                "after_id": since_message_id or "",
-                "limit": 100,
-            }
+        resp = await self.client.v1.mindspace.get_messages(
+            mindspace_id,
+            cursor=since_message_id,
+            limit=100,
         )
         
-        messages = response.json().get("chat_histories", [])
+        messages = resp.data
         
         # Process each message
         for msg_data in messages:
@@ -181,21 +174,23 @@ class ChatBackendService:
         
         This is the main entry point that sets up everything.
         """
-        # 1. Initial history sync on startup
+        # 1. Register event handler — EventContext provides user identity
+        @self.client.realtime.on("chat_message")
+        async def on_chat(event: ChatMessageEvent, ctx: EventContext):
+            await self.handle_realtime_event(event, ctx)
+
+        # 2. Initial history sync on startup
         logger.info("Syncing initial history...")
         await self.sync_history(mindspace_id=mindspace_id)
         
-        # 2. Connect to realtime
+        # 3. Connect to realtime
         logger.info("Connecting to realtime...")
         await self.client.realtime.connect()
         
-        # 3. Subscribe to events
-        await self.client.realtime.subscribe(
-            target_user_id=user_id,
-            on_publication=self.handle_realtime_event
-        )
+        # 4. Subscribe to user channel
+        await self.client.realtime.subscribe(target_user_id=user_id)
         
-        # 4. Start periodic sync in background
+        # 5. Start periodic sync in background
         asyncio.create_task(self.periodic_sync(mindspace_id))
         
         logger.info("Backend service running!")
@@ -261,7 +256,7 @@ last_disconnect_time = None
 - Only cache if you need offline capability or have specific business requirements
 
 ❌ **Implement complex ordering logic**
-- Use `after_id` pagination from history endpoint
+- Use cursor pagination from `get_messages()`
 - The Magick Mind API handles ordering
 
 ❌ **Trust realtime as only source**
@@ -350,19 +345,17 @@ async def health_check():
 ## Error Handling
 
 ```python
-async def handle_realtime_event(self, channel: str, data: dict):
+async def handle_realtime_event(
+    self, event: ChatMessageEvent, ctx: EventContext
+):
     try:
-        payload = ChatPayload.model_validate(data)
-    except ValidationError as e:
-        # Log and skip invalid events
-        logger.error(f"Invalid event payload: {e}")
-        return
-    
-    try:
-        await self._process_message(payload)
+        await self._process_message(event.payload)
     except Exception as e:
         # Log but don't crash - event will be caught in next sync
-        logger.error(f"Failed to process {payload.message_id}: {e}")
+        logger.error(
+            f"Failed to process {event.payload.message_id} "
+            f"for {ctx.target_user_id}: {e}"
+        )
         # Optionally: Add to retry queue
 ```
 
@@ -384,7 +377,7 @@ http_client = httpx.AsyncClient(
 async def sync_history_batched(mindspace_id: str):
     cursor = None
     while True:
-        messages = await get_messages(after_id=cursor, limit=100)
+        messages = await get_messages(cursor=cursor, limit=100)
         if not messages:
             break
         

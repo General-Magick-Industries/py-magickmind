@@ -468,7 +468,7 @@ class TestMindspace:
             json=HISTORY_PAYLOAD,
         )
 
-        result = await client.mindspace.get_messages(mindspace_id="ms-1", limit=20)
+        result = await client.mindspace.get_messages("ms-1", limit=20)
 
         assert isinstance(result, MindspaceMessagesResponse)
         assert len(result.data) == 1
@@ -476,8 +476,7 @@ class TestMindspace:
         assert result.data[0].content == "Hello"
 
         request = mock_auth.get_requests()[-1]
-        assert "/v1/mindspaces/messages" in str(request.url)
-        assert "mindspace_id=ms-1" in str(request.url)
+        assert "/v1/mindspaces/ms-1/messages" in str(request.url)
         assert "limit=20" in str(request.url)
 
 
@@ -877,7 +876,7 @@ class TestHistory:
             json=HISTORY_PAYLOAD,
         )
 
-        result = await client.v1.history.get_messages(mindspace_id="ms-1", limit=10)
+        result = await client.v1.history.get_messages("ms-1", limit=10)
 
         assert isinstance(result, HistoryResponse)
         assert len(result.data) == 1
@@ -887,11 +886,10 @@ class TestHistory:
 
         request = mock_auth.get_requests()[-1]
         assert request.method == "GET"
-        assert "/v1/mindspaces/messages" in str(request.url)
-        assert "mindspace_id=ms-1" in str(request.url)
+        assert "/v1/mindspaces/ms-1/messages" in str(request.url)
         assert "limit=10" in str(request.url)
 
-    async def test_get_messages_with_after_id(
+    async def test_get_messages_with_cursor(
         self,
         client: MagickMind,
         mock_auth: HTTPXMock,
@@ -909,12 +907,10 @@ class TestHistory:
             },
         )
 
-        result = await client.v1.history.get_messages(
-            mindspace_id="ms-1", after_id="msg-5", limit=10
-        )
+        result = await client.v1.history.get_messages("ms-1", cursor="msg-5", limit=10)
 
         assert result.has_more is True
 
         request = mock_auth.get_requests()[-1]
-        assert "/v1/mindspaces/messages" in str(request.url)
-        assert "after_id=msg-5" in str(request.url)
+        assert "/v1/mindspaces/ms-1/messages" in str(request.url)
+        assert "cursor=msg-5" in str(request.url)

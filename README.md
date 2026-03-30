@@ -65,16 +65,12 @@ response = client.http.post(
 # Response streams via Centrifugo WebSocket (see Realtime section)
 ```
 
-### Realtime (Simple Listener)
+### Realtime (Decorator API)
 
 ```python
 import asyncio
 from magick_mind import MagickMind
-from magick_mind.realtime.handler import RealtimeEventHandler
-
-class MyHandler(RealtimeEventHandler):
-    async def on_message(self, user_id: str, payload):
-        print(f"Update for {user_id}: {payload}")
+from magick_mind.realtime.events import ChatMessageEvent, EventContext
 
 async def main():
     client = MagickMind(
@@ -83,11 +79,16 @@ async def main():
         base_url="https://api.magickmind.ai",
         ws_endpoint="wss://api.magickmind.ai/connection/websocket"
     )
-    
+
+    # Register handler — optional EventContext identifies the end user
+    @client.realtime.on("chat_message")
+    async def handle_chat(event: ChatMessageEvent, ctx: EventContext):
+        print(f"Message for {ctx.target_user_id}: {event.payload.message}")
+
     # Connect and subscribe
-    await client.realtime.connect(events=MyHandler())
+    await client.realtime.connect()
     await client.realtime.subscribe_many(["user-1", "user-2"])
-    
+
     # Keep listening...
     await asyncio.sleep(60)
 
@@ -131,6 +132,7 @@ For direct device-to-API patterns (robotics/IoT), see [Event-Driven Patterns](do
 - [Backend Integration](docs/guides/backend_integration.md) - Production patterns for message deduplication, hybrid sync, recovery
 - [Error Handling](docs/guides/error_handling.md) - Exception types, retry patterns, production examples
 - [Advanced Usage](docs/guides/advanced_usage.md) - Direct HTTP client access for power users
+- [Persona & Prepare](docs/guides/persona.md) - AI persona creation, versioning, and system prompt generation
 - [Realtime Guide](docs/realtime_guide.md) - Complete WebSocket guide with bulk operations and relay architecture
 
 ### Resources
@@ -186,12 +188,13 @@ uv run ruff format .
 
 ## Examples
 
-The `examples/` directory contains 7 working examples demonstrating key SDK patterns:
+The `examples/` directory contains working examples demonstrating key SDK patterns:
 
 | Example | Description |
 |---------|-------------|
 | **authentication.py** | Email/password authentication with auto-refresh |
 | **resource_management.py** | CRUD operations for End Users, Projects, and Mindspaces |
+| **persona_workflow.py** | Persona creation, versioning, and prepare (system prompt generation) |
 | **chat_workflow.py** | Complete chat workflow with realtime streaming |
 | **bulk_subscribe.py** | Bulk subscriptions with message deduplication |
 | **backend_service.py** | Production-ready backend service pattern |

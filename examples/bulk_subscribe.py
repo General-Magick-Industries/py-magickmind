@@ -34,7 +34,7 @@ from typing import Set
 from dotenv import load_dotenv
 
 from magick_mind import MagickMind
-from magick_mind.realtime.events import ChatMessageEvent
+from magick_mind.realtime.events import ChatMessageEvent, EventContext
 
 load_dotenv()
 
@@ -59,20 +59,30 @@ class DeduplicatingProcessor:
             "messages_processed": 0,
         }
 
-    async def handle_chat(self, event: ChatMessageEvent) -> None:
-        """Handle incoming chat_message event with deduplication."""
+    async def handle_chat(self, event: ChatMessageEvent, ctx: EventContext) -> None:
+        """Handle incoming chat_message event with deduplication.
+
+        The EventContext tells us which end-user this event arrived for,
+        which is essential when subscribe_many subscribes to 50+ users.
+        """
         self.metrics["total_received"] += 1
         payload = event.payload
 
         # Deduplicate - CRITICAL for production!
         if payload.message_id in self.processed_ids:
             self.metrics["duplicates_skipped"] += 1
-            logger.debug(f"⏭️  Skipping duplicate {payload.message_id}")
+            logger.debug(
+                f"⏭️  Skipping duplicate {payload.message_id} "
+                f"(via {ctx.target_user_id})"
+            )
             return
 
-        # Process the message
+        # Process the message — ctx.target_user_id identifies who it's for
         self.metrics["messages_processed"] += 1
-        logger.info(f"📨 Message {payload.message_id}: {payload.message[:50]}")
+        logger.info(
+            f"📨 [{ctx.target_user_id}] {payload.message_id}: "
+            f"{payload.message[:50]}"
+        )
 
         # Mark as processed
         self.processed_ids.add(payload.message_id)
@@ -115,10 +125,10 @@ async def main():
         # Create deduplicating processor
         processor = DeduplicatingProcessor()
 
-        # Register event handler using decorator API
+        # Register event handler — accepts EventContext to know which user
         @client.realtime.on("chat_message")
-        async def handle_chat(event: ChatMessageEvent) -> None:
-            await processor.handle_chat(event)
+        async def handle_chat(event: ChatMessageEvent, ctx: EventContext) -> None:
+            await processor.handle_chat(event, ctx)
 
         try:
             # Connect to realtime

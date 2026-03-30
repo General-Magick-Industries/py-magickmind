@@ -43,7 +43,7 @@ mindspace = client.v1.mindspace.create(
     name="Engineering Team Chat",
     type="group",
     corpus_ids=[corpus_id],  # AI can now reference this knowledge
-    user_ids=["alice", "bob", "charlie"]
+    participant_ids=["alice", "bob", "charlie"]
 )
 ```
 
@@ -74,8 +74,11 @@ all_corpus = client.v1.corpus.list()
 for corp in all_corpus.corpus:
     print(f"{corp.name}: {len(corp.artifact_ids)} files")
 
-# Filter by user (only returns corpus created by that user)
-my_corpus = client.v1.corpus.list(user_id="user-123")
+# Filter by end-user
+my_corpus = await client.v1.corpus.list(end_user_id="eu-123")
+
+# Search by name
+results = await client.v1.corpus.list(search="handbook")
 
 # Get specific corpus
 corpus = client.v1.corpus.get("corp-abc-123")
@@ -326,7 +329,7 @@ eng_space = client.v1.mindspace.create(
     name="Engineering Team",
     type="group",
     corpus_ids=[kb_id],  # Has access to handbook
-    user_ids=eng_team_members
+    participant_ids=eng_team_members
 )
 
 # Share with sales team
@@ -334,7 +337,7 @@ sales_space = client.v1.mindspace.create(
     name="Sales Team",
     type="group",
     corpus_ids=[kb_id],  # Also has access to handbook
-    user_ids=sales_team_members
+    participant_ids=sales_team_members
 )
 ```
 
@@ -371,7 +374,7 @@ mindspace = client.v1.mindspace.create(
         tech_kb.corpus.id,      # Technical context
         product_kb.corpus.id    # Product context
     ],
-    user_ids=team_members
+    participant_ids=team_members
 )
 ```
 
@@ -577,10 +580,14 @@ Get corpus by ID.
 
 ### `list()`
 
-List corpus, optionally filtered by user.
+List corpus with optional filtering and pagination.
 
 **Parameters:**
-- `user_id` (str, optional): Filter by creator user ID
+- `cursor` (str, optional): Pagination cursor
+- `limit` (int, optional): Max results per page (default 20, max 100)
+- `order` (str, optional): Sort order — `"asc"` or `"desc"` (default: asc)
+- `search` (str, optional): Free-text search filter
+- `end_user_id` (str, optional): Filter by end-user ID
 
 **Returns:** `ListCorpusResponse`
 
@@ -682,7 +689,7 @@ Query a corpus using semantic search (RAG).
 **Parameters:**
 - `corpus_id` (str, required): Corpus ID to query
 - `query` (str, required): Natural language query text
-- `mode` (str, optional): Query mode — `"hybrid"` (default), `"local"`, `"global"`, `"naive"`
+- `mode` (str, optional): Query mode — `"hybrid"`, `"local"`, `"global"`, `"naive"` (server defaults to hybrid if omitted)
 - `only_need_context` (bool, optional): If `True`, return raw context without LLM synthesis (default: `False`)
 - `api_key` (str, optional): LiteLLM virtual key for per-tenant tracking
 

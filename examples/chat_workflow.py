@@ -21,6 +21,7 @@ from magick_mind import MagickMind
 from magick_mind.models.v1.chat import ConfigSchema
 from magick_mind.realtime.events import (
     ChatMessageEvent,
+    EventContext,
     ImageGenerationEvent,
     UnknownEvent,
 )
@@ -63,21 +64,29 @@ async def main():
     )
 
     try:
-        # Register event handlers using decorator API
+        # Register event handlers using decorator API.
+        # Handlers can accept an optional second argument (EventContext)
+        # to identify which end-user the event belongs to.
         @client.realtime.on("chat_message")
-        async def handle_chat(event: ChatMessageEvent) -> None:
-            logger.info(f"Chat message received: {event.payload.message_id}")
+        async def handle_chat(event: ChatMessageEvent, ctx: EventContext) -> None:
+            logger.info(
+                f"Chat for user {ctx.target_user_id}: {event.payload.message_id}"
+            )
             logger.info(f"   Content: {event.payload.message[:80]}")
 
         @client.realtime.on("image_generation")
-        async def handle_image(event: ImageGenerationEvent) -> None:
-            logger.info(f"Image generated: {event.payload.message_id}")
+        async def handle_image(event: ImageGenerationEvent, ctx: EventContext) -> None:
+            logger.info(
+                f"Image for user {ctx.target_user_id}: {event.payload.message_id}"
+            )
             if event.payload.data:
                 logger.info(f"   Artifact: {event.payload.data.id}")
 
         @client.realtime.on_unknown
-        async def handle_unknown(event: UnknownEvent) -> None:
-            logger.warning(f"Unknown event type: {event.type}")
+        async def handle_unknown(event: UnknownEvent, ctx: EventContext) -> None:
+            logger.warning(
+                f"Unknown event type '{event.type}' on channel {ctx.channel}"
+            )
 
         # Connect to realtime
         logger.info("Connecting to realtime...")

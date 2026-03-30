@@ -15,9 +15,35 @@ Usage:
 
 from __future__ import annotations
 
+import re
+from dataclasses import dataclass
 from typing import Any
 
 from pydantic import BaseModel, Field
+
+_CHANNEL_RE = re.compile(r"^personal:(?P<target>[^#]+)#(?P<service>.+)$")
+
+
+@dataclass(frozen=True, slots=True)
+class EventContext:
+    """SDK-derived metadata about where a realtime event came from.
+
+    Attributes:
+        channel: Raw Centrifugo channel string.
+        target_user_id: The end-user ID extracted from the channel
+                        (``personal:<target>#<service>``).
+    """
+
+    channel: str
+    target_user_id: str
+
+    @classmethod
+    def from_channel(cls, channel: str) -> EventContext:
+        """Parse a ``personal:{target}#{service}`` channel string."""
+        m = _CHANNEL_RE.match(channel)
+        if not m:
+            return cls(channel=channel, target_user_id="")
+        return cls(channel=channel, target_user_id=m.group("target"))
 
 
 class ChatMessagePayload(BaseModel):
