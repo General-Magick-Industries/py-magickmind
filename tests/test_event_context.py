@@ -225,8 +225,6 @@ async def test_subscribe_many_different_users_dispatch():
                 "message": f"hi {uid}",
             },
         }
-        await router.on_publication(
-            _make_pub_ctx(data, f"personal:{uid}#svc-1")
-        )
+        await router.on_publication(_make_pub_ctx(data, f"personal:{uid}#svc-1"))
 
     assert results == {"alice": "hi alice", "bob": "hi bob", "carol": "hi carol"}
