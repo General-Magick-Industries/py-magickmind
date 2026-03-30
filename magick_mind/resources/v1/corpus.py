@@ -76,17 +76,22 @@ class CorpusResourceV1(BaseResource):
 
     async def list(
         self,
-        user_id: Optional[str] = None,
+        *,
         cursor: Optional[str] = None,
         limit: Optional[int] = None,
+        order: Optional[str] = None,
+        search: Optional[str] = None,
+        end_user_id: Optional[str] = None,
     ) -> ListCorpusResponse:
         """
-        List all corpus, optionally filtered by user_id.
+        List corpus, with optional filtering and pagination.
 
         Args:
-            user_id: Optional user ID to filter by
             cursor: Pagination cursor (opaque string from PageInfo.cursors.after/before)
             limit: Maximum number of results per page (default 20, max 100)
+            order: Sort order — ``"asc"`` or ``"desc"`` (default: asc)
+            search: Free-text search filter
+            end_user_id: Filter by end-user ID
 
         Returns:
             ListCorpusResponse with list of corpus and pagination info
@@ -94,15 +99,19 @@ class CorpusResourceV1(BaseResource):
         Raises:
             ProblemDetailsException: If the request fails
         """
-        params = {}
-        if user_id:
-            params["user_id"] = user_id
+        params: dict[str, object] = {}
         if cursor is not None:
             params["cursor"] = cursor
         if limit is not None:
-            params["limit"] = str(limit)
+            params["limit"] = limit
+        if order is not None:
+            params["order"] = order
+        if search is not None:
+            params["search"] = search
+        if end_user_id is not None:
+            params["end_user_id"] = end_user_id
 
-        resp = await self._http.get(Routes.CORPUS, params=params)
+        resp = await self._http.get(Routes.CORPUS, params=params if params else None)
 
         return ListCorpusResponse(**resp)
 
@@ -292,7 +301,7 @@ class CorpusResourceV1(BaseResource):
         corpus_id: str,
         *,
         query: str,
-        mode: str = "hybrid",
+        mode: Optional[str] = None,
         only_need_context: bool = False,
         api_key: Optional[str] = None,
     ) -> QueryCorpusResponse:
@@ -302,7 +311,8 @@ class CorpusResourceV1(BaseResource):
         Args:
             corpus_id: The corpus ID to query
             query: The search query text
-            mode: Query mode — one of naive|local|global|hybrid (default: hybrid)
+            mode: Query mode — one of naive|local|global|hybrid.
+                Omit to let the server choose (defaults to hybrid).
             only_need_context: If True, return raw context without LLM synthesis.
             api_key: Optional API key (sent as x-api-key header). Required for
                 corpus-scoped operations on dev/prod.
@@ -323,7 +333,7 @@ class CorpusResourceV1(BaseResource):
 
         resp = await self._http.post(
             Routes.corpus_query(corpus_id),
-            json=payload.model_dump(),
+            json=payload.model_dump(exclude_none=True),
             headers=headers if headers else None,
         )
 

@@ -29,6 +29,9 @@ class Corpus(BaseModel):
     artifact_ids: Optional[list[str]] = Field(
         None, description="List of artifact IDs in this corpus"
     )
+    end_user_id: Optional[str] = Field(
+        None, description="Associated end-user ID (optional)"
+    )
     created_by: Optional[str] = Field(
         None, description="Account ID that created the corpus"
     )
@@ -116,7 +119,10 @@ class QueryCorpusRequest(BaseModel):
     """Request for querying a corpus."""
 
     query: str = Field(..., description="The search query text")
-    mode: str = Field("hybrid", description="Query mode: naive|local|global|hybrid")
+    mode: Optional[str] = Field(
+        None,
+        description="Query mode: naive|local|global|hybrid (server defaults to hybrid)",
+    )
     only_need_context: bool = Field(
         False,
         description="If true, return raw retrieved context without LLM synthesis",

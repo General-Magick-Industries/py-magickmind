@@ -212,9 +212,7 @@ async def main():
 
         # 7. Get messages from mindspace (latest)
         print(f"\n7. Getting latest messages from mindspace {mindspace_id}...")
-        messages = await client.v1.mindspace.get_messages(
-            mindspace_id=mindspace_id, limit=10
-        )
+        messages = await client.v1.mindspace.get_messages(mindspace_id, limit=10)
 
         print(f"✓ Retrieved {len(messages.chat_histories)} message(s)")
         if messages.chat_histories:
@@ -228,8 +226,8 @@ async def main():
             if messages.has_more and messages.next_after_id:
                 print("\n8. Getting newer messages (forward pagination)...")
                 newer = await client.v1.mindspace.get_messages(
-                    mindspace_id=mindspace_id,
-                    after_id=messages.next_after_id,
+                    mindspace_id,
+                    cursor=messages.next_after_id,
                     limit=10,
                 )
                 print(f"✓ Retrieved {len(newer.chat_histories)} newer message(s)")
@@ -238,8 +236,8 @@ async def main():
             if messages.has_older and messages.next_before_id:
                 print("\n9. Getting older messages (backward pagination)...")
                 older = await client.v1.mindspace.get_messages(
-                    mindspace_id=mindspace_id,
-                    before_id=messages.next_before_id,
+                    mindspace_id,
+                    cursor=messages.next_before_id,
                     limit=10,
                 )
                 print(f"✓ Retrieved {len(older.chat_histories)} older message(s)")

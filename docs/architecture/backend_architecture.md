@@ -87,10 +87,10 @@ async def get_messages(
         raise Forbidden()
     
     # Proxy to the Magick Mind API with pagination
-    result = client.v1.history.get_messages(
-        mindspace_id=mindspace_id,
-        after_id=cursor,  # Cursor-based pagination
-        limit=limit
+    result = await client.v1.mindspace.get_messages(
+        mindspace_id,
+        cursor=cursor,
+        limit=limit,
     )
     
     # Return the Magick Mind API's response (optionally transform format)
@@ -149,10 +149,10 @@ async def get_messages(
     user = Depends(verify_user)
 ):
     # No caching here - pagination is complex to cache
-    result = client.v1.history.get_messages(
-        mindspace_id=mindspace_id,
-        after_id=cursor,
-        limit=limit
+    result = await client.v1.mindspace.get_messages(
+        mindspace_id,
+        cursor=cursor,
+        limit=limit,
     )
     
     # BUT cache each individual message (for detail views)
@@ -226,10 +226,10 @@ async def get_messages(mindspace_id: str, cursor: str = None, limit: int = 50):
             return json.loads(cached)
     
     # Fetch from the Magick Mind API
-    result = client.v1.history.get_messages(
-        mindspace_id=mindspace_id,
-        after_id=cursor,
-        limit=limit
+    result = await client.v1.mindspace.get_messages(
+        mindspace_id,
+        cursor=cursor,
+        limit=limit,
     )
     
     # Cache ONLY first page (short TTL)
@@ -285,29 +285,32 @@ cache_key = f"messages:{mindspace_id}:cursor:{cursor}:limit:{limit}"
 **When to use:** Need rich queries, analytics, offline mode, custom IDs
 
 ```python
-class MessageHandler(RealtimeEventHandler):
-    async def on_message(self, user_id, payload):
-        # Store in your database
-        await db.messages.insert({
-            "id": generate_id(),  # Your ID
-            "api_message_id": payload["message_id"],
-            "reply_to_message_id": payload.get("reply_to_message_id"),
-            "user_id": user_id,
-            "content": payload["content"],
-            "created_at": datetime.utcnow(),
-            "api_version": payload.get("version")  # Track staleness
-        })
+from magick_mind.realtime.events import ChatMessageEvent, EventContext
+
+@client.realtime.on("chat_message")
+async def handle(event: ChatMessageEvent, ctx: EventContext):
+    payload = event.payload
+    # Store in your database
+    await db.messages.insert({
+        "id": generate_id(),  # Your ID
+        "api_message_id": payload.message_id,
+        "reply_to_message_id": payload.reply_to,
+        "user_id": ctx.target_user_id,
+        "content": payload.message,
+        "created_at": datetime.utcnow(),
+    })
 
 # Periodic sync to catch missed messages
 async def sync_with_api():
     last_cursor = await db.get_last_cursor()
     
-    history = client.v1.history.get_messages(
-        after_id=last_cursor,
-        limit=100
+    history = await client.v1.mindspace.get_messages(
+        mindspace_id,
+        cursor=last_cursor,
+        limit=100,
     )
     
-    for msg in history.messages:
+    for msg in history.data:
         await db.messages.upsert({
             "api_message_id": msg.id,
             "content": msg.content,
@@ -336,26 +339,26 @@ async def sync_with_api():
 **Realtime triggers history fetch (source of truth)**
 
 ```python
-class NotificationHandler(RealtimeEventHandler):
-    async def on_message(self, user_id, payload):
-        # Deduplicate
-        if not redis.sadd("processed", payload["message_id"]):
-            return
-        
-        # Just notify frontend
-        await websocket.send_notification(user_id, {
-            "type": "new_message",
-            "message_id": payload["message_id"]
-        })
-        
-        # Optionally: Trigger background history fetch
-        asyncio.create_task(fetch_from_history(user_id))
+@client.realtime.on("chat_message")
+async def handle_notification(event: ChatMessageEvent, ctx: EventContext):
+    # Deduplicate
+    if not redis.sadd("processed", event.payload.message_id):
+        return
+
+    # Just notify frontend — ctx.target_user_id identifies who
+    await websocket.send_notification(ctx.target_user_id, {
+        "type": "new_message",
+        "message_id": event.payload.message_id,
+    })
+
+    # Optionally: Trigger background history fetch
+    asyncio.create_task(fetch_from_history(ctx.target_user_id))
 
 async def fetch_from_history(user_id):
     """Fetch latest from the Magick Mind API history API."""
-    messages = client.v1.history.get_messages(
-        mindspace_id=get_mindspace(user_id),
-        after_id=get_last_cursor(user_id)
+    messages = await client.v1.mindspace.get_messages(
+        get_mindspace(user_id),
+        cursor=get_last_cursor(user_id),
     )
     # Store and/or send to frontend
 ```
@@ -372,17 +375,17 @@ async def fetch_from_history(user_id):
 **Store realtime payload immediately (fast path)**
 
 ```python
-class DirectStorageHandler(RealtimeEventHandler):
-    async def on_message(self, user_id, payload):
-        # Deduplicate
-        if not redis.sadd("processed", payload["message_id"]):
-            return
-        
-        # Store immediately
-        await db.messages.insert(payload)
-        
-        # Send to frontend
-        await websocket.send(user_id, payload)
+@client.realtime.on("chat_message")
+async def handle_direct(event: ChatMessageEvent, ctx: EventContext):
+    # Deduplicate
+    if not redis.sadd("processed", event.payload.message_id):
+        return
+
+    # Store immediately
+    await db.messages.insert(event.payload.model_dump())
+
+    # Send to frontend
+    await websocket.send(ctx.target_user_id, event.payload.model_dump())
 ```
 
 **Benefits:**
@@ -400,24 +403,25 @@ class DirectStorageHandler(RealtimeEventHandler):
 **Combine realtime speed + history correctness**
 
 ```python
-class HybridHandler(RealtimeEventHandler):
-    async def on_message(self, user_id, payload):
-        # 1. Deduplicate
-        if not redis.sadd("processed", payload["message_id"]):
-            return
-        
-        # 2. Send to frontend immediately (fast UX)
-        await websocket.send(user_id, payload)
-        
-        # 3. Store reference
-        await db.message_refs.insert({
-            "message_id": payload["message_id"],
-            "user_id": user_id,
-            "received_at": datetime.utcnow()
-        })
-        
-        # 4. Background: Fetch from history and cache
-        asyncio.create_task(cache_from_history(payload["message_id"]))
+@client.realtime.on("chat_message")
+async def handle_hybrid(event: ChatMessageEvent, ctx: EventContext):
+    payload = event.payload
+    # 1. Deduplicate
+    if not redis.sadd("processed", payload.message_id):
+        return
+
+    # 2. Send to frontend immediately (fast UX)
+    await websocket.send(ctx.target_user_id, payload.model_dump())
+
+    # 3. Store reference
+    await db.message_refs.insert({
+        "message_id": payload.message_id,
+        "user_id": ctx.target_user_id,
+        "received_at": datetime.utcnow(),
+    })
+
+    # 4. Background: Fetch from history and cache
+    asyncio.create_task(cache_from_history(payload.message_id))
 
 async def cache_from_history(message_id):
     """Fetch full message from source of truth."""

@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Optional
 
 from magick_mind.models.v1.mindspace import (
     AddMindSpaceUsersRequest,
+    ChatHistoryItem,
     ChatHistoryParams,
     ContextPrepareResponse,
     CorpusParams,
@@ -17,6 +18,7 @@ from magick_mind.models.v1.mindspace import (
     MindSpace,
     MindSpaceType,
     MindspaceMessagesResponse,
+    SendMessageRequest,
     UpdateMindSpaceRequest,
 )
 from magick_mind.resources.base import BaseResource
@@ -46,10 +48,7 @@ class MindspaceResourceV1(BaseResource):
         mindspaces = await client.v1.mindspace.list(user_id="user-456")
 
         # Get messages from mindspace
-        messages = await client.v1.mindspace.get_messages(
-            mindspace_id="mind-123",
-            limit=50
-        )
+        messages = await client.v1.mindspace.get_messages("mind-123", limit=50)
     """
 
     async def create(
@@ -254,75 +253,104 @@ class MindspaceResourceV1(BaseResource):
     async def get_messages(
         self,
         mindspace_id: str,
-        after_id: Optional[str] = None,
-        before_id: Optional[str] = None,
-        limit: int = 50,
+        *,
+        cursor: Optional[str] = None,
+        limit: Optional[int] = None,
+        order: Optional[str] = None,
     ) -> MindspaceMessagesResponse:
         """
-        Fetch chat messages from a mindspace with keyset pagination.
-
-        Three modes based on parameters:
-        - Latest: Just mindspace_id + limit (most recent messages)
-        - Forward: mindspace_id + after_id + limit (messages after a point)
-        - Backward: mindspace_id + before_id + limit (messages before a point)
+        Fetch chat messages from a mindspace with cursor-based pagination.
 
         Args:
             mindspace_id: Mindspace to fetch messages from
-            after_id: Get messages after this message ID (forward pagination)
-            before_id: Get messages before this message ID (backward pagination)
-            limit: Maximum number of messages to return (default: 50)
+            cursor: Pagination cursor (from ``paging.cursors.after`` or ``.before``)
+            limit: Maximum number of messages to return
+            order: Sort order — ``"asc"`` or ``"desc"`` (default: asc)
 
         Returns:
             MindspaceMessagesResponse with messages and pagination cursors
 
         Raises:
-            ValueError: If both after_id and before_id are provided
             HTTPError: If the API request fails
 
         Example:
-            # Get latest 50 messages
-            messages = await client.v1.mindspace.get_messages(
-                mindspace_id="mind-123"
-            )
+            # Get latest messages
+            messages = await client.v1.mindspace.get_messages("mind-123")
             for msg in messages.chat_histories:
                 print(f"{msg.sent_by_user_id}: {msg.content}")
 
-            # Forward pagination (newer messages)
+            # Next page
             if messages.has_more:
-                more = await client.v1.mindspace.get_messages(
-                    mindspace_id="mind-123",
-                    after_id=messages.next_after_id,
-                    limit=50
-                )
-
-            # Backward pagination (older messages)
-            if messages.has_older:
-                older = await client.v1.mindspace.get_messages(
-                    mindspace_id="mind-123",
-                    before_id=messages.next_before_id,
-                    limit=50
+                page2 = await client.v1.mindspace.get_messages(
+                    "mind-123",
+                    cursor=messages.next_after_id,
                 )
         """
-        # Validate mutually exclusive parameters
-        if after_id and before_id:
-            raise ValueError("Cannot specify both after_id and before_id")
+        params: dict[str, object] = {}
+        if cursor is not None:
+            params["cursor"] = cursor
+        if limit is not None:
+            params["limit"] = limit
+        if order is not None:
+            params["order"] = order
 
-        # Build query parameters
-        params = {
-            "mindspace_id": mindspace_id,
-            "limit": limit,
-        }
+        response_data = await self._http.get(
+            Routes.mindspace_messages(mindspace_id),
+            params=params if params else None,
+        )
 
-        if after_id:
-            params["after_id"] = after_id
-        if before_id:
-            params["before_id"] = before_id
-
-        # Make request
-        response_data = await self._http.get(Routes.MINDSPACE_MESSAGES, params=params)
-
-        # Parse and return
         return MindspaceMessagesResponse.model_validate(response_data)
+
+    async def send_message(
+        self,
+        mindspace_id: str,
+        *,
+        content: str,
+        sender_id: str,
+        reply_to_message_id: Optional[str] = None,
+        artifact_ids: Optional[list[str]] = None,
+        message_type: str = "TEXT",
+        broadcast: bool = True,
+    ) -> ChatHistoryItem:
+        """
+        Send a message to a mindspace.
+
+        Args:
+            mindspace_id: Mindspace ID to send message to
+            content: Message content text
+            sender_id: ID of the user sending the message
+            reply_to_message_id: Optional ID of message being replied to
+            artifact_ids: Optional list of artifact IDs to attach
+            message_type: Message type (default: ``"TEXT"``)
+            broadcast: Whether to broadcast via Centrifugo (default: True)
+
+        Returns:
+            ChatHistoryItem for the created message
+
+        Raises:
+            ProblemDetailsException: If the request fails
+
+        Example:
+            msg = await client.v1.mindspace.send_message(
+                "mind-123",
+                content="Hello, world!",
+                sender_id="user-456",
+            )
+            print(f"Sent message {msg.id}")
+        """
+        request = SendMessageRequest(
+            content=content,
+            sender_id=sender_id,
+            reply_to_message_id=reply_to_message_id,
+            artifact_ids=artifact_ids or [],
+            message_type=message_type,
+            broadcast=broadcast,
+        )
+        response = await self._http.post(
+            Routes.mindspace_messages(mindspace_id),
+            json=request.model_dump(exclude_none=True),
+        )
+        return ChatHistoryItem.model_validate(response)
 
     async def add_participants(
         self,

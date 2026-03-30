@@ -72,7 +72,7 @@ team = client.mindspace.create(
     name="Engineering Team",
     type="group",
     description="Team collaboration space",
-    user_ids=["user-1", "user-2", "user-3"],
+    participant_ids=["user-1", "user-2", "user-3"],
     corpus_ids=["corp-handbook", "corp-docs"]
 )
 ```
@@ -93,7 +93,7 @@ private = client.mindspace.create(
 team = client.mindspace.create(
     name="Product Team",
     type="group",
-    user_ids=["alice", "bob", "charlie"],
+    participant_ids=["alice", "bob", "charlie"],
     corpus_ids=["specs", "designs"],
     project_id="proj-v2"  # Optional project link
 )
@@ -105,8 +105,8 @@ team = client.mindspace.create(
 # List all
 all_spaces = client.mindspace.list()
 
-# Filter by user
-user_spaces = client.mindspace.list(user_id="alice")
+# Filter by participant
+user_spaces = client.mindspace.list(participant_id="alice")
 
 # Get specific mindspace
 space = client.mindspace.get("mind-123")
@@ -120,7 +120,7 @@ client.mindspace.update(
     mindspace_id="mind-123",
     name="Updated Name",
     corpus_ids=["corp-1", "corp-2", "corp-3"],  # All IDs
-    user_ids=["user-1", "user-2", "user-3", "user-4"]  # All IDs
+    participant_ids=["user-1", "user-2", "user-3", "user-4"]  # All IDs
 )
 
 # Delete
@@ -131,17 +131,14 @@ client.mindspace.delete("mind-123")
 
 ## Message History
 
-Mindspaces maintain chat message history. Use `get_messages()` with three pagination modes.
+Mindspaces maintain chat message history. Use `get_messages()` with cursor-based pagination.
 
 ### Latest Messages
 
 Get the most recent N messages:
 
 ```python
-messages = client.mindspace.get_messages(
-    mindspace_id="mind-123",
-    limit=50
-)
+messages = await client.v1.mindspace.get_messages("mind-123", limit=50)
 
 print(f"Retrieved {len(messages.chat_histories)} messages")
 
@@ -150,50 +147,57 @@ for msg in messages.chat_histories:
     print(f"[{msg.sent_by_user_id}]: {msg.content}")
     
 # Check for more data
-print(f"Has more recent: {messages.has_more}")
+print(f"Has more: {messages.has_more}")
 print(f"Has older: {messages.has_older}")
 ```
 
-### Forward Pagination (Newer Messages)
+### Cursor Pagination
 
-Get messages after a specific point (useful for incremental updates):
+Use cursors from the `paging` field to navigate:
 
 ```python
 # Start with latest
-initial = client.mindspace.get_messages(
-    mindspace_id="mind-123",
-    limit=20
-)
+initial = await client.v1.mindspace.get_messages("mind-123", limit=20)
 
-# Get newer messages if available
+# Get next page if available
 if initial.has_more and initial.next_after_id:
-    newer = client.mindspace.get_messages(
-        mindspace_id="mind-123",
-        after_id=initial.next_after_id,
-        limit=20
+    page2 = await client.v1.mindspace.get_messages(
+        "mind-123",
+        cursor=initial.next_after_id,
+        limit=20,
     )
-    print(f"Found {len(newer.chat_histories)} newer messages")
-```
+    print(f"Found {len(page2.chat_histories)} more messages")
 
-### Backward Pagination (Older Messages)
-
-Get messages before a specific point (useful for scrolling back in history):
-
-```python
-# Start with latest
-current = client.mindspace.get_messages(
-    mindspace_id="mind-123",
-    limit=20
-)
-
-# Load older messages
-if current.has_older and current.next_before_id:
-    older = client.mindspace.get_messages(
-        mindspace_id="mind-123",
-        before_id=current.next_before_id,
-        limit=20
+# Get previous page
+if initial.has_older and initial.next_before_id:
+    older = await client.v1.mindspace.get_messages(
+        "mind-123",
+        cursor=initial.next_before_id,
+        limit=20,
     )
     print(f"Found {len(older.chat_histories)} older messages")
+```
+
+### Sending Messages
+
+Send a message directly to a mindspace:
+
+```python
+msg = await client.v1.mindspace.send_message(
+    "mind-123",
+    content="Hello, team!",
+    sender_id="user-456",
+)
+print(f"Sent message {msg.id}")
+
+# With optional fields
+msg = await client.v1.mindspace.send_message(
+    "mind-123",
+    content="Check this file",
+    sender_id="user-456",
+    artifact_ids=["art-789"],
+    reply_to_message_id="msg-prev",
+)
 ```
 
 ### Message Data Structure
@@ -208,9 +212,9 @@ print(f"Mindspace: {message.mindspace_id}")
 print(f"Sender: {message.sent_by_user_id}")
 print(f"Content: {message.content}")
 print(f"Status: {message.status}")
-print(f"Artifacts: {message.artifact_ids}")
+print(f"Type: {message.message_type}")
 print(f"Reply to: {message.reply_to_message_id}")
-print(f"Created: {message.created_at}")
+print(f"Created: {message.create_at}")
 ```
 
 ## Common Patterns
@@ -226,16 +230,16 @@ workspace = client.mindspace.create(
     type="group",
     description=f"Workspace for {project_name}",
     project_id=project_id,
-    user_ids=team_members,
+    participant_ids=team_members,
     corpus_ids=knowledge_bases
 )
 
-mindspace_id = workspace.mindspace.id
+mindspace_id = workspace.id
 
 # 2. Verify setup
 space = client.mindspace.get(mindspace_id)
-print(f"✓ Created workspace for {len(space.mindspace.user_ids)} members")
-print(f"✓ Attached {len(space.mindspace.corpus_ids)} knowledge bases")
+print(f"✓ Created workspace for {len(space.participant_ids)} members")
+print(f"✓ Attached {len(space.corpus_ids)} knowledge bases")
 ```
 
 ### Adding Knowledge to Existing Workspace
@@ -245,84 +249,72 @@ print(f"✓ Attached {len(space.mindspace.corpus_ids)} knowledge bases")
 current = client.mindspace.get("mind-123")
 
 # Add new corpus while preserving existing ones
-updated_corpus_ids = current.mindspace.corpus_ids + ["new-corpus-id"]
+updated_corpus_ids = current.corpus_ids + ["new-corpus-id"]
 
 # Update
 client.mindspace.update(
     mindspace_id="mind-123",
-    name=current.mindspace.name,
+    name=current.name,
     corpus_ids=updated_corpus_ids,
-    user_ids=current.mindspace.user_ids
+    participant_ids=current.participant_ids
 )
 ```
 
 ### Loading Full Message History
 
-Efficiently load all messages using pagination:
+Efficiently load all messages using cursor pagination:
 
 ```python
-def load_all_messages(mindspace_id: str, batch_size: int = 100):
-    """Load all messages from a mindspace using pagination."""
+async def load_all_messages(mindspace_id: str, batch_size: int = 100):
+    """Load all messages from a mindspace using cursor pagination."""
     all_messages = []
     
     # Start with latest
-    response = client.mindspace.get_messages(
-        mindspace_id=mindspace_id,
-        limit=batch_size
-    )
+    response = await client.v1.mindspace.get_messages(mindspace_id, limit=batch_size)
     all_messages.extend(response.chat_histories)
     
     # Keep loading older messages
     while response.has_older and response.next_before_id:
-        response = client.mindspace.get_messages(
-            mindspace_id=mindspace_id,
-            before_id=response.next_before_id,
-            limit=batch_size
+        response = await client.v1.mindspace.get_messages(
+            mindspace_id,
+            cursor=response.next_before_id,
+            limit=batch_size,
         )
         all_messages.extend(response.chat_histories)
     
     return all_messages
 
 # Usage
-all_msgs = load_all_messages("mind-123")
+all_msgs = await load_all_messages("mind-123")
 print(f"Loaded {len(all_msgs)} total messages")
 ```
 
 ### Monitoring New Messages
 
-Poll for new messages in real-time:
+Poll for new messages (prefer Centrifugo realtime for production):
 
 ```python
-def poll_new_messages(mindspace_id: str, last_message_id: str = None):
-    """Check for new messages since last poll."""
-    if last_message_id:
-        # Get messages after the last known ID
-        response = client.mindspace.get_messages(
-            mindspace_id=mindspace_id,
-            after_id=last_message_id,
-            limit=50
-        )
-    else:
-        # First poll - get latest
-        response = client.mindspace.get_messages(
-            mindspace_id=mindspace_id,
-            limit=50
-        )
-    
-    return response.chat_histories
+async def poll_new_messages(mindspace_id: str, cursor: str = None):
+    """Check for new messages since last cursor."""
+    response = await client.v1.mindspace.get_messages(
+        mindspace_id,
+        cursor=cursor,
+        limit=50,
+    )
+    return response
 
 # Usage in a loop
-last_id = None
+cursor = None
 while True:
-    new_messages = poll_new_messages("mind-123", last_id)
+    response = await poll_new_messages("mind-123", cursor)
     
-    if new_messages:
-        print(f"Received {len(new_messages)} new messages")
-        last_id = new_messages[-1].id  # Update to latest
+    if response.chat_histories:
+        print(f"Received {len(response.chat_histories)} new messages")
+        cursor = response.next_after_id  # Update cursor for next poll
         
         # Process messages...
     
-    time.sleep(5)  # Poll every 5 seconds
+    await asyncio.sleep(5)  # Poll every 5 seconds
 ```
 
 ## Design Guidance
@@ -347,7 +339,7 @@ support_mindspace = client.mindspace.create(
 team_mindspace = client.mindspace.create(
     name="Engineering Team",
     type="group",  # Shared team space
-    user_ids=team_members,
+    participant_ids=team_members,
     corpus_ids=["codebase-docs", "technical-specs"]
 )
 ```
@@ -378,7 +370,7 @@ response = client.chat.send(
 )
 
 # Messages are stored in the mindspace
-history = client.mindspace.get_messages(mindspace_id="mind-123")
+history = await client.v1.mindspace.get_messages("mind-123")
 ```
 
 ### Common Architecture Patterns
@@ -404,7 +396,7 @@ def setup_team_workspace(team_name: str, members: list[str]):
     mindspace = client.mindspace.create(
         name=f"{team_name} Team Space",
         type="group",
-        user_ids=members,
+        participant_ids=members,
         corpus_ids=get_team_knowledge_bases(team_name)
     )
     return mindspace.mindspace.id
@@ -419,7 +411,7 @@ def create_project_workspace(project: Project):
         name=f"Project: {project.name}",
         type="group",
         project_id=project.id,
-        user_ids=project.team_members,
+        participant_ids=project.team_members,
         corpus_ids=project.required_knowledge
     )
     return mindspace.mindspace.id
@@ -448,7 +440,7 @@ client.mindspace.create(
     name="Backend Team",
     type="group",
     project_id="proj-backend-v2",  # Link to project
-    user_ids=backend_team
+    participant_ids=backend_team
 )
 ```
 
@@ -497,7 +489,7 @@ Create a new mindspace.
 - `description` (str, optional): Description (max 256 chars)
 - `project_id` (str, optional): Associated project ID
 - `corpus_ids` (list[str], optional): Corpus IDs to attach
-- `user_ids` (list[str], optional): User IDs to grant access
+- `participant_ids` (list[str], optional): User IDs to grant access
 
 **Returns:** `CreateMindSpaceResponse`
 
@@ -535,7 +527,7 @@ Update an existing mindspace.
 - `description` (str, optional): Updated description
 - `project_id` (str, optional): Updated project ID
 - `corpus_ids` (list[str], optional): Updated corpus list
-- `user_ids` (list[str], optional): Updated user list
+- `participant_ids` (list[str], optional): Updated user list
 
 **Returns:** `UpdateMindSpaceResponse`
 
@@ -554,20 +546,34 @@ Delete a mindspace.
 
 ### `get_messages()`
 
-Fetch chat messages with pagination.
+Fetch chat messages with cursor-based pagination.
 
 **Parameters:**
 - `mindspace_id` (str, required): Mindspace to fetch from
-- `after_id` (str, optional): Get messages after this ID (forward)
-- `before_id` (str, optional): Get messages before this ID (backward)
-- `limit` (int, optional): Max messages to return (default: 50)
+- `cursor` (str, optional): Pagination cursor from `paging.cursors.after` or `.before`
+- `limit` (int, optional): Max messages to return
+- `order` (str, optional): Sort order — `"asc"` or `"desc"` (default: asc)
 
 **Returns:** `MindspaceMessagesResponse`
 
-**Raises:** `ValueError` if both `after_id` and `before_id` are provided
+---
+
+### `send_message()`
+
+Send a message to a mindspace.
+
+**Parameters:**
+- `mindspace_id` (str, required): Mindspace to send to
+- `content` (str, required): Message content text
+- `sender_id` (str, required): ID of the user sending the message
+- `reply_to_message_id` (str, optional): ID of message being replied to
+- `artifact_ids` (list[str], optional): Artifact IDs to attach
+- `message_type` (str, optional): Message type (default: `"TEXT"`)
+- `broadcast` (bool, optional): Whether to broadcast via Centrifugo (default: True)
+
+**Returns:** `ChatHistoryItem`
 
 ## Related Resources
 
-- [Chat Resource Example](file:///Users/berry/centrifugo/AGD_Magick_Mind_SDK/examples/chat_example.py) - Sending messages to mindspaces
-- [History Resource](file:///Users/berry/centrifugo/AGD_Magick_Mind_SDK/magick_mind/resources/v1/history.py) - Alternative history access
-- [Mindspace Example](file:///Users/berry/centrifugo/AGD_Magick_Mind_SDK/examples/mindspace_example.py) - Complete usage examples
+- [Corpus Resource Guide](./corpus.md) - Attaching knowledge bases to mindspaces
+- [Backend Integration Guide](../guides/backend_integration.md) - Server-side patterns

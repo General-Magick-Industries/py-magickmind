@@ -201,11 +201,11 @@ await client.realtime.subscribe_many(["user_A", "user_B", "user_C"])
 # → Message delivered to user_C's channel
 
 # Your handler is called 3 times with THE SAME message!
-class MyHandler(RealtimeEventHandler):
-    async def on_message(self, user_id, payload):
-        # Called 3x: user_id="user_A", then "user_B", then "user_C"
-        # But payload.message_id is IDENTICAL
-        print(f"Received from {user_id}: {payload['message_id']}")
+@client.realtime.on("chat_message")
+async def handle(event: ChatMessageEvent, ctx: EventContext):
+    # Called 3x: ctx.target_user_id="user_A", then "user_B", then "user_C"
+    # But event.payload.message_id is IDENTICAL
+    print(f"Received for {ctx.target_user_id}: {event.payload.message_id}")
 ```
 
 ### The Solution: Deduplication
@@ -213,25 +213,24 @@ class MyHandler(RealtimeEventHandler):
 **Always track processed message IDs** and skip duplicates:
 
 ```python
-from magick_mind.realtime.handler import RealtimeEventHandler
+from magick_mind.realtime.events import ChatMessageEvent, EventContext
 
-class DeduplicatingHandler(RealtimeEventHandler):
-    def __init__(self):
-        self.processed_ids = set()  # In production: use Redis/database
-        
-    async def on_message(self, user_id: str, payload: dict):
-        message_id = payload.get("message_id")
-        
-        # Deduplicate - CRITICAL for multi-user subscriptions!
-        if message_id in self.processed_ids:
-            logger.debug(f"Skipping duplicate {message_id}")
-            return
-        
-        # Process message
-        await self.process_message(payload)
-        
-        # Mark as processed
-        self.processed_ids.add(message_id)
+processed_ids: set[str] = set()  # In production: use Redis/database
+
+@client.realtime.on("chat_message")
+async def handle(event: ChatMessageEvent, ctx: EventContext):
+    message_id = event.payload.message_id
+
+    # Deduplicate - CRITICAL for multi-user subscriptions!
+    if message_id in processed_ids:
+        logger.debug(f"Skipping duplicate {message_id} (via {ctx.target_user_id})")
+        return
+
+    # Process message — ctx.target_user_id tells you who it's for
+    await process_message(event.payload)
+
+    # Mark as processed
+    processed_ids.add(message_id)
 ```
 
 ### Production Deduplication Strategies
@@ -240,50 +239,51 @@ class DeduplicatingHandler(RealtimeEventHandler):
 ```python
 import redis
 
-class RedisDedup(RealtimeEventHandler):
-    def __init__(self):
-        self.redis = redis.Redis()
-        
-    async def on_message(self, user_id, payload):
-        message_id = payload["message_id"]
-        
-        # Atomic check-and-set
-        if not self.redis.sadd("processed_messages", message_id):
-            return  # Already processed
-        
-        await self.process_message(payload)
-        
-        # Optional: Set TTL to clean up old IDs
-        self.redis.expire("processed_messages", 86400)  # 24 hours
+r = redis.Redis()
+
+@client.realtime.on("chat_message")
+async def handle(event: ChatMessageEvent, ctx: EventContext):
+    message_id = event.payload.message_id
+
+    # Atomic check-and-set
+    if not r.sadd("processed_messages", message_id):
+        return  # Already processed
+
+    await process_message(event.payload)
+
+    # Optional: Set TTL to clean up old IDs
+    r.expire("processed_messages", 86400)  # 24 hours
 ```
 
 **Option 2: Database Flag**
 ```python
-async def on_message(self, user_id, payload):
-    message_id = payload["message_id"]
-    
+@client.realtime.on("chat_message")
+async def handle(event: ChatMessageEvent, ctx: EventContext):
+    message_id = event.payload.message_id
+
     # Atomic insert (or use ON CONFLICT DO NOTHING)
     result = await db.execute(
         "INSERT INTO processed_messages (id) VALUES ($1) ON CONFLICT DO NOTHING RETURNING id",
-        message_id
+        message_id,
     )
-    
+
     if not result:
         return  # Duplicate
-    
-    await self.process_message(payload)
+
+    await process_message(event.payload)
 ```
 
 **Option 3: In-Memory (Development Only)**
 ```python
 # Simple but loses state on restart!
-processed_ids = set()
+processed_ids: set[str] = set()
 
-async def on_message(self, user_id, payload):
-    if payload["message_id"] in processed_ids:
+@client.realtime.on("chat_message")
+async def handle(event: ChatMessageEvent):
+    if event.payload.message_id in processed_ids:
         return
-    processed_ids.add(payload["message_id"])
-    await self.process_message(payload)
+    processed_ids.add(event.payload.message_id)
+    await process_message(event.payload)
 ```
 
 ### When Deduplication is Essential
@@ -307,26 +307,24 @@ async def on_message(self, user_id, payload):
 ### Real-World Example: Telegram Bot
 
 ```python
-class TelegramBotHandler(RealtimeEventHandler):
-    def __init__(self, bot):
-        self.bot = bot
-        self.redis = redis.Redis()
-        
-    async def on_message(self, user_id, payload):
-        message_id = payload["message_id"]
-        
-        # Deduplicate - prevent sending same message 3x to Telegram!
-        if not self.redis.sadd(f"sent:{message_id}", "1", ex=3600):
-            logger.info(f"Already sent {message_id} to Telegram, skipping")
-            return
-        
-        # Send to Telegram group
-        await self.bot.send_message(
-            chat_id=TELEGRAM_GROUP_ID,
-            text=payload["content"]
-        )
-        
-        logger.info(f"Sent {message_id} to Telegram")
+r = redis.Redis()
+
+@client.realtime.on("chat_message")
+async def handle_telegram(event: ChatMessageEvent, ctx: EventContext):
+    message_id = event.payload.message_id
+
+    # Deduplicate - prevent sending same message 3x to Telegram!
+    if not r.sadd(f"sent:{message_id}", "1", ex=3600):
+        logger.info(f"Already sent {message_id} to Telegram, skipping")
+        return
+
+    # Send to Telegram group
+    await bot.send_message(
+        chat_id=TELEGRAM_GROUP_ID,
+        text=event.payload.message,
+    )
+
+    logger.info(f"Sent {message_id} to Telegram (via {ctx.target_user_id})")
 
 # Subscribe to all group members
 await client.realtime.subscribe_many([
@@ -339,31 +337,26 @@ await client.realtime.subscribe_many([
 Track duplicate rates to understand your traffic:
 
 ```python
-class MonitoredHandler(RealtimeEventHandler):
-    def __init__(self):
-        self.processed_ids = set()
-        self.metrics = {
-            "total_received": 0,
-            "duplicates": 0,
-            "processed": 0,
-        }
-        
-    async def on_message(self, user_id, payload):
-        self.metrics["total_received"] += 1
-        
-        if payload["message_id"] in self.processed_ids:
-            self.metrics["duplicates"] += 1
-            return
-        
-        self.processed_ids.add(payload["message_id"])
-        self.metrics["processed"] += 1
-        
-        await self.process_message(payload)
-    
-    def get_duplicate_rate(self):
-        if self.metrics["total_received"] == 0:
-            return 0.0
-        return self.metrics["duplicates"] / self.metrics["total_received"]
+processed_ids: set[str] = set()
+metrics = {"total_received": 0, "duplicates": 0, "processed": 0}
+
+@client.realtime.on("chat_message")
+async def handle(event: ChatMessageEvent, ctx: EventContext):
+    metrics["total_received"] += 1
+
+    if event.payload.message_id in processed_ids:
+        metrics["duplicates"] += 1
+        return
+
+    processed_ids.add(event.payload.message_id)
+    metrics["processed"] += 1
+
+    await process_message(event.payload)
+
+def get_duplicate_rate():
+    if metrics["total_received"] == 0:
+        return 0.0
+    return metrics["duplicates"] / metrics["total_received"]
 
 # Log periodically
 # Duplicate rate: 0.67 (67% duplicates = 3 subscriptions to same mindspace)
@@ -410,26 +403,21 @@ By acting as the gateway, you maintain control over what your end-users see.
 
 ### Implementation Logic
 
-The SDK provides a high-level `RealtimeEventHandler` that handles the channel parsing for you. You only need to override `on_message` and `on_connected`.
-
-*(Full runnable example available in `examples/fan_out_relay.py`)*
+The SDK's `EventContext` gives you the parsed `target_user_id` directly — no manual channel parsing required.
 
 ```python
-from magick_mind.realtime.handler import RealtimeEventHandler
+from magick_mind.realtime.events import ChatMessageEvent, EventContext
 
-class RelayHandler(RealtimeEventHandler):
-    async def on_connected(self, ctx):
-        print(f"✅ Connected! Client ID: {ctx.client}")
+@client.realtime.on("chat_message")
+async def relay_handler(event: ChatMessageEvent, ctx: EventContext):
+    """
+    Called when a message is received for a specific user.
+    ctx.target_user_id is parsed from the channel automatically.
+    """
+    print(f"📨 Message for [{ctx.target_user_id}]: {event.payload.message}")
 
-    async def on_message(self, user_id: str, payload: Any) -> None:
-        """
-        Called when a message is received for a specific user.
-        The SDK automatically extracts the user ID from incoming messages.
-        """
-        print(f"📨 Message for [{user_id}]: {payload}")
-        
-        # Forward to that user's frontend
-        await self.relay_to_frontend(user_id, payload)
+    # Forward to that user's frontend
+    await relay_to_frontend(ctx.target_user_id, event.payload)
 ```
 
 ---

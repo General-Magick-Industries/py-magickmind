@@ -17,12 +17,16 @@ class Routes:
 
     # Mindspace endpoints
     MINDSPACES = "/v1/mindspaces"
-    MINDSPACE_MESSAGES = "/v1/mindspaces/messages"
 
     @staticmethod
     def mindspace(mindspace_id: str) -> str:
         """Get path for a specific mindspace."""
         return f"/v1/mindspaces/{mindspace_id}"
+
+    @staticmethod
+    def mindspace_messages(mindspace_id: str) -> str:
+        """Get path for mindspace messages."""
+        return f"/v1/mindspaces/{mindspace_id}/messages"
 
     @staticmethod
     def mindspace_users(mindspace_id: str) -> str:
@@ -171,5 +175,6 @@ class Routes:
     # API Keys endpoints
     KEYS = "/v1/keys"
 
-    # History endpoints (alias for mindspace messages)
-    HISTORY_MESSAGES = "/v1/mindspaces/messages"
+    # History endpoints (deprecated — use mindspace_messages instead)
+    # HISTORY_MESSAGES removed: was "/v1/mindspaces/messages" which doesn't exist in Bifrost.
+    # The correct route is /v1/mindspaces/{id}/messages via Routes.mindspace_messages(id).

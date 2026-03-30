@@ -21,7 +21,11 @@ from typing import Optional, Set
 from dotenv import load_dotenv
 
 from magick_mind import MagickMind
-from magick_mind.realtime.events import ChatMessageEvent, ChatMessagePayload
+from magick_mind.realtime.events import (
+    ChatMessageEvent,
+    ChatMessagePayload,
+    EventContext,
+)
 
 load_dotenv()
 
@@ -63,17 +67,22 @@ class ChatBackendService:
             "errors": 0,
         }
 
-    async def handle_chat_event(self, event: ChatMessageEvent) -> None:
+    async def handle_chat_event(
+        self, event: ChatMessageEvent, ctx: EventContext
+    ) -> None:
         """
         Handle incoming chat_message realtime event.
 
         This is the fast path - processes events as they arrive.
+        ctx.target_user_id identifies which end-user triggered the event.
         """
         self.metrics["received"] += 1
         payload = event.payload
 
         try:
-            logger.info(f"Received event: {payload.message_id}")
+            logger.info(
+                f"Received event for {ctx.target_user_id}: {payload.message_id}"
+            )
 
             # Deduplicate - critical for backends!
             if payload.message_id in self.processed_messages:
@@ -148,32 +157,25 @@ class ChatBackendService:
         logger.info(f"Syncing history (since={since_message_id or 'beginning'})...")
 
         try:
-            # TEMP: Direct HTTP call until history resource is added to SDK
-            # In future: messages = await self.client.v1.mindspaces.get_messages(...)
-
-            response = await self.client.http.get(
-                "/v1/mindspaces/messages",
-                params={
-                    "mindspace_id": mindspace_id,
-                    "after_id": since_message_id or "",
-                    "limit": 100,
-                },
+            resp = await self.client.v1.mindspace.get_messages(
+                mindspace_id,
+                cursor=since_message_id,
+                limit=100,
             )
 
-            messages = response.get("data", [])
+            messages = resp.data
 
             logger.info(f"Fetched {len(messages)} messages from history")
 
             # Process each message
-            for msg_data in messages:
+            for msg in messages:
                 # Map history format to ChatMessagePayload
-                # Note: History might have different field names than realtime events
                 payload = ChatMessagePayload(
-                    mindspace_id=msg_data.get("mindspace_id", ""),
-                    message_id=msg_data["id"],
-                    task_id=msg_data.get("task_id", ""),
-                    message=msg_data["content"],
-                    reply_to=msg_data.get("reply_to_message_id"),
+                    mindspace_id=msg.mindspace_id or "",
+                    message_id=msg.id or "",
+                    task_id="",
+                    message=msg.content or "",
+                    reply_to=msg.reply_to_message_id,
                 )
 
                 # Check if already processed
@@ -183,7 +185,7 @@ class ChatBackendService:
 
             # Update cursor for next sync
             if messages:
-                self.last_sync_cursor = messages[-1]["id"]
+                self.last_sync_cursor = messages[-1].id
                 logger.info(f"Updated sync cursor to {self.last_sync_cursor}")
 
         except Exception as e:
@@ -227,10 +229,11 @@ class ChatBackendService:
         logger.info("Starting Chat Backend Service")
         logger.info("=" * 60)
 
-        # 1. Register event handlers using decorator API
+        # 1. Register event handlers using decorator API.
+        #    The optional EventContext arg tells us which user the event is for.
         @self.client.realtime.on("chat_message")
-        async def handle_chat(event: ChatMessageEvent) -> None:
-            await self.handle_chat_event(event)
+        async def handle_chat(event: ChatMessageEvent, ctx: EventContext) -> None:
+            await self.handle_chat_event(event, ctx)
 
         # 2. Initial history sync
         logger.info("Step 1: Syncing initial history...")

@@ -122,7 +122,7 @@ Uses `client.openai_client()` for streaming and non-streaming completions via th
 uv run python examples/completions.py
 ```
 
-**Requires:** `MAGICKMIND_BASE_URL`, `MAGICKMIND_EMAIL`, `MAGICKMIND_PASSWORD`, `OPENROUTER_API_KEY`
+**Requires:** `MAGICKMIND_BASE_URL`, `MAGICKMIND_EMAIL`, `MAGICKMIND_PASSWORD`, `MAGICKMIND_API_KEY`
 
 ---
 
@@ -159,6 +159,19 @@ uv run python examples/backend_service.py
 ```
 
 **Requires:** `MAGICKMIND_BASE_URL`, `MAGICKMIND_EMAIL`, `MAGICKMIND_PASSWORD`, `MAGICKMIND_WS_ENDPOINT`, `MINDSPACE_ID`, `USER_ID`
+
+---
+
+### persona_workflow.py — Persona & Prepare Workflow
+
+Complete persona lifecycle: create a persona with traits and tones, prepare system prompts
+(global and per-user), manage versions with trait constraints, and demonstrate chat integration.
+
+```bash
+uv run python examples/persona_workflow.py
+```
+
+**Requires:** `MAGICKMIND_BASE_URL`, `MAGICKMIND_EMAIL`, `MAGICKMIND_PASSWORD`
 
 ---
 
@@ -201,6 +214,14 @@ async with MagickMind(
 ### Realtime Events (decorator API)
 
 ```python
+from magick_mind.realtime.events import ChatMessageEvent, EventContext
+
+# Handler with EventContext — identifies which end-user the event is for
+@client.realtime.on("chat_message")
+async def handle_chat(event: ChatMessageEvent, ctx: EventContext) -> None:
+    print(f"Message for {ctx.target_user_id}: {event.payload.message}")
+
+# Handler without context still works (backward compatible)
 @client.realtime.on("chat_message")
 async def handle_chat(event: ChatMessageEvent) -> None:
     print(event.payload.message)

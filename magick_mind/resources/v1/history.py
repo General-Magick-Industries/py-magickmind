@@ -2,8 +2,14 @@
 History resource for Magick Mind SDK v1 API.
 
 Provides methods to fetch chat history with pagination.
+
+.. deprecated::
+    Use :class:`MindspaceResourceV1.get_messages` instead.
 """
 
+from __future__ import annotations
+
+import warnings
 from typing import Optional
 
 from magick_mind.models.v1.history import HistoryResponse
@@ -15,74 +21,53 @@ class HistoryResourceV1(BaseResource):
     """
     History resource for fetching chat messages.
 
-    Supports three pagination modes:
-    1. Latest: Get most recent N messages
-    2. Forward: Get messages after a specific message_id
-    3. Backward: Get messages before a specific message_id
+    .. deprecated::
+        Use ``client.v1.mindspace.get_messages()`` instead. This resource
+        exists for backward compatibility and delegates to the correct
+        ``/v1/mindspaces/{id}/messages`` endpoint.
     """
 
     async def get_messages(
         self,
         mindspace_id: str,
-        after_id: Optional[str] = None,
-        before_id: Optional[str] = None,
-        limit: int = 50,
+        *,
+        cursor: Optional[str] = None,
+        limit: Optional[int] = None,
+        order: Optional[str] = None,
     ) -> HistoryResponse:
         """
-        Fetch chat history with keyset pagination.
+        Fetch chat history with cursor-based pagination.
 
-        Three modes based on parameters:
-        - Latest: Just mindspace_id + limit (most recent messages)
-        - Forward: mindspace_id + after_id + limit (messages after a point)
-        - Backward: mindspace_id + before_id + limit (messages before a point)
+        .. deprecated::
+            Use ``client.v1.mindspace.get_messages()`` instead.
 
         Args:
             mindspace_id: Mindspace to fetch messages from
-            after_id: Get messages after this message ID (forward pagination)
-            before_id: Get messages before this message ID (backward pagination)
-            limit: Maximum number of messages to return (default: 50)
+            cursor: Pagination cursor
+            limit: Maximum number of messages to return
+            order: Sort order — ``"asc"`` or ``"desc"``
 
         Returns:
             HistoryResponse with messages and pagination cursors
-
-        Raises:
-            ValueError: If both after_id and before_id are provided
-
-        Example:
-            # Get latest 50 messages
-            history = await client.v1.history.get_messages(mindspace_id="mind-123")
-
-            # Forward pagination (newer messages)
-            more = await client.v1.history.get_messages(
-                mindspace_id="mind-123",
-                after_id=history.last_id,
-                limit=50
-            )
-
-            # Backward pagination (older messages)
-            older = await client.v1.history.get_messages(
-                mindspace_id="mind-123",
-                before_id=history.chat_histories[0].id,
-                limit=50
-            )
         """
-        # Validate mutually exclusive parameters
-        if after_id and before_id:
-            raise ValueError("Cannot specify both after_id and before_id")
+        warnings.warn(
+            "HistoryResourceV1.get_messages() is deprecated. "
+            "Use client.v1.mindspace.get_messages() instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
 
-        # Build query parameters
-        params = {
-            "mindspace_id": mindspace_id,
-            "limit": limit,
-        }
+        params: dict[str, object] = {}
+        if cursor is not None:
+            params["cursor"] = cursor
+        if limit is not None:
+            params["limit"] = limit
+        if order is not None:
+            params["order"] = order
 
-        if after_id:
-            params["after_id"] = after_id
-        if before_id:
-            params["before_id"] = before_id
+        response_data = await self._http.get(
+            Routes.mindspace_messages(mindspace_id),
+            params=params if params else None,
+        )
 
-        # Make request (returns dict directly)
-        response_data = await self._http.get(Routes.HISTORY_MESSAGES, params=params)
-
-        # Parse and return
         return HistoryResponse(**response_data)

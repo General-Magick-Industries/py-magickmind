@@ -199,6 +199,23 @@ class ChatHistoryItem(BaseModel):
     update_at: Optional[str] = None
 
 
+class SendMessageRequest(BaseModel):
+    """Request for sending a message to a mindspace."""
+
+    content: str = Field(..., description="Message content text")
+    sender_id: str = Field(..., description="ID of the user sending the message")
+    reply_to_message_id: Optional[str] = Field(
+        None, description="ID of message being replied to"
+    )
+    artifact_ids: list[str] = Field(
+        default_factory=list, description="Artifact IDs to attach"
+    )
+    message_type: str = Field("TEXT", description="Message type (default: TEXT)")
+    broadcast: bool = Field(
+        True, description="Whether to broadcast via Centrifugo (default: true)"
+    )
+
+
 class ContextPrepareResponse(BaseModel):
     """Response from composable context retrieval."""
 

@@ -49,7 +49,7 @@ Apidog was manually documented without contract tests. Documentation drifted fro
 | `GET /v1/mindspaces` | `{success, message, mindspaces: [...]}` | `{data: [...], paging: {}}` | ❌ BREAKING |
 | `GET /v1/corpus` | `{success, message, corpus: [...]}` | `{data: [...], paging: {}}` | ❌ BREAKING |
 | `GET /v1/end-users` | `{data: [...], paging: {}}` | `{data: [...], paging: {}}` | ✅ CORRECT |
-| `GET /v1/mindspaces/messages` | `{chat_histories: [...], last_id, ...}` | `{data: [...], paging: {}}` | ❌ BREAKING |
+| `GET /v1/mindspaces/{id}/messages` | `{chat_histories: [...], last_id, ...}` | `{data: [...], paging: {}}` | ✅ FIXED |
 
 **The API standardized pagination structure (from `common.api`):**
 ```json
