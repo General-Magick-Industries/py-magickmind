@@ -262,7 +262,7 @@ async def main() -> None:
     """Main entry point for the backend service."""
 
     # Load configuration from environment
-    base_url = os.getenv("MAGICKMIND_BASE_URL", "https://dev-api.magickmind.ai")
+    base_url = os.getenv("MAGICKMIND_BASE_URL", "https://api.magickmind.ai")
     email = os.getenv("MAGICKMIND_EMAIL")
     password = os.getenv("MAGICKMIND_PASSWORD")
     mindspace_id = os.getenv("MINDSPACE_ID", "mind-123")

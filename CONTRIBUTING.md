@@ -4,8 +4,8 @@
 
 ```bash
 # Clone and install
-git clone <repo>
-cd AGD_Magick_Mind_SDK
+git clone https://github.com/General-Magick-Industries/py-magickmind.git
+cd py-magickmind
 uv sync
 ```
 
@@ -42,10 +42,10 @@ cd ../bifrost
 goctl api plugin -p goctl-openapi -api api/v1/*.api -dir .
 
 # 2. Copy to SDK (dev or main depending on branch)
-cp api/openapi.json ../AGD_Magick_Mind_SDK/specs/openapi.dev.json
+cp api/openapi.json ../py-magickmind/specs/openapi.dev.json
 
 # 3. Run contract tests
-cd ../AGD_Magick_Mind_SDK
+cd ../py-magickmind
 uv run pytest -m contract -v
 
 # 4. Fix any failures by updating SDK models

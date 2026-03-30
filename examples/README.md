@@ -15,7 +15,7 @@ uv sync --all-extras
 
 ```bash
 # Required for all examples
-MAGICKMIND_BASE_URL="https://dev-bifrost.magickmind.ai"
+MAGICKMIND_BASE_URL="https://api.magickmind.ai"
 MAGICKMIND_EMAIL="your@email.com"
 MAGICKMIND_PASSWORD="your_password"
 
@@ -23,7 +23,7 @@ MAGICKMIND_PASSWORD="your_password"
 MAGICKMIND_API_KEY="sk-your-litellm-virtual-key"
 
 # Required for realtime/chat examples
-MAGICKMIND_WS_ENDPOINT="wss://dev-centrifugo.magickmind.ai/connection/websocket"
+MAGICKMIND_WS_ENDPOINT="wss://centrifugo.magickmind.ai/connection/websocket"
 
 # Optional — created by setup_resources.py if not set
 USER_ID="user-test-456"
@@ -203,7 +203,7 @@ uv run python examples/setup_resources.py
 
 ```python
 async with MagickMind(
-    base_url="https://dev-bifrost.magickmind.ai",
+    base_url="https://api.magickmind.ai",
     email="user@example.com",
     password="password",
 ) as client:
@@ -255,7 +255,7 @@ except ProblemDetailsException as e:
 ### DNS / Connection errors
 If you see `nodename nor servname provided`, verify `MAGICKMIND_BASE_URL` resolves:
 ```bash
-nslookup dev-bifrost.magickmind.ai
+nslookup api.magickmind.ai
 ```
 
 ### Authentication errors

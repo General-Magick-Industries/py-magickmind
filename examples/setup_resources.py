@@ -54,7 +54,7 @@ async def main():
     # 1. Validate Credentials
     email = os.getenv("MAGICKMIND_EMAIL")
     password = os.getenv("MAGICKMIND_PASSWORD")
-    base_url = os.getenv("MAGICKMIND_BASE_URL", "https://dev-api.magickmind.ai")
+    base_url = os.getenv("MAGICKMIND_BASE_URL", "https://api.magickmind.ai")
     ws_endpoint = os.getenv("MAGICKMIND_WS_ENDPOINT")
 
     if not email or not password:

@@ -224,6 +224,6 @@ MIT License - see LICENSE file for details.
 
 ## Authors
 
-- Adrian (minoak@globalmagicko.com)
-- Turtle (turtle@globalmagicko.com)
-- Min Thu Wai (minthu@globalmagicko.com)
+- Adrian (adrian@magickmind.ai)
+- Minnie (minnie@magickmind.ai)
+- Turtle (turtle@magickmind.ai)

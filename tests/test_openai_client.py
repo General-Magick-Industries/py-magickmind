@@ -17,11 +17,11 @@ def test_openai_client_returns_configured_client() -> None:
     client = MagickMind(
         email="test@test.com",
         password="pass",
-        base_url="https://dev-api.magickmind.ai",
+        base_url="https://api.magickmind.ai",
     )
     oc = client.openai_client(api_key="test-key-123")
     assert isinstance(oc, AsyncOpenAI)
-    assert "dev-api.magickmind.ai" in str(oc.base_url)
+    assert "api.magickmind.ai" in str(oc.base_url)
     assert oc.api_key == "test-key-123"
 
 
@@ -30,7 +30,7 @@ def test_openai_client_raises_without_openai() -> None:
     client = MagickMind(
         email="test@test.com",
         password="pass",
-        base_url="https://dev-api.magickmind.ai",
+        base_url="https://api.magickmind.ai",
     )
     with patch.dict("sys.modules", {"openai": None}):
         with pytest.raises(ImportError, match="pip install magick-mind"):
@@ -44,7 +44,7 @@ def test_openai_client_base_url_includes_v1() -> None:
     client = MagickMind(
         email="test@test.com",
         password="pass",
-        base_url="https://dev-api.magickmind.ai",
+        base_url="https://api.magickmind.ai",
     )
     oc = client.openai_client(api_key="test-key-123")
     assert "/v1" in str(oc.base_url)
@@ -57,7 +57,7 @@ def test_openai_client_default_compute_power_header() -> None:
     client = MagickMind(
         email="test@test.com",
         password="pass",
-        base_url="https://dev-api.magickmind.ai",
+        base_url="https://api.magickmind.ai",
     )
     oc = client.openai_client(api_key="test-key-123")
     assert oc.default_headers.get("X-Compute-Power") == "1"
@@ -70,7 +70,7 @@ def test_openai_client_custom_compute_power() -> None:
     client = MagickMind(
         email="test@test.com",
         password="pass",
-        base_url="https://dev-api.magickmind.ai",
+        base_url="https://api.magickmind.ai",
     )
     oc = client.openai_client(api_key="test-key-123", compute_power=3)
     assert oc.default_headers.get("X-Compute-Power") == "3"

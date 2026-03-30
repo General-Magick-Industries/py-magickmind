@@ -33,7 +33,7 @@ async def main() -> None:
     client = MagickMind(
         email=os.getenv("MAGICKMIND_EMAIL", ""),
         password=os.getenv("MAGICKMIND_PASSWORD", ""),
-        base_url=os.getenv("MAGICKMIND_BASE_URL", "https://dev-api.magickmind.ai"),
+        base_url=os.getenv("MAGICKMIND_BASE_URL", "https://api.magickmind.ai"),
     )
 
     oai = client.openai_client(api_key=api_key)

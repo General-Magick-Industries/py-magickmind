@@ -40,7 +40,7 @@ magick_mind/
 ```bash
 # Clone the repo
 git clone <repo-url>
-cd AGD_Magick_Mind_SDK
+cd py-magickmind
 
 # Install with dev dependencies
 uv sync

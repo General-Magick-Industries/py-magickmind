@@ -12,7 +12,7 @@ Demonstrates the complete lifecycle:
 Usage:
     export MAGICKMIND_EMAIL="user@example.com"
     export MAGICKMIND_PASSWORD="your_password"
-    export MAGICKMIND_BASE_URL="https://dev-bifrost.magickmind.ai"
+    export MAGICKMIND_BASE_URL="https://api.magickmind.ai"
     export MAGICKMIND_API_KEY="sk-your-litellm-key"   # for query
 
     # Provide a file to ingest:
@@ -90,7 +90,7 @@ def resolve_file(argv: list[str]) -> tuple[str, str, bool]:
 
 
 async def main() -> None:
-    base_url = os.getenv("MAGICKMIND_BASE_URL", "https://dev-bifrost.magickmind.ai")
+    base_url = os.getenv("MAGICKMIND_BASE_URL", "https://api.magickmind.ai")
     email = os.getenv("MAGICKMIND_EMAIL")
     password = os.getenv("MAGICKMIND_PASSWORD")
     api_key = os.getenv("MAGICKMIND_API_KEY", "")

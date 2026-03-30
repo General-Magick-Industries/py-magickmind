@@ -21,7 +21,7 @@ load_dotenv()
 
 async def main():
     # Get config from environment
-    base_url = os.getenv("MAGICKMIND_BASE_URL", "https://dev-api.magickmind.ai")
+    base_url = os.getenv("MAGICKMIND_BASE_URL", "https://api.magickmind.ai")
     email = os.getenv("MAGICKMIND_EMAIL")
     password = os.getenv("MAGICKMIND_PASSWORD")
 

@@ -24,7 +24,7 @@ load_dotenv()
 async def main():
     """Demonstrate resource management operations."""
     # Initialize client
-    base_url = os.getenv("MAGICKMIND_BASE_URL", "https://dev-api.magickmind.ai")
+    base_url = os.getenv("MAGICKMIND_BASE_URL", "https://api.magickmind.ai")
     email = os.getenv("MAGICKMIND_EMAIL", "user@example.com")
     password = os.getenv("MAGICKMIND_PASSWORD", "your-password")
 

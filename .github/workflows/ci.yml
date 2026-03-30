@@ -1,4 +1,4 @@
-name: AGD Magick Mind CI
+name: MagickMind SDK CI
 
 on:
   push:

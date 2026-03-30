@@ -45,7 +45,7 @@ async def main():
     # Load credentials from environment
     email = os.environ.get("MAGICKMIND_EMAIL")
     password = os.environ.get("MAGICKMIND_PASSWORD")
-    base_url = os.environ.get("MAGICKMIND_BASE_URL", "https://dev-api.magickmind.ai")
+    base_url = os.environ.get("MAGICKMIND_BASE_URL", "https://api.magickmind.ai")
     ws_endpoint = os.environ.get("MAGICKMIND_WS_ENDPOINT")
 
     # Required vars
@@ -186,7 +186,7 @@ if __name__ == "__main__":
     Example:
         export MAGICKMIND_EMAIL="service@example.com"
         export MAGICKMIND_PASSWORD="your-password"
-        export MAGICKMIND_WS_ENDPOINT="wss://dev-centrifugo.magickmind.ai/connection/websocket"
+        export MAGICKMIND_WS_ENDPOINT="wss://centrifugo.magickmind.ai/connection/websocket"
         python examples/chat_workflow.py
     """
     asyncio.run(main())

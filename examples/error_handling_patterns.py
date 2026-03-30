@@ -12,7 +12,7 @@ Demonstrates:
 Run this example to see proper error handling in action:
     export MAGICKMIND_EMAIL="your@email.com"
     export MAGICKMIND_PASSWORD="your_password"
-    export MAGICKMIND_BASE_URL="https://dev-api.magickmind.ai"
+    export MAGICKMIND_BASE_URL="https://api.magickmind.ai"
     python examples/error_handling_patterns.py
 """
 
@@ -179,7 +179,7 @@ async def example_1_authentication_errors():
     client = MagickMind(
         email="wrong@example.com",
         password="wrongpassword",
-        base_url=os.getenv("MAGICKMIND_BASE_URL", "https://dev-api.magickmind.ai"),
+        base_url=os.getenv("MAGICKMIND_BASE_URL", "https://api.magickmind.ai"),
     )
 
     try:
@@ -362,7 +362,7 @@ async def main():
     # Get valid credentials for remaining examples
     email = os.getenv("MAGICKMIND_EMAIL")
     password = os.getenv("MAGICKMIND_PASSWORD")
-    base_url = os.getenv("MAGICKMIND_BASE_URL", "https://dev-api.magickmind.ai")
+    base_url = os.getenv("MAGICKMIND_BASE_URL", "https://api.magickmind.ai")
 
     if not email or not password:
         logger.warning(
@@ -371,7 +371,7 @@ async def main():
         logger.info("\nExample commands:")
         logger.info('  export MAGICKMIND_EMAIL="your@email.com"')
         logger.info('  export MAGICKMIND_PASSWORD="your_password"')
-        logger.info('  export MAGICKMIND_BASE_URL="https://dev-api.magickmind.ai"')
+        logger.info('  export MAGICKMIND_BASE_URL="https://api.magickmind.ai"')
         return
 
     # Initialize client — auth is lazy (happens on first API call)
@@ -406,7 +406,7 @@ if __name__ == "__main__":
     Environment variables:
         MAGICKMIND_EMAIL    - Your service account email
         MAGICKMIND_PASSWORD - Your service account password
-        MAGICKMIND_BASE_URL - Magick Mind API URL (default: https://dev-api.magickmind.ai)
+        MAGICKMIND_BASE_URL - Magick Mind API URL (default: https://api.magickmind.ai)
         MINDSPACE_ID        - Mindspace ID for testing (optional)
         USER_ID             - End user ID for testing (optional)
         OPENROUTER_API_KEY  - API key for LLM (optional)
