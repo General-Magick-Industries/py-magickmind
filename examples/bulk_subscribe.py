@@ -72,16 +72,14 @@ class DeduplicatingProcessor:
         if payload.message_id in self.processed_ids:
             self.metrics["duplicates_skipped"] += 1
             logger.debug(
-                f"⏭️  Skipping duplicate {payload.message_id} "
-                f"(via {ctx.target_user_id})"
+                f"⏭️  Skipping duplicate {payload.message_id} (via {ctx.target_user_id})"
             )
             return
 
         # Process the message — ctx.target_user_id identifies who it's for
         self.metrics["messages_processed"] += 1
         logger.info(
-            f"📨 [{ctx.target_user_id}] {payload.message_id}: "
-            f"{payload.message[:50]}"
+            f"📨 [{ctx.target_user_id}] {payload.message_id}: {payload.message[:50]}"
         )
 
         # Mark as processed
