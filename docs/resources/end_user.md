@@ -25,15 +25,15 @@ end_users = client.v1.end_user
 
 ## API Reference
 
-### `create(name, tenant_id, actor_id, external_id=None)`
+### `create(name, external_id=None)`
 
 Create a new end user.
 
 **Parameters:**
 - `name` (str, required): End user name
-- `tenant_id` (str, required): Tenant ID this end user belongs to
-- `actor_id` (str, required): Actor ID performing the action
 - `external_id` (str, optional): External ID for mapping to external systems
+
+> **Note:** `tenant_id` and `actor_id` are derived from your authenticated session automatically.
 
 **Returns:** `EndUser` object
 
@@ -41,8 +41,6 @@ Create a new end user.
 ```python
 end_user = client.v1.end_user.create(
     name="John Doe",
-    tenant_id="tenant-123",
-    actor_id="admin-456",
     external_id="ext-789"
 )
 print(f"Created end user: {end_user.id}")
@@ -69,15 +67,16 @@ print(f"External ID: {end_user.external_id}")
 
 ---
 
-### `query(name=None, external_id=None, tenant_id=None, actor_id=None)`
+### `query(name=None, external_id=None, cursor=None, limit=None, order=None)`
 
 Query end users with optional filters. All parameters are optional.
 
 **Parameters:**
 - `name` (str, optional): Filter by end user name
 - `external_id` (str, optional): Filter by external ID
-- `tenant_id` (str, optional): Filter by tenant ID
-- `actor_id` (str, optional): Filter by actor ID
+- `cursor` (str, optional): Pagination cursor
+- `limit` (int, optional): Maximum number of results to return
+- `order` (str, optional): Sort order (`"asc"` or `"desc"`)
 
 **Returns:** List of `EndUser` objects
 
@@ -88,25 +87,19 @@ all_users = client.v1.end_user.query()
 for user in all_users:
     print(f"- {user.name} (ID: {user.id})")
 
-# Get all end users for a specific tenant
-tenant_users = client.v1.end_user.query(tenant_id="tenant-123")
-
 # Find user by external ID
 external_users = client.v1.end_user.query(external_id="ext-789")
 if external_users:
     user = external_users[0]
     print(f"Found: {user.name}")
 
-# Multiple filters
-filtered = client.v1.end_user.query(
-    tenant_id="tenant-123",
-    name="John Doe"
-)
+# Filter by name with pagination
+filtered = client.v1.end_user.query(name="John Doe", limit=10)
 ```
 
 ---
 
-### `update(end_user_id, name=None, external_id=None, tenant_id=None)`
+### `update(end_user_id, name=None, external_id=None)`
 
 Update an existing end user. All update fields are optional - only provided fields will be updated.
 
@@ -114,7 +107,6 @@ Update an existing end user. All update fields are optional - only provided fiel
 - `end_user_id` (str, required): The end user ID to update
 - `name` (str, optional): New end user name
 - `external_id` (str, optional): New external ID
-- `tenant_id` (str, optional): New tenant ID
 
 **Returns:** Updated `EndUser` object
 
@@ -184,8 +176,6 @@ client = MagickMind(
 # Create a new end user
 end_user = client.v1.end_user.create(
     name="John Doe",
-    tenant_id="tenant-123",
-    actor_id="admin-456",
     external_id="customer-ext-001"
 )
 print(f"Created: {end_user.id}")
@@ -194,9 +184,9 @@ print(f"Created: {end_user.id}")
 retrieved = client.v1.end_user.get(end_user_id=end_user.id)
 print(f"Name: {retrieved.name}")
 
-# Query end users by tenant
-tenant_users = client.v1.end_user.query(tenant_id="tenant-123")
-print(f"Users in tenant: {len(tenant_users)}")
+# Query end users
+users = client.v1.end_user.query(name="John")
+print(f"Found users: {len(users)}")
 
 # Update the end user
 updated = client.v1.end_user.update(
@@ -222,27 +212,23 @@ print("End user deleted successfully")
 
 ## Use Cases
 
-### Multi-Tenant User Management
+### Managing End Users
 
 ```python
-# Create end users for different tenants
-tenant_a_user = client.v1.end_user.create(
+# Create end users with external IDs
+alice = client.v1.end_user.create(
     name="Alice",
-    tenant_id="tenant-a",
-    actor_id="admin-001",
     external_id="alice@company-a.com"
 )
 
-tenant_b_user = client.v1.end_user.create(
+bob = client.v1.end_user.create(
     name="Bob",
-    tenant_id="tenant-b",
-    actor_id="admin-001",
     external_id="bob@company-b.com"
 )
 
-# List users by tenant
-tenant_a_users = client.v1.end_user.query(tenant_id="tenant-a")
-print(f"Tenant A has {len(tenant_a_users)} users")
+# List all end users
+all_users = client.v1.end_user.query()
+print(f"Total users: {len(all_users)}")
 ```
 
 ### External System Integration
@@ -251,8 +237,6 @@ print(f"Tenant A has {len(tenant_a_users)} users")
 # Map to external system (e.g., CRM)
 end_user = client.v1.end_user.create(
     name="Customer Name",
-    tenant_id="tenant-123",
-    actor_id="system-integration",
     external_id="salesforce-contact-456"
 )
 
