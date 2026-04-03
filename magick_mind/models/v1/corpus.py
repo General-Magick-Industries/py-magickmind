@@ -129,7 +129,73 @@ class QueryCorpusRequest(BaseModel):
     )
 
 
-class QueryCorpusResponse(BaseModel):
-    """Response for querying a corpus."""
+class Entity(BaseModel):
+    """An entity extracted from the knowledge graph."""
 
-    result: str = Field(..., description="Query result text")
+    name: str = Field(..., description="Entity name")
+    type: str = Field(default="", description="Entity type")
+    description: str = Field(default="", description="Entity description")
+    score: float = Field(default=0.0, description="Relevance score")
+
+
+class Relationship(BaseModel):
+    """A relationship between entities in the knowledge graph."""
+
+    source: str = Field(..., description="Source entity name")
+    target: str = Field(..., description="Target entity name")
+    relationship: str = Field(default="", description="Relationship type")
+    description: str = Field(default="", description="Relationship description")
+    score: float = Field(default=0.0, description="Relevance score")
+
+
+class Chunk(BaseModel):
+    """A text chunk retrieved from the corpus."""
+
+    content: str = Field(..., description="Chunk text content")
+    source_id: str = Field(default="", description="Source document ID")
+    score: float = Field(default=0.0, description="Relevance score")
+
+
+class Reference(BaseModel):
+    """A reference to a source document."""
+
+    source_id: str = Field(..., description="Source document ID")
+    content: str = Field(default="", description="Reference content")
+
+
+class QueryMetadata(BaseModel):
+    """Metadata about the query execution."""
+
+    query_mode: str = Field(default="", description="Query mode used")
+    high_level_keywords: list[str] = Field(
+        default_factory=list, description="High-level keywords extracted"
+    )
+    low_level_keywords: list[str] = Field(
+        default_factory=list, description="Low-level keywords extracted"
+    )
+
+
+class QueryCorpusResponse(BaseModel):
+    """Response for querying a corpus.
+
+    Contains both the legacy JSON result string and structured fields.
+    The structured fields are populated when the server supports them.
+    """
+
+    result: str = Field(default="", description="Query result text (legacy JSON blob)")
+    entities: list[Entity] = Field(
+        default_factory=list, description="Extracted entities"
+    )
+    relationships: list[Relationship] = Field(
+        default_factory=list, description="Entity relationships"
+    )
+    chunks: list[Chunk] = Field(
+        default_factory=list, description="Retrieved text chunks"
+    )
+    references: list[Reference] = Field(
+        default_factory=list, description="Source references"
+    )
+    metadata: Optional[QueryMetadata] = Field(
+        None, description="Query execution metadata"
+    )
+    llm_response: str = Field(default="", description="LLM synthesis response text")
