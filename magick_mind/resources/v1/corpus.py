@@ -303,6 +303,7 @@ class CorpusResourceV1(BaseResource):
         query: str,
         mode: Optional[str] = None,
         only_need_context: bool = False,
+        enable_rerank: Optional[bool] = None,
         api_key: Optional[str] = None,
     ) -> QueryCorpusResponse:
         """
@@ -314,6 +315,8 @@ class CorpusResourceV1(BaseResource):
             mode: Query mode — one of naive|local|global|hybrid.
                 Omit to let the server choose (defaults to hybrid).
             only_need_context: If True, return raw context without LLM synthesis.
+            enable_rerank: Override rerank behavior. None = server default
+                (on if provider configured), True = force on, False = force off.
             api_key: Optional API key (sent as x-api-key header). Required for
                 corpus-scoped operations on dev/prod.
 
@@ -324,7 +327,10 @@ class CorpusResourceV1(BaseResource):
             ProblemDetailsException: If the request fails
         """
         payload = QueryCorpusRequest(
-            query=query, mode=mode, only_need_context=only_need_context
+            query=query,
+            mode=mode,
+            only_need_context=only_need_context,
+            enable_rerank=enable_rerank,
         )
 
         headers = {}

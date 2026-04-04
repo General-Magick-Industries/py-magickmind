@@ -127,6 +127,10 @@ class QueryCorpusRequest(BaseModel):
         False,
         description="If true, return raw retrieved context without LLM synthesis",
     )
+    enable_rerank: Optional[bool] = Field(
+        None,
+        description="Override rerank behavior. None=server default, True=force on, False=force off.",
+    )
 
 
 class Entity(BaseModel):
