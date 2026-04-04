@@ -177,6 +177,10 @@ class QueryMetadata(BaseModel):
     low_level_keywords: list[str] = Field(
         default_factory=list, description="Low-level keywords extracted"
     )
+    rerank_applied: bool = Field(
+        default=False,
+        description="True if reranking actually ran. False on failure or when disabled.",
+    )
 
 
 class QueryCorpusResponse(BaseModel):
