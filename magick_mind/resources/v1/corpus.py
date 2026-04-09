@@ -6,6 +6,7 @@ Provides methods for managing corpus (knowledge base) resources.
 
 from __future__ import annotations
 
+import warnings
 from typing import Optional
 
 from magick_mind.models.v1.corpus import (
@@ -13,7 +14,9 @@ from magick_mind.models.v1.corpus import (
     AddArtifactsResponse,
     ArtifactStatus,
     Corpus,
+    CorpusArtifactItem,
     CreateCorpusRequest,
+    IngestionStatus,
     ListArtifactStatusesResponse,
     ListCorpusResponse,
     QueryCorpusRequest,
@@ -244,11 +247,113 @@ class CorpusResourceV1(BaseResource):
         """
         await self._http.delete(Routes.corpus_artifact(corpus_id, artifact_id))
 
+    async def list_artifacts(
+        self,
+        corpus_id: str,
+        cursor: Optional[str] = None,
+        limit: int = 20,
+    ) -> list[CorpusArtifactItem]:
+        """
+        List artifacts in a corpus with their ingestion statuses.
+
+        Returns a combined view of each artifact and its current ingestion
+        state, suitable for polling or displaying corpus contents.
+
+        Args:
+            corpus_id: The corpus ID
+            cursor: Pagination cursor (opaque string from PageInfo.cursors.after/before)
+            limit: Maximum number of results per page (default 20, max 100)
+
+        Returns:
+            List of CorpusArtifactItem objects (artifact + ingestion status)
+
+        Raises:
+            ProblemDetailsException: If the request fails
+        """
+        params: dict[str, object] = {"limit": limit}
+        if cursor is not None:
+            params["cursor"] = cursor
+
+        resp = await self._http.get(Routes.corpus_artifacts(corpus_id), params=params)
+
+        items: list[CorpusArtifactItem] = []
+        for item in resp.get("data", resp if isinstance(resp, list) else []):
+            items.append(CorpusArtifactItem(**item))
+        return items
+
+    async def list_ingestion(
+        self, corpus_id: str, artifact_ids: Optional[list[str]] = None
+    ) -> list[IngestionStatus]:
+        """
+        List ingestion statuses for artifacts in a corpus.
+
+        Args:
+            corpus_id: The corpus ID
+            artifact_ids: Optional list of specific artifact IDs to filter
+
+        Returns:
+            List of IngestionStatus objects
+
+        Raises:
+            ProblemDetailsException: If the request fails
+        """
+        params: dict[str, object] = {}
+        if artifact_ids:
+            params["artifact_ids"] = artifact_ids
+
+        resp = await self._http.get(
+            Routes.corpus_artifacts_status(corpus_id), params=params
+        )
+
+        data = ListArtifactStatusesResponse(**resp)
+        return [
+            IngestionStatus(
+                status=s.status,
+                content_summary=s.content_summary,
+                content_length=s.content_length,
+                error=s.error,
+            )
+            for s in data.statuses
+        ]
+
+    async def get_ingestion(self, corpus_id: str, artifact_id: str) -> IngestionStatus:
+        """
+        Get ingestion status for a single artifact.
+
+        Args:
+            corpus_id: The corpus ID
+            artifact_id: The artifact ID
+
+        Returns:
+            IngestionStatus object
+
+        Raises:
+            ProblemDetailsException: If the request fails
+        """
+        resp = await self._http.get(
+            Routes.corpus_artifacts_status(corpus_id),
+            params={"artifact_ids": [artifact_id]},
+        )
+        data = ListArtifactStatusesResponse(**resp)
+        if not data.statuses:
+            return IngestionStatus(status="NOT_FOUND")
+        s = data.statuses[0]
+        return IngestionStatus(
+            status=s.status,
+            content_summary=s.content_summary,
+            content_length=s.content_length,
+            error=s.error,
+        )
+
     async def get_artifact_status(
         self, corpus_id: str, artifact_id: str
     ) -> ArtifactStatus:
         """
         Get ingestion status for a single artifact.
+
+        .. deprecated::
+            Use :meth:`get_ingestion` instead, which returns the updated
+            ``IngestionStatus`` model.
 
         Args:
             corpus_id: The corpus ID
@@ -260,6 +365,11 @@ class CorpusResourceV1(BaseResource):
         Raises:
             ProblemDetailsException: If the request fails
         """
+        warnings.warn(
+            "get_artifact_status() is deprecated; use get_ingestion() instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         resp = await self._http.get(
             Routes.corpus_artifacts_status(corpus_id),
             params={"artifact_ids": [artifact_id]},
@@ -275,6 +385,10 @@ class CorpusResourceV1(BaseResource):
         """
         List ingestion statuses for artifacts in corpus.
 
+        .. deprecated::
+            Use :meth:`list_ingestion` instead, which returns the updated
+            ``IngestionStatus`` model.
+
         Args:
             corpus_id: The corpus ID
             artifact_ids: Optional list of specific artifact IDs to filter
@@ -285,7 +399,12 @@ class CorpusResourceV1(BaseResource):
         Raises:
             ProblemDetailsException: If the request fails
         """
-        params = {}
+        warnings.warn(
+            "list_artifact_statuses() is deprecated; use list_ingestion() instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        params: dict[str, object] = {}
         if artifact_ids:
             params["artifact_ids"] = artifact_ids
 

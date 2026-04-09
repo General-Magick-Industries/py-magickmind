@@ -20,7 +20,6 @@ from magick_mind.models.v1.artifact import (
     PresignArtifactRequest,
     PresignArtifactResponse,
 )
-from magick_mind.models.v1.corpus import ListArtifactStatusesResponse
 from magick_mind.resources.base import BaseResource
 from magick_mind.routes import Routes
 
@@ -218,41 +217,6 @@ class ArtifactResourceV1(BaseResource):
         response = await self._http.get(Routes.ARTIFACTS, params=params)
         list_response = ListArtifactsResponse(**response)
         return list_response.data
-
-    async def list_statuses(
-        self,
-        corpus_id: str,
-        artifact_ids: Optional[list[str]] = None,
-        cursor: Optional[str] = None,
-        limit: Optional[int] = None,
-    ) -> ListArtifactStatusesResponse:
-        """
-        List artifact statuses within a corpus with pagination.
-
-        Args:
-            corpus_id: The corpus ID
-            artifact_ids: Optional specific artifact IDs to check
-            cursor: Pagination cursor (opaque string from PageInfo.cursors.after/before)
-            limit: Maximum results per page (default 20, max 100)
-
-        Returns:
-            ListArtifactStatusesResponse with statuses and pagination info
-
-        Raises:
-            httpx.HTTPStatusError: If the request fails
-        """
-        params: dict[str, object] = {}
-        if artifact_ids:
-            params["artifact_ids"] = artifact_ids
-        if cursor is not None:
-            params["cursor"] = cursor
-        if limit is not None:
-            params["limit"] = str(limit)
-
-        route = Routes.corpus_artifacts_status(corpus_id)
-        response = await self._http.get(route, params=params)
-
-        return ListArtifactStatusesResponse(**response)
 
     async def delete(self, artifact_id: str) -> None:
         """
