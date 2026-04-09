@@ -6,11 +6,14 @@ Corpus represents a collection of artifacts that can be used for
 RAG (Retrieval Augmented Generation) workflows.
 """
 
+from __future__ import annotations
+
 from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
 from magick_mind.models.common import PageInfo
+from magick_mind.models.v1.artifact import Artifact
 
 
 class Corpus(BaseModel):
@@ -207,3 +210,42 @@ class QueryCorpusResponse(BaseModel):
         None, description="Query execution metadata"
     )
     llm_response: str = Field(default="", description="LLM synthesis response text")
+
+
+class IngestionStatus(BaseModel):
+    """
+    Ingestion status for an artifact within a corpus.
+
+    Represents the processing state of an artifact after it has been
+    added to a corpus for indexing.
+    """
+
+    status: str = Field(
+        ..., description="Ingestion status (PENDING, PROCESSING, PROCESSED, FAILED)"
+    )
+    content_summary: Optional[str] = Field(
+        default=None, description="Summary of the ingested content"
+    )
+    content_length: Optional[int] = Field(
+        default=None, description="Length of the ingested content"
+    )
+    error: Optional[str] = Field(
+        default=None, description="Error message if status is FAILED"
+    )
+    completed_at: Optional[str] = Field(
+        default=None, description="Timestamp when ingestion completed (ISO format)"
+    )
+
+
+class CorpusArtifactItem(BaseModel):
+    """
+    Combined artifact and its ingestion status within a corpus.
+
+    Returned by the list_artifacts endpoint, pairing the artifact metadata
+    with its current ingestion state.
+    """
+
+    artifact: Artifact = Field(..., description="The artifact metadata")
+    ingestion: IngestionStatus = Field(
+        ..., description="Current ingestion status of the artifact"
+    )
