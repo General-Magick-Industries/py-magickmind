@@ -249,3 +249,20 @@ class CorpusArtifactItem(BaseModel):
     ingestion: IngestionStatus = Field(
         ..., description="Current ingestion status of the artifact"
     )
+
+
+class IngestResult(BaseModel):
+    """
+    Result of a corpus ingest operation.
+
+    Returned by the convenience ingest methods (``ingest``,
+    ``upload_and_ingest``, ``ingest_and_poll``).  Combines the artifact and
+    corpus identifiers with the current ingestion status so callers have a
+    single object to inspect after any ingest path.
+    """
+
+    artifact_id: str = Field(..., description="Artifact ID that was ingested")
+    corpus_id: str = Field(..., description="Corpus ID the artifact was added to")
+    ingestion_status: IngestionStatus = Field(
+        ..., description="Latest ingestion status for the artifact"
+    )
