@@ -2,8 +2,10 @@
 
 from magick_mind.models.v1.artifact import (
     Artifact,
+    ArtifactStatusEnum,
     ArtifactWebhookPayload,
     DeleteArtifactResponse,
+    DownloadUrlResponse,
     FinalizeArtifactRequest,
     FinalizeArtifactResponse,
     GetArtifactResponse,
@@ -98,6 +100,8 @@ __all__ = [
     "QueryEndUserResponse",
     "UpdateEndUserRequest",
     "Artifact",
+    "ArtifactStatusEnum",
+    "DownloadUrlResponse",
     "PresignArtifactRequest",
     "PresignArtifactResponse",
     "GetArtifactResponse",

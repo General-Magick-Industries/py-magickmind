@@ -172,6 +172,11 @@ class Routes:
         """Get path for a specific artifact."""
         return f"/v1/artifacts/{artifact_id}"
 
+    @staticmethod
+    def artifact_download(artifact_id: str) -> str:
+        """Get path for retrieving an artifact's presigned download URL."""
+        return f"/v1/artifacts/{artifact_id}/download"
+
     # API Keys endpoints
     KEYS = "/v1/keys"
 
