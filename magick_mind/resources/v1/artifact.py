@@ -12,10 +12,10 @@ import httpx
 
 from magick_mind.models.v1.artifact import (
     Artifact,
+    DownloadUrlResponse,
     FinalizeArtifactRequest,
     FinalizeArtifactResponse,
     GetArtifactResponse,
-    ListArtifactStatusesResponse,
     ListArtifactsResponse,
     PresignArtifactRequest,
     PresignArtifactResponse,
@@ -178,80 +178,52 @@ class ArtifactResourceV1(BaseResource):
 
     async def list(
         self,
-        corpus_id: Optional[str] = None,
         end_user_id: Optional[str] = None,
         status: Optional[str] = None,
+        cursor: Optional[str] = None,
+        limit: Optional[int] = None,
     ) -> list[Artifact]:
         """
-        List/query artifacts with optional filters.
+        List artifacts for the authenticated tenant with optional filters.
 
         Args:
-            corpus_id: Filter by corpus ID (optional)
             end_user_id: Filter by end user ID (optional)
-            status: Filter by status (uploaded, processing, ready, failed)
+            status: Filter by status — uploaded, processing, ready, failed, deleted
+            cursor: Pagination cursor (opaque string from a previous response)
+            limit: Maximum number of results to return
 
         Returns:
             List of Artifact objects
 
         Example:
-            # Get all artifacts for a corpus
-            artifacts = await client.v1.artifact.list(corpus_id="corpus-123")
+            # Get all artifacts
+            artifacts = await client.v1.artifact.list()
             for artifact in artifacts:
                 print(f"- {artifact.id}: {artifact.status}")
 
-            # Get ready artifacts
-            ready = await client.v1.artifact.list(status="ready")
+            # Get ready artifacts with pagination
+            ready = await client.v1.artifact.list(status="ready", limit=20)
         """
-        params = {}
-        if corpus_id is not None:
-            params["corpus_id"] = corpus_id
+        params: dict[str, object] = {}
         if end_user_id is not None:
             params["end_user_id"] = end_user_id
         if status is not None:
             params["status"] = status
-
-        response = await self._http.get(Routes.ARTIFACTS, params=params)
-        list_response = ListArtifactsResponse(**response)
-        return list_response.artifacts
-
-    async def list_statuses(
-        self,
-        corpus_id: str,
-        artifact_ids: Optional[list[str]] = None,
-        cursor: Optional[str] = None,
-        limit: Optional[int] = None,
-    ) -> ListArtifactStatusesResponse:
-        """
-        List artifact statuses within a corpus with pagination.
-
-        Args:
-            corpus_id: The corpus ID
-            artifact_ids: Optional specific artifact IDs to check
-            cursor: Pagination cursor (opaque string from PageInfo.cursors.after/before)
-            limit: Maximum results per page (default 20, max 100)
-
-        Returns:
-            ListArtifactStatusesResponse with statuses and pagination info
-
-        Raises:
-            httpx.HTTPStatusError: If the request fails
-        """
-        params: dict[str, object] = {}
-        if artifact_ids:
-            params["artifact_ids"] = artifact_ids
         if cursor is not None:
             params["cursor"] = cursor
         if limit is not None:
             params["limit"] = str(limit)
 
-        route = Routes.corpus_artifacts_status(corpus_id)
-        response = await self._http.get(route, params=params)
-
-        return ListArtifactStatusesResponse(**response)
+        response = await self._http.get(Routes.ARTIFACTS, params=params)
+        list_response = ListArtifactsResponse(**response)
+        return list_response.data
 
     async def delete(self, artifact_id: str) -> None:
         """
         Delete an artifact.
+
+        Raises ``ProblemDetailsException`` with status 404 if the artifact is
+        not found, or status 410 if it has already been deleted.
 
         Args:
             artifact_id: The artifact ID to delete
@@ -261,6 +233,26 @@ class ArtifactResourceV1(BaseResource):
             print("Artifact deleted successfully")
         """
         await self._http.delete(Routes.artifact(artifact_id))
+
+    async def download_url(self, artifact_id: str) -> DownloadUrlResponse:
+        """
+        Get a presigned download URL for an artifact.
+
+        The URL is short-lived — check ``expires_at`` before caching.
+
+        Args:
+            artifact_id: The artifact ID
+
+        Returns:
+            DownloadUrlResponse with ``download_url``, ``expires_at``, and
+            ``file_name`` fields.
+
+        Example:
+            dl = await client.v1.artifact.download_url("art-123")
+            print(f"Download: {dl.download_url}")
+        """
+        response = await self._http.get(Routes.artifact_download(artifact_id))
+        return DownloadUrlResponse(**response)
 
     async def finalize(
         self,
