@@ -84,7 +84,9 @@ class ProblemDetailsException(MagickMindError):
 class ValidationError(ProblemDetailsException):
     """400 Bad Request with field-level validation errors."""
 
-    def __init__(self, problem: ProblemDetails, raw_response: Optional[dict[str, Any]] = None):
+    def __init__(
+        self, problem: ProblemDetails, raw_response: Optional[dict[str, Any]] = None
+    ):
         if problem.status != 400:
             raise ValueError(
                 f"ValidationError must have status 400, got {problem.status}"

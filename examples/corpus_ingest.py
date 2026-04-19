@@ -128,7 +128,12 @@ async def main() -> None:
                 size_bytes=file_size,
                 corpus_id=corpus_id,
             )
-            if not presign.id or not presign.upload_url or not presign.bucket or not presign.key:
+            if (
+                not presign.id
+                or not presign.upload_url
+                or not presign.bucket
+                or not presign.key
+            ):
                 raise RuntimeError("Presign response missing required fields")
             artifact_id = presign.id
             print(f"   Artifact: {artifact_id}")
