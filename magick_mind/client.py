@@ -2,13 +2,15 @@
 
 from __future__ import annotations
 
-from typing import Optional
+from typing import Any, Optional
 
 from magick_mind.auth import AuthProvider, EmailPasswordAuth
 from magick_mind.config import SDKConfig
 from magick_mind.exceptions import MagickMindError
 from magick_mind.http import HTTPClient
 from magick_mind.realtime import RealtimeClient
+from magick_mind.resources.v1.chat import ChatResourceV1
+from magick_mind.resources.v1.mindspace import MindspaceResourceV1
 
 
 class MagickMind:
@@ -76,7 +78,7 @@ class MagickMind:
             raise ValueError("Email and password are required for authentication")
 
         # Create configuration
-        self.config = SDKConfig(
+        self.config: SDKConfig = SDKConfig(
             base_url=base_url,
             timeout=timeout,
             verify_ssl=verify_ssl,
@@ -97,11 +99,11 @@ class MagickMind:
         # Initialize typed resources
         from magick_mind.resources import V1Resources
 
-        self.v1 = V1Resources(self._http)
+        self.v1: V1Resources = V1Resources(self._http)
 
         # Convenience alias for default version
-        self.chat = self.v1.chat
-        self.mindspace = self.v1.mindspace
+        self.chat: ChatResourceV1 = self.v1.chat
+        self.mindspace: MindspaceResourceV1 = self.v1.mindspace
 
     @property
     def http(self) -> HTTPClient:
@@ -208,7 +210,7 @@ class MagickMind:
         """Async context manager exit."""
         await self.close()
 
-    def openai_client(self, api_key: str, compute_power: int = 1) -> object:
+    def openai_client(self, api_key: str, compute_power: int = 1) -> Any:
         """
         Return a pre-configured AsyncOpenAI client pointed at the Magick Mind API.
 

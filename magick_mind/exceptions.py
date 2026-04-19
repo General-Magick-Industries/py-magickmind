@@ -3,10 +3,11 @@
 from __future__ import annotations
 
 import logging
+from typing import Any, Optional
 
-from magick_mind.models.errors import ProblemDetails
+from magick_mind.models.errors import ProblemDetails, ValidationErrorField
 
-logger = logging.getLogger(__name__)
+logger: logging.Logger = logging.getLogger(__name__)
 
 
 class MagickMindError(Exception):
@@ -42,16 +43,16 @@ class ProblemDetailsException(MagickMindError):
     def __init__(
         self,
         problem: ProblemDetails,
-        raw_response: dict | None = None,
+        raw_response: Optional[dict[str, Any]] = None,
     ):
-        self.type_uri = problem.type
-        self.title = problem.title
-        self.status = problem.status
-        self.detail = problem.detail
-        self.instance = problem.instance
-        self.request_id = problem.request_id
-        self.validation_errors = problem.errors
-        self.problem = problem  # Full Pydantic model
+        self.type_uri: str = problem.type
+        self.title: str = problem.title
+        self.status: int = problem.status
+        self.detail: str = problem.detail
+        self.instance: Optional[str] = problem.instance
+        self.request_id: Optional[str] = problem.request_id
+        self.validation_errors: list[ValidationErrorField] = problem.errors
+        self.problem: ProblemDetails = problem
 
         # Log with request_id for tracing
         logger.debug(
@@ -64,7 +65,7 @@ class ProblemDetailsException(MagickMindError):
         )
 
         super().__init__(self.detail, status_code=self.status)
-        self.response_data = raw_response
+        self.response_data: Optional[dict[str, Any]] = raw_response
 
     def __str__(self) -> str:
         msg = f"[{self.status}] {self.title}: {self.detail}"
@@ -83,7 +84,7 @@ class ProblemDetailsException(MagickMindError):
 class ValidationError(ProblemDetailsException):
     """400 Bad Request with field-level validation errors."""
 
-    def __init__(self, problem: ProblemDetails, raw_response: dict | None = None):
+    def __init__(self, problem: ProblemDetails, raw_response: Optional[dict[str, Any]] = None):
         if problem.status != 400:
             raise ValueError(
                 f"ValidationError must have status 400, got {problem.status}"
