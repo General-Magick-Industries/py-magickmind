@@ -8,6 +8,8 @@ See: https://datatracker.ietf.org/doc/html/rfc7807
 
 from __future__ import annotations
 
+from typing import ClassVar
+
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -56,7 +58,7 @@ class ProblemDetails(BaseModel):
     request_id: str | None = None
     errors: list[ValidationErrorField] = Field(default_factory=list)
 
-    model_config = ConfigDict(extra="allow")
+    model_config: ClassVar[ConfigDict] = ConfigDict(extra="allow")
 
 
 class ErrorResponse(BaseModel):

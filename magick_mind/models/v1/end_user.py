@@ -4,7 +4,7 @@ End user models for Magick Mind SDK v1 API.
 Mirrors the /v1/end-users endpoint request/response schemas.
 """
 
-from typing import Optional
+from typing import ClassVar, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -18,7 +18,7 @@ class EndUser(BaseModel):
     Represents an end user in a multi-tenant agentic SaaS application.
     """
 
-    model_config = ConfigDict(populate_by_name=True)
+    model_config: ClassVar[ConfigDict] = ConfigDict(populate_by_name=True)
 
     id: str = Field(..., description="End user ID")
     name: str = Field(..., description="End user name")
