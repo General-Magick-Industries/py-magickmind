@@ -34,7 +34,7 @@ ERROR_404 = {
 }
 
 
-class TestBlueprintResourceV1:
+class TestBlueprintResource:
     async def test_create_sends_expected_body_and_deserializes(
         self, client: MagickMind, mock_auth: HTTPXMock
     ):

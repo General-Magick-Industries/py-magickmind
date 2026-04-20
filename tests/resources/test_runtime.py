@@ -13,7 +13,7 @@ from tests.factories import EffectivePersonalityFactory
 BASE_URL = "https://api.test"
 
 
-class TestRuntimeResourceV1:
+class TestRuntimeResource:
     async def test_get_effective_personality_with_and_without_user_id(
         self, client: MagickMind, mock_auth: HTTPXMock
     ):

@@ -15,7 +15,7 @@ from tests.factories import QueryCorpusResponseFactory
 BASE_URL = "https://api.test"
 
 
-class TestCorpusQueryResourceV1:
+class TestCorpusQueryResource:
     @pytest.mark.parametrize("enable_rerank", [None, True, False])
     async def test_query_enable_rerank_payload_and_structured_response(
         self,

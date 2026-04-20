@@ -35,7 +35,7 @@ ERROR_500 = {
 }
 
 
-class TestPersonaResourceV1:
+class TestPersonaResource:
     async def test_crud_prepare_and_from_blueprint(
         self, client: MagickMind, mock_auth: HTTPXMock
     ):
