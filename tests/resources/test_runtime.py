@@ -45,7 +45,9 @@ class TestRuntimeResourceV1:
         assert result.persona_id == "p-1"
         assert "user_id=" not in str(mock_auth.get_requests()[-1].url)
 
-        result2 = await client.v1.runtime.get_effective_personality("p-1", user_id="u-1")
+        result2 = await client.v1.runtime.get_effective_personality(
+            "p-1", user_id="u-1"
+        )
         assert result2.user_id == "u-1"
         assert "user_id=u-1" in str(mock_auth.get_requests()[-1].url)
 
@@ -70,4 +72,3 @@ class TestRuntimeResourceV1:
         await client.v1.runtime.invalidate_cache("p-1", user_id="u-1")
         body2 = json.loads(mock_auth.get_requests()[-1].content)
         assert body2 == {"persona_id": "p-1", "user_id": "u-1"}
-

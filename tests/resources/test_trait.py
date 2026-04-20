@@ -190,4 +190,3 @@ class TestTrait:
         request = mock_auth.get_requests()[-1]
         assert request.method == "DELETE"
         assert str(request.url).endswith("/v1/traits/tr-123")
-

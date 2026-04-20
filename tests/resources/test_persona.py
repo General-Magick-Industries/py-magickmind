@@ -86,7 +86,9 @@ class TestPersonaResourceV1:
 
         created = await client.v1.persona.create(name="Aria", role="assistant")
         assert created.id == "p-1"
-        assert json.loads(mock_auth.get_requests()[-1].content)["background_story"] == ""
+        assert (
+            json.loads(mock_auth.get_requests()[-1].content)["background_story"] == ""
+        )
 
         fetched = await client.v1.persona.get("p-1")
         assert fetched.id == "p-1"
@@ -145,7 +147,9 @@ class TestPersonaResourceV1:
             json=version.model_dump(mode="json"),
         )
 
-        created = await client.v1.persona.create_version(persona_id="p-2", version="2.0")
+        created = await client.v1.persona.create_version(
+            persona_id="p-2", version="2.0"
+        )
         assert created.version == "2.0"
 
         listed = await client.v1.persona.list_versions("p-2")
@@ -176,4 +180,3 @@ class TestPersonaResourceV1:
             await client.v1.persona.get("p-err")
 
         assert exc.value.status == 500
-

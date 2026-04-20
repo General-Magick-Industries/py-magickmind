@@ -1,2 +1,1 @@
 """Resource-level SDK tests."""
-

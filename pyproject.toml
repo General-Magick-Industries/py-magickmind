@@ -68,6 +68,7 @@ dev = [
   "polyfactory>=2.18.0",
   "time-machine>=2.16.0",
   "dirty-equals>=0.8.0",
+  "ruff>=0.15.11",
 ]
 
 [tool.pytest.ini_options]

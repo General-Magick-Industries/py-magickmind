@@ -262,7 +262,10 @@ async def test_handler_exception_is_caught_and_logged(caplog):
     caplog.set_level(logging.ERROR)
     await router.on_publication(_make_pub_ctx(_CHAT_DATA, "personal:u1#svc"))
 
-    assert any("Error in handler for event type 'chat_message'" in r.message for r in caplog.records)
+    assert any(
+        "Error in handler for event type 'chat_message'" in r.message
+        for r in caplog.records
+    )
 
 
 @pytest.mark.asyncio
@@ -279,4 +282,7 @@ async def test_unknown_handler_exception_is_caught_and_logged(caplog):
     data = {"type": "some_new_type", "payload": {"x": 1}}
     await router.on_publication(_make_pub_ctx(data, "personal:u2#svc"))
 
-    assert any("Error in unknown event handler for type 'some_new_type'" in r.message for r in caplog.records)
+    assert any(
+        "Error in unknown event handler for type 'some_new_type'" in r.message
+        for r in caplog.records
+    )

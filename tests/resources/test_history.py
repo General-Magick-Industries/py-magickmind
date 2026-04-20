@@ -60,4 +60,3 @@ class TestHistory:
         request = mock_auth.get_requests()[-1]
         assert "/v1/mindspaces/ms-1/messages" in str(request.url)
         assert "cursor=msg-5" in str(request.url)
-

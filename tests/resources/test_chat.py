@@ -201,4 +201,3 @@ class TestChatSend:
                 fast_model_id="gpt-4",
                 smart_model_ids=["gpt-4"],
             )
-

@@ -564,12 +564,18 @@ SHARED_MODELS = [
         reason="Empty schema in spec",
     ),
     # Trait sub-schemas (internal components)
-    ContractDef("CategoricalConfigSchema", status=SchemaStatus.SKIPPED, reason="Component"),
+    ContractDef(
+        "CategoricalConfigSchema", status=SchemaStatus.SKIPPED, reason="Component"
+    ),
     ContractDef("LockTypeSchema", status=SchemaStatus.SKIPPED, reason="Component"),
-    ContractDef("MultilabelConfigSchema", status=SchemaStatus.SKIPPED, reason="Component"),
+    ContractDef(
+        "MultilabelConfigSchema", status=SchemaStatus.SKIPPED, reason="Component"
+    ),
     ContractDef("NumericConfigSchema", status=SchemaStatus.SKIPPED, reason="Component"),
     ContractDef("TraitTypeSchema", status=SchemaStatus.SKIPPED, reason="Component"),
-    ContractDef("TraitVisibilitySchema", status=SchemaStatus.SKIPPED, reason="Component"),
+    ContractDef(
+        "TraitVisibilitySchema", status=SchemaStatus.SKIPPED, reason="Component"
+    ),
 ]
 
 

@@ -104,4 +104,3 @@ class TestEndUser:
         request = mock_auth.get_requests()[-1]
         assert request.method == "DELETE"
         assert str(request.url).endswith("/v1/end-users/eu-123")
-

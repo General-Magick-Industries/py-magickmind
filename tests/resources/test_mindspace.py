@@ -179,4 +179,3 @@ class TestMindspace:
         request = mock_auth.get_requests()[-1]
         assert "/v1/mindspaces/ms-1/messages" in str(request.url)
         assert "limit=20" in str(request.url)
-

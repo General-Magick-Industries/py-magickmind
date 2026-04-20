@@ -63,4 +63,3 @@ class TestCorpusQueryResourceV1:
             assert "enable_rerank" not in body
         else:
             assert body["enable_rerank"] is enable_rerank
-

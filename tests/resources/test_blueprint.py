@@ -72,7 +72,9 @@ class TestBlueprintResourceV1:
         assert body["traits"] == []
         assert "description" not in body
 
-    async def test_get_returns_blueprint(self, client: MagickMind, mock_auth: HTTPXMock):
+    async def test_get_returns_blueprint(
+        self, client: MagickMind, mock_auth: HTTPXMock
+    ):
         blueprint = BlueprintFactory.build(
             id="bp-1",
             blueprint_id="friendly-bot",
@@ -262,7 +264,10 @@ class TestBlueprintResourceV1:
         mock_auth.add_response(
             url=f"{BASE_URL}/v1/blueprints/bp-1/hydrate",
             method="GET",
-            json={"blueprint": blueprint.model_dump(mode="json"), "hydrated_traits": []},
+            json={
+                "blueprint": blueprint.model_dump(mode="json"),
+                "hydrated_traits": [],
+            },
         )
 
         result = await client.v1.blueprint.hydrate("bp-1")
@@ -283,4 +288,3 @@ class TestBlueprintResourceV1:
             await client.v1.blueprint.get("missing")
 
         assert exc.value.status == 404
-

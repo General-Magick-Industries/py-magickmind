@@ -92,4 +92,3 @@ ERROR_ENVELOPE = {
         "request_id": "req-abc123",
     }
 }
-

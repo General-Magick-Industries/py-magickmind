@@ -6,7 +6,11 @@ from polyfactory.factories.pydantic_factory import ModelFactory
 
 from magick_mind.models.v1.blueprint import Blueprint, ValidateBlueprintResponse
 from magick_mind.models.v1.corpus import QueryCorpusResponse
-from magick_mind.models.v1.persona import Persona, PersonaVersion, PreparePersonaResponse
+from magick_mind.models.v1.persona import (
+    Persona,
+    PersonaVersion,
+    PreparePersonaResponse,
+)
 from magick_mind.models.v1.runtime import EffectivePersonality
 
 
