@@ -47,7 +47,9 @@ from magick_mind.models.v1.mindspace import (
     GetMindSpaceListResponse,
     CreateMindSpaceRequest,
     UpdateMindSpaceRequest,
+    AddMindSpaceUsersRequest,
 )
+from magick_mind.models.v1.persona import Persona, UpdatePersonaRequest
 from magick_mind.models.v1.history import HistoryResponse
 from magick_mind.models.auth import TokenResponse, LoginRequest, RefreshRequest
 from magick_mind.models.v1.trait import (
@@ -184,6 +186,17 @@ class PatchTraitRequestFactory(ModelFactory):
     __model__ = PatchTraitRequest
 
 
+class AddMindSpaceUsersRequestFactory(ModelFactory):
+    __model__ = AddMindSpaceUsersRequest
+    participant_ids = ["user-1"]
+
+
+class UpdatePersonaRequestFactory(ModelFactory):
+    __model__ = UpdatePersonaRequest
+    name = "Updated Persona"
+    role = "assistant"
+
+
 # =============================================================================
 # RESPONSES
 # =============================================================================
@@ -285,6 +298,40 @@ RESPONSES = [
         ListTraitsResponse,
         status=SchemaStatus.SKIPPED,
         reason="Apidog spec corrupted - garbled enums in nested TraitSchema",
+    ),
+    # Persona
+    ContractDef("GetPersonaByIdRes", Persona),
+    ContractDef("UpdatePersonaRes", Persona),
+    # MindSpace
+    ContractDef(
+        "AddMindSpaceUsersResponse",
+        status=SchemaStatus.SKIPPED,
+        reason="No SDK model",
+    ),
+    # Trait (spec corrupted)
+    ContractDef(
+        "CreateTraitResponse",
+        Trait,
+        status=SchemaStatus.SKIPPED,
+        reason="Apidog spec corrupted - garbled enums",
+    ),
+    ContractDef(
+        "GetTraitResponse",
+        Trait,
+        status=SchemaStatus.SKIPPED,
+        reason="Apidog spec corrupted - garbled enums",
+    ),
+    ContractDef(
+        "UpdateTraitResponse",
+        Trait,
+        status=SchemaStatus.SKIPPED,
+        reason="Apidog spec corrupted - garbled enums",
+    ),
+    # Auth
+    ContractDef(
+        "SignUpResponse",
+        status=SchemaStatus.SKIPPED,
+        reason="No SDK model",
     ),
 ]
 
@@ -446,6 +493,24 @@ REQUESTS = [
     ContractDef(
         "QueryEndUserReq", status=SchemaStatus.SKIPPED, reason="Path Param Only"
     ),
+    # MindSpace
+    ContractDef(
+        "AddMindSpaceUsersRequest",
+        AddMindSpaceUsersRequest,
+        factory=AddMindSpaceUsersRequestFactory.build,
+    ),
+    # Persona
+    ContractDef(
+        "UpdatePersonaReq",
+        UpdatePersonaRequest,
+        factory=UpdatePersonaRequestFactory.build,
+    ),
+    # Auth
+    ContractDef(
+        "SignUpRequest",
+        status=SchemaStatus.SKIPPED,
+        reason="No SDK model",
+    ),
 ]
 
 # =============================================================================
@@ -498,6 +563,13 @@ SHARED_MODELS = [
         status=SchemaStatus.SKIPPED,
         reason="Empty schema in spec",
     ),
+    # Trait sub-schemas (internal components)
+    ContractDef("CategoricalConfigSchema", status=SchemaStatus.SKIPPED, reason="Component"),
+    ContractDef("LockTypeSchema", status=SchemaStatus.SKIPPED, reason="Component"),
+    ContractDef("MultilabelConfigSchema", status=SchemaStatus.SKIPPED, reason="Component"),
+    ContractDef("NumericConfigSchema", status=SchemaStatus.SKIPPED, reason="Component"),
+    ContractDef("TraitTypeSchema", status=SchemaStatus.SKIPPED, reason="Component"),
+    ContractDef("TraitVisibilitySchema", status=SchemaStatus.SKIPPED, reason="Component"),
 ]
 
 
