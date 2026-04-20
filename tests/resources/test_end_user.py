@@ -9,7 +9,16 @@ from pytest_httpx import HTTPXMock
 from magick_mind import MagickMind
 from magick_mind.models.v1.end_user import EndUser
 
-from tests.resources._payloads import BASE_URL, END_USER_PAYLOAD, PAGING_EMPTY
+import pytest
+
+from tests.resources._payloads import (
+    BASE_URL,
+    END_USER_PAYLOAD,
+    ERROR_500_ENVELOPE,
+    ERROR_ENVELOPE,
+    PAGING_EMPTY,
+)
+from magick_mind.exceptions import ProblemDetailsException
 
 
 class TestEndUser:
@@ -104,3 +113,38 @@ class TestEndUser:
         request = mock_auth.get_requests()[-1]
         assert request.method == "DELETE"
         assert str(request.url).endswith("/v1/end-users/eu-123")
+
+    async def test_get_404_raises_problem_details(
+        self,
+        client: MagickMind,
+        mock_auth: HTTPXMock,
+    ):
+        mock_auth.add_response(
+            url=f"{BASE_URL}/v1/end-users/missing",
+            method="GET",
+            status_code=404,
+            json=ERROR_ENVELOPE,
+        )
+
+        with pytest.raises(ProblemDetailsException) as exc:
+            await client.v1.end_user.get("missing")
+
+        assert exc.value.status == 404
+        assert exc.value.title == "Not Found"
+
+    async def test_create_500_raises_problem_details(
+        self,
+        client: MagickMind,
+        mock_auth: HTTPXMock,
+    ):
+        mock_auth.add_response(
+            url=f"{BASE_URL}/v1/end-users",
+            method="POST",
+            status_code=500,
+            json=ERROR_500_ENVELOPE,
+        )
+
+        with pytest.raises(ProblemDetailsException) as exc:
+            await client.v1.end_user.create(name="Jane", external_id="ext-err")
+
+        assert exc.value.status == 500

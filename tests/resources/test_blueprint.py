@@ -14,24 +14,7 @@ from tests.factories import (
     BlueprintFactory,
     ValidateBlueprintResponseFactory,
 )
-
-BASE_URL = "https://api.test"
-
-PAGING_EMPTY = {
-    "cursors": {"after": None, "before": None},
-    "has_more": False,
-    "has_previous": False,
-}
-
-ERROR_404 = {
-    "error": {
-        "type": "https://example.com/not-found",
-        "title": "Not Found",
-        "status": 404,
-        "detail": "Resource not found",
-        "request_id": "req-abc123",
-    }
-}
+from tests.resources._payloads import BASE_URL, ERROR_ENVELOPE as ERROR_404, PAGING_EMPTY
 
 
 class TestBlueprintResource:

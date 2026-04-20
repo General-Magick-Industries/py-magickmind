@@ -8,9 +8,12 @@ from pytest_httpx import HTTPXMock
 
 from magick_mind import MagickMind
 
-from tests.factories import EffectivePersonalityFactory
+import pytest
 
-BASE_URL = "https://api.test"
+from magick_mind.exceptions import ProblemDetailsException
+
+from tests.factories import EffectivePersonalityFactory
+from tests.resources._payloads import BASE_URL, ERROR_ENVELOPE, ERROR_500_ENVELOPE
 
 
 class TestRuntimeResource:
@@ -72,3 +75,34 @@ class TestRuntimeResource:
         await client.v1.runtime.invalidate_cache("p-1", user_id="u-1")
         body2 = json.loads(mock_auth.get_requests()[-1].content)
         assert body2 == {"persona_id": "p-1", "user_id": "u-1"}
+
+    async def test_get_effective_personality_404_raises_problem_details(
+        self, client: MagickMind, mock_auth: HTTPXMock
+    ):
+        mock_auth.add_response(
+            url=f"{BASE_URL}/v1/runtime/effective-personality/missing",
+            method="GET",
+            status_code=404,
+            json=ERROR_ENVELOPE,
+        )
+
+        with pytest.raises(ProblemDetailsException) as exc:
+            await client.v1.runtime.get_effective_personality("missing")
+
+        assert exc.value.status == 404
+        assert exc.value.title == "Not Found"
+
+    async def test_invalidate_cache_500_raises_problem_details(
+        self, client: MagickMind, mock_auth: HTTPXMock
+    ):
+        mock_auth.add_response(
+            url=f"{BASE_URL}/v1/runtime/invalidate-cache",
+            method="POST",
+            status_code=500,
+            json=ERROR_500_ENVELOPE,
+        )
+
+        with pytest.raises(ProblemDetailsException) as exc:
+            await client.v1.runtime.invalidate_cache("p-err")
+
+        assert exc.value.status == 500

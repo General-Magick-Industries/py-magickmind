@@ -92,3 +92,13 @@ ERROR_ENVELOPE = {
         "request_id": "req-abc123",
     }
 }
+
+ERROR_500_ENVELOPE = {
+    "error": {
+        "type": "https://example.com/internal-error",
+        "title": "Internal Server Error",
+        "status": 500,
+        "detail": "Something went wrong",
+        "request_id": "req-def456",
+    }
+}

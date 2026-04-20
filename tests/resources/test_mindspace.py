@@ -13,8 +13,14 @@ from magick_mind.models.v1.mindspace import (
     MindspaceMessagesResponse,
 )
 
+import pytest
+
+from magick_mind.exceptions import ProblemDetailsException
+
 from tests.resources._payloads import (
     BASE_URL,
+    ERROR_500_ENVELOPE,
+    ERROR_ENVELOPE,
     HISTORY_PAYLOAD,
     MINDSPACE_PAYLOAD,
     PAGING_EMPTY,
@@ -179,3 +185,38 @@ class TestMindspace:
         request = mock_auth.get_requests()[-1]
         assert "/v1/mindspaces/ms-1/messages" in str(request.url)
         assert "limit=20" in str(request.url)
+
+    async def test_get_404_raises_problem_details(
+        self,
+        client: MagickMind,
+        mock_auth: HTTPXMock,
+    ):
+        mock_auth.add_response(
+            url=f"{BASE_URL}/v1/mindspaces/missing",
+            method="GET",
+            status_code=404,
+            json=ERROR_ENVELOPE,
+        )
+
+        with pytest.raises(ProblemDetailsException) as exc:
+            await client.mindspace.get("missing")
+
+        assert exc.value.status == 404
+        assert exc.value.title == "Not Found"
+
+    async def test_create_500_raises_problem_details(
+        self,
+        client: MagickMind,
+        mock_auth: HTTPXMock,
+    ):
+        mock_auth.add_response(
+            url=f"{BASE_URL}/v1/mindspaces",
+            method="POST",
+            status_code=500,
+            json=ERROR_500_ENVELOPE,
+        )
+
+        with pytest.raises(ProblemDetailsException) as exc:
+            await client.mindspace.create(name="Broken Space", type="PRIVATE")
+
+        assert exc.value.status == 500

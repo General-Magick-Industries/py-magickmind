@@ -9,7 +9,11 @@ from pytest_httpx import HTTPXMock
 from magick_mind import MagickMind
 from magick_mind.models.v1.project import Project
 
-from tests.resources._payloads import BASE_URL, PAGING_EMPTY, PROJECT_PAYLOAD
+import pytest
+
+from magick_mind.exceptions import ProblemDetailsException
+
+from tests.resources._payloads import BASE_URL, ERROR_ENVELOPE, PAGING_EMPTY, PROJECT_PAYLOAD
 
 
 class TestProject:
@@ -100,3 +104,21 @@ class TestProject:
         request = mock_auth.get_requests()[-1]
         assert request.method == "DELETE"
         assert str(request.url).endswith("/v1/projects/proj-123")
+
+    async def test_get_404_raises_problem_details(
+        self,
+        client: MagickMind,
+        mock_auth: HTTPXMock,
+    ):
+        mock_auth.add_response(
+            url=f"{BASE_URL}/v1/projects/missing",
+            method="GET",
+            status_code=404,
+            json=ERROR_ENVELOPE,
+        )
+
+        with pytest.raises(ProblemDetailsException) as exc:
+            await client.v1.project.get("missing")
+
+        assert exc.value.status == 404
+        assert exc.value.title == "Not Found"

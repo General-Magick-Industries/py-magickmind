@@ -11,8 +11,8 @@ from magick_mind import MagickMind
 from magick_mind.models.v1.corpus import QueryCorpusResponse
 
 from tests.factories import QueryCorpusResponseFactory
-
-BASE_URL = "https://api.test"
+from tests.resources._payloads import BASE_URL, ERROR_ENVELOPE
+from magick_mind.exceptions import ProblemDetailsException
 
 
 class TestCorpusQueryResource:
@@ -63,3 +63,26 @@ class TestCorpusQueryResource:
             assert "enable_rerank" not in body
         else:
             assert body["enable_rerank"] is enable_rerank
+
+    async def test_query_404_raises_problem_details(
+        self,
+        client: MagickMind,
+        mock_auth: HTTPXMock,
+    ):
+        mock_auth.add_response(
+            url=f"{BASE_URL}/v1/corpus/missing/query",
+            method="POST",
+            status_code=404,
+            json=ERROR_ENVELOPE,
+        )
+
+        with pytest.raises(ProblemDetailsException) as exc:
+            await client.v1.corpus.query(
+                "missing",
+                query="hello",
+                mode="hybrid",
+                api_key="sk-test",
+            )
+
+        assert exc.value.status == 404
+        assert exc.value.title == "Not Found"

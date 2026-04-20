@@ -9,7 +9,11 @@ from pytest_httpx import HTTPXMock
 from magick_mind import MagickMind
 from magick_mind.models.v1.trait import Trait
 
-from tests.resources._payloads import BASE_URL, PAGING_EMPTY, TRAIT_PAYLOAD
+import pytest
+
+from magick_mind.exceptions import ProblemDetailsException
+
+from tests.resources._payloads import BASE_URL, ERROR_500_ENVELOPE, ERROR_ENVELOPE, PAGING_EMPTY, TRAIT_PAYLOAD
 
 
 class TestTrait:
@@ -190,3 +194,45 @@ class TestTrait:
         request = mock_auth.get_requests()[-1]
         assert request.method == "DELETE"
         assert str(request.url).endswith("/v1/traits/tr-123")
+
+    async def test_get_404_raises_problem_details(
+        self,
+        client: MagickMind,
+        mock_auth: HTTPXMock,
+    ):
+        mock_auth.add_response(
+            url=f"{BASE_URL}/v1/traits/missing",
+            method="GET",
+            status_code=404,
+            json=ERROR_ENVELOPE,
+        )
+
+        with pytest.raises(ProblemDetailsException) as exc:
+            await client.v1.trait.get("missing")
+
+        assert exc.value.status == 404
+        assert exc.value.title == "Not Found"
+
+    async def test_create_500_raises_problem_details(
+        self,
+        client: MagickMind,
+        mock_auth: HTTPXMock,
+    ):
+        mock_auth.add_response(
+            url=f"{BASE_URL}/v1/traits",
+            method="POST",
+            status_code=500,
+            json=ERROR_500_ENVELOPE,
+        )
+
+        with pytest.raises(ProblemDetailsException) as exc:
+            await client.v1.trait.create(
+                name="broken",
+                namespace="SYSTEM",
+                category="personality",
+                display_name="Broken",
+                type="NUMERIC",
+                visibility="PUBLIC",
+            )
+
+        assert exc.value.status == 500

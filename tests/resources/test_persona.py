@@ -15,24 +15,7 @@ from tests.factories import (
     PersonaVersionFactory,
     PreparePersonaResponseFactory,
 )
-
-BASE_URL = "https://api.test"
-
-PAGING_EMPTY = {
-    "cursors": {"after": None, "before": None},
-    "has_more": False,
-    "has_previous": False,
-}
-
-ERROR_500 = {
-    "error": {
-        "type": "https://example.com/internal-error",
-        "title": "Internal Server Error",
-        "status": 500,
-        "detail": "Something went wrong",
-        "request_id": "req-def456",
-    }
-}
+from tests.resources._payloads import BASE_URL, ERROR_500_ENVELOPE as ERROR_500, PAGING_EMPTY
 
 
 class TestPersonaResource:
