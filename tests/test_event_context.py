@@ -226,3 +226,57 @@ async def test_subscribe_many_different_users_dispatch():
         await router.on_publication(_make_pub_ctx(data, f"personal:{uid}#svc-1"))
 
     assert results == {"alice": "hi alice", "bob": "hi bob", "carol": "hi carol"}
+
+
+@pytest.mark.asyncio
+async def test_router_ignores_publication_with_no_data():
+    router = EventRouter()
+
+    called = False
+
+    @router.on("chat_message")
+    async def handle(event, ctx):  # pragma: no cover - should never run
+        nonlocal called
+        called = True
+
+    pub = MagicMock()
+    pub.data = None
+    ctx = MagicMock(spec=[])
+    ctx.pub = pub
+    ctx.channel = "personal:u1#svc"
+
+    await router.on_publication(ctx)
+    assert called is False
+
+
+@pytest.mark.asyncio
+async def test_handler_exception_is_caught_and_logged(caplog):
+    import logging
+
+    router = EventRouter()
+
+    @router.on("chat_message")
+    async def handle(event, ctx):
+        raise RuntimeError("boom")
+
+    caplog.set_level(logging.ERROR)
+    await router.on_publication(_make_pub_ctx(_CHAT_DATA, "personal:u1#svc"))
+
+    assert any("Error in handler for event type 'chat_message'" in r.message for r in caplog.records)
+
+
+@pytest.mark.asyncio
+async def test_unknown_handler_exception_is_caught_and_logged(caplog):
+    import logging
+
+    router = EventRouter()
+
+    @router.on_unknown
+    async def handle(event, ctx):
+        raise RuntimeError("boom")
+
+    caplog.set_level(logging.ERROR)
+    data = {"type": "some_new_type", "payload": {"x": 1}}
+    await router.on_publication(_make_pub_ctx(data, "personal:u2#svc"))
+
+    assert any("Error in unknown event handler for type 'some_new_type'" in r.message for r in caplog.records)
