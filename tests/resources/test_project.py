@@ -13,7 +13,12 @@ import pytest
 
 from magick_mind.exceptions import ProblemDetailsException
 
-from tests.resources._payloads import BASE_URL, ERROR_ENVELOPE, PAGING_EMPTY, PROJECT_PAYLOAD
+from tests.resources._payloads import (
+    BASE_URL,
+    ERROR_ENVELOPE,
+    PAGING_EMPTY,
+    PROJECT_PAYLOAD,
+)
 
 
 class TestProject:

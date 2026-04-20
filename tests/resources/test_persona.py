@@ -15,7 +15,11 @@ from tests.factories import (
     PersonaVersionFactory,
     PreparePersonaResponseFactory,
 )
-from tests.resources._payloads import BASE_URL, ERROR_500_ENVELOPE as ERROR_500, PAGING_EMPTY
+from tests.resources._payloads import (
+    BASE_URL,
+    ERROR_500_ENVELOPE as ERROR_500,
+    PAGING_EMPTY,
+)
 
 
 class TestPersonaResource:

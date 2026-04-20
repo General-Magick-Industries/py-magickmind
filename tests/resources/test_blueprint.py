@@ -14,7 +14,11 @@ from tests.factories import (
     BlueprintFactory,
     ValidateBlueprintResponseFactory,
 )
-from tests.resources._payloads import BASE_URL, ERROR_ENVELOPE as ERROR_404, PAGING_EMPTY
+from tests.resources._payloads import (
+    BASE_URL,
+    ERROR_ENVELOPE as ERROR_404,
+    PAGING_EMPTY,
+)
 
 
 class TestBlueprintResource:

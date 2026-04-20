@@ -13,7 +13,13 @@ import pytest
 
 from magick_mind.exceptions import ProblemDetailsException
 
-from tests.resources._payloads import BASE_URL, ERROR_500_ENVELOPE, ERROR_ENVELOPE, PAGING_EMPTY, TRAIT_PAYLOAD
+from tests.resources._payloads import (
+    BASE_URL,
+    ERROR_500_ENVELOPE,
+    ERROR_ENVELOPE,
+    PAGING_EMPTY,
+    TRAIT_PAYLOAD,
+)
 
 
 class TestTrait:
