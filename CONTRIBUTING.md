@@ -8,6 +8,20 @@ cd py-magickmind
 uv sync --all-extras
 ```
 
+## Pre-commit Hooks
+
+Install the hooks once after cloning so ruff and pyright run automatically on every commit:
+
+```bash
+uv run pre-commit install
+```
+
+To run all checks manually against the full codebase:
+
+```bash
+uv run pre-commit run --all-files
+```
+
 ## Running Tests
 
 ```bash

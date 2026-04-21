@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
+
+if TYPE_CHECKING:
+    from openai import AsyncOpenAI
 
 from magick_mind.auth import AuthProvider, EmailPasswordAuth
 from magick_mind.config import SDKConfig
@@ -208,7 +211,7 @@ class MagickMind:
         """Async context manager exit."""
         await self.close()
 
-    def openai_client(self, api_key: str, compute_power: int = 1) -> object:
+    def openai_client(self, api_key: str, compute_power: int = 1) -> "AsyncOpenAI":
         """
         Return a pre-configured AsyncOpenAI client pointed at the Magick Mind API.
 
