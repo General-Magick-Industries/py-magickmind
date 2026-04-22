@@ -128,7 +128,13 @@ async def main() -> None:
                 size_bytes=file_size,
                 corpus_id=corpus_id,
             )
-            assert presign.id and presign.upload_url and presign.bucket and presign.key
+            if (
+                not presign.id
+                or not presign.upload_url
+                or not presign.bucket
+                or not presign.key
+            ):
+                raise RuntimeError("Presign response missing required fields")
             artifact_id = presign.id
             print(f"   Artifact: {artifact_id}")
             print(f"   S3 key:   {presign.key}")

@@ -7,7 +7,7 @@ presigned S3 URLs and webhook-based completion confirmation.
 
 from __future__ import annotations
 
-from typing import Optional
+from typing import ClassVar, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -22,7 +22,7 @@ class Artifact(BaseModel):
     associated with a corpus or other container in the backend.
     """
 
-    model_config = ConfigDict(
+    model_config: ClassVar[ConfigDict] = ConfigDict(
         extra="allow"
     )  # Allow additional fields from API responses
 

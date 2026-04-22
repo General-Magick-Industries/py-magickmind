@@ -2375,17 +2375,17 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "user_ids": {
+          "participant_ids": {
             "type": "array",
             "minItems": 1,
             "items": {
               "type": "string"
             },
-            "description": "Users to add to the mindspace"
+            "description": "Participants to add to the mindspace"
           }
         },
         "required": [
-          "user_ids"
+          "participant_ids"
         ]
       },
       "AddMindSpaceUsersResponse": {
@@ -3143,18 +3143,22 @@
           },
           "updated_by": {
             "type": "string"
+          },
+          "active_version": {
+            "type": [
+              "string",
+              "null"
+            ]
           }
-        }
+        },
+        "required": [
+          "id",
+          "name",
+          "role"
+        ]
       },
       "GetPersonaByIdRes": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/BaseSchema"
-          },
-          {
-            "$ref": "#/components/schemas/PersonaSchema"
-          }
-        ]
+        "$ref": "#/components/schemas/PersonaSchema"
       },
       "UpdatePersonaReq": {
         "type": "object",
@@ -3196,20 +3200,7 @@
         ]
       },
       "UpdatePersonaRes": {
-        "allOf": [
-          {
-            "type": "object",
-            "properties": {}
-          },
-          {
-            "type": "object",
-            "properties": {
-              "schema": {
-                "$ref": "#/components/schemas/PersonaSchema"
-              }
-            }
-          }
-        ]
+        "$ref": "#/components/schemas/PersonaSchema"
       },
       "ChatHistoryItem": {
         "type": "object",

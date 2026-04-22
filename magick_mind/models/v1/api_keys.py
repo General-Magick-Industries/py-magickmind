@@ -5,7 +5,7 @@ Provides Pydantic models for creating and managing API keys
 for authenticating requests to the backend.
 """
 
-from typing import Optional
+from typing import ClassVar, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -19,7 +19,7 @@ class ApiKey(BaseModel):
     Represents an API key for making authenticated requests.
     """
 
-    model_config = ConfigDict(extra="allow")
+    model_config: ClassVar[ConfigDict] = ConfigDict(extra="allow")
 
     key_id: str = Field(..., description="Unique key identifier")
     key_alias: str = Field(..., description="Human-readable key alias/name")
@@ -36,7 +36,7 @@ class KeyResponse(BaseModel):
     Only returned when creating or updating a key.
     """
 
-    model_config = ConfigDict(extra="allow")
+    model_config: ClassVar[ConfigDict] = ConfigDict(extra="allow")
 
     key: Optional[str] = Field(None, description="The actual API key (only shown once)")
     key_alias: Optional[str] = Field(None, description="Key alias/name")
