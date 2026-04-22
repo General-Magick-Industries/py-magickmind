@@ -5,11 +5,7 @@ from __future__ import annotations
 from pytest_httpx import HTTPXMock
 
 from magick_mind import MagickMind
-from tests.resources._payloads import (
-    BASE_URL,
-    ARTIFACT_PAYLOAD
-)
-
+from tests.resources._payloads import BASE_URL, ARTIFACT_PAYLOAD
 
 
 class TestArtifact:
