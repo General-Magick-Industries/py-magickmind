@@ -6,7 +6,7 @@ Mirrors the /v1/traits endpoint request/response schemas.
 
 from __future__ import annotations
 
-from typing import Literal, Optional
+from typing import ClassVar, Literal, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -61,7 +61,7 @@ class Trait(BaseModel):
 class CreateTraitRequest(BaseModel):
     """Request schema for creating a trait."""
 
-    model_config = ConfigDict(extra="forbid")
+    model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
 
     name: str
     namespace: TraitNamespace
@@ -85,7 +85,7 @@ class UpdateTraitRequest(BaseModel):
     Note: `name` and `namespace` are immutable after creation and cannot be changed.
     """
 
-    model_config = ConfigDict(extra="forbid")
+    model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
 
     category: str
     display_name: str

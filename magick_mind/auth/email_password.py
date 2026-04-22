@@ -12,7 +12,7 @@ from magick_mind.routes import Routes
 
 import logging
 
-logger = logging.getLogger(__name__)
+logger: logging.Logger = logging.getLogger(__name__)
 
 
 def compute_token_expiry(
@@ -62,10 +62,10 @@ class EmailPasswordAuth(AuthProvider):
         if not email or not password:
             raise ValueError("Email and password are required")
 
-        self.email = email
-        self.password = password
-        self.base_url = base_url.rstrip("/")
-        self.timeout = timeout
+        self.email: str = email
+        self.password: str = password
+        self.base_url: str = base_url.rstrip("/")
+        self.timeout: float = timeout
 
         # Token storage
         self._access_token: Optional[str] = None

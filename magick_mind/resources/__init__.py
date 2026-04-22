@@ -1,17 +1,44 @@
 """Resource clients for API endpoints."""
 
+from __future__ import annotations
+
 from typing import TYPE_CHECKING
 
 from magick_mind.resources.base import BaseResource
 
 if TYPE_CHECKING:
     from magick_mind.http import HTTPClient
+    from magick_mind.resources.v1.artifact import ArtifactResourceV1
+    from magick_mind.resources.v1.api_keys import ApiKeysResourceV1
+    from magick_mind.resources.v1.blueprint import BlueprintResourceV1
+    from magick_mind.resources.v1.chat import ChatResourceV1
+    from magick_mind.resources.v1.corpus import CorpusResourceV1
+    from magick_mind.resources.v1.end_user import EndUserResourceV1
+    from magick_mind.resources.v1.history import HistoryResourceV1
+    from magick_mind.resources.v1.mindspace import MindspaceResourceV1
+    from magick_mind.resources.v1.persona import PersonaResourceV1
+    from magick_mind.resources.v1.project import ProjectResourceV1
+    from magick_mind.resources.v1.runtime import RuntimeResourceV1
+    from magick_mind.resources.v1.trait import TraitResourceV1
 
 
 class V1Resources:
     """Container for all v1 API resources."""
 
-    def __init__(self, http_client: "HTTPClient"):
+    artifact: ArtifactResourceV1
+    api_keys: ApiKeysResourceV1
+    blueprint: BlueprintResourceV1
+    chat: ChatResourceV1
+    corpus: CorpusResourceV1
+    end_user: EndUserResourceV1
+    history: HistoryResourceV1
+    mindspace: MindspaceResourceV1
+    persona: PersonaResourceV1
+    project: ProjectResourceV1
+    runtime: RuntimeResourceV1
+    trait: TraitResourceV1
+
+    def __init__(self, http_client: HTTPClient) -> None:
         """
         Initialize V1 resources.
 

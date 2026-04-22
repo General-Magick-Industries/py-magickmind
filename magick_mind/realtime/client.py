@@ -4,6 +4,7 @@ import asyncio
 import base64
 import json
 import logging
+from collections.abc import Callable
 from typing import Optional, List, cast
 
 from centrifuge import (
@@ -15,10 +16,10 @@ from centrifuge import (
 
 from ..auth.base import AuthProvider
 from ..exceptions import MagickMindError
-from .handler import EventRouter
+from .handler import EventCallback, EventRouter
 
 
-logger = logging.getLogger(__name__)
+logger: logging.Logger = logging.getLogger(__name__)
 
 
 def _extract_jwt_sub(token: str) -> Optional[str]:
@@ -91,12 +92,12 @@ class RealtimeClient:
         self._client: Optional[Client] = None
         self._router = EventRouter()
 
-    def on(self, event_type: str):
+    def on(self, event_type: str) -> Callable[[EventCallback], EventCallback]:
         """Register a handler for a realtime event type."""
         return self._router.on(event_type)
 
     @property
-    def on_unknown(self):
+    def on_unknown(self) -> Callable[[EventCallback], EventCallback]:
         """Register a catch-all for unknown event types."""
         return self._router.on_unknown
 
