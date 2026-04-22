@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import asyncio
 import warnings
-from typing import IO, Optional, Union
+from typing import IO, Optional
 
 import httpx
 
@@ -576,6 +576,7 @@ class CorpusResourceV1(BaseResource):
             content_type=content_type,
             size_bytes=size_bytes,
             corpus_id=corpus_id,
+            end_user_id=None,
         )
         presign_resp_raw = await self._http.post(
             Routes.ARTIFACTS_PRESIGN,
@@ -602,6 +603,11 @@ class CorpusResourceV1(BaseResource):
             artifact_id=presign.id,
             bucket=presign.bucket or "",
             key=presign.key or "",
+            version_id=None,
+            size_bytes=size_bytes,
+            content_type=content_type,
+            etag=s3_resp.headers.get("ETag"),
+            checksum_sha256=None,
         )
         await self._http.post(
             Routes.corpus_artifacts_finalize(corpus_id),
