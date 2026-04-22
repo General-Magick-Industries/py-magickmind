@@ -4,7 +4,7 @@ Project models for Magick Mind SDK v1 API.
 Mirrors the /v1/projects endpoint request/response schemas.
 """
 
-from typing import Optional
+from typing import ClassVar, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -18,7 +18,7 @@ class Project(BaseModel):
     Represents an agentic SaaS project with associated corpus IDs.
     """
 
-    model_config = ConfigDict(populate_by_name=True)
+    model_config: ClassVar[ConfigDict] = ConfigDict(populate_by_name=True)
 
     id: str = Field(..., description="Project ID")
     name: str = Field(..., description="Project name")

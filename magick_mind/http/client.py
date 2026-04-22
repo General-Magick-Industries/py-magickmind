@@ -20,7 +20,7 @@ from magick_mind.exceptions import (
 )
 from magick_mind.models.errors import ErrorResponse, ProblemDetails
 
-logger = logging.getLogger(__name__)
+logger: logging.Logger = logging.getLogger(__name__)
 
 # Type alias: All HTTP methods return parsed JSON data, NOT httpx.Response objects.
 # This prevents bugs like calling `.json()` on an already-parsed dict.
