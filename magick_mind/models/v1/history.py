@@ -4,7 +4,7 @@ History models for Magick Mind SDK v1 API.
 Mirrors the /v1/mindspaces/messages endpoint response.
 """
 
-from typing import Optional
+from typing import ClassVar, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -18,7 +18,7 @@ class ChatHistoryMessage(BaseModel):
     Maps to ChatHistoryItem from the magickmind.api.
     """
 
-    model_config = ConfigDict(populate_by_name=True)
+    model_config: ClassVar[ConfigDict] = ConfigDict(populate_by_name=True)
 
     id: Optional[str] = Field(None, description="Message ID")
     mindspace_id: Optional[str] = Field(

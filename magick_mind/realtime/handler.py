@@ -34,7 +34,7 @@ from centrifuge import ClientEventHandler, ServerPublicationContext
 
 from magick_mind.realtime.events import EventContext, UnknownEvent, parse_ws_event
 
-logger = logging.getLogger(__name__)
+logger: logging.Logger = logging.getLogger(__name__)
 
 
 # Type alias for event handler callbacks

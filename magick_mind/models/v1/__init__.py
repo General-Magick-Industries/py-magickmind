@@ -11,6 +11,19 @@ from magick_mind.models.v1.artifact import (
     PresignArtifactRequest,
     PresignArtifactResponse,
 )
+from magick_mind.models.v1.blueprint import (
+    Blueprint,
+    CloneBlueprintRequest,
+    CreateBlueprintRequest,
+    HydratedBlueprint,
+    HydratedBlueprintTrait,
+    ListBlueprintsResponse,
+    PatchBlueprintRequest,
+    UpdateBlueprintRequest,
+    ValidateBlueprintRequest,
+    ValidateBlueprintResponse,
+    ValidationError as BlueprintValidationError,
+)
 from magick_mind.models.v1.chat import (
     ChatAck,
     ChatSendRequest,
@@ -49,11 +62,36 @@ from magick_mind.models.v1.api_keys import (
     UpdateApiKeyRequest,
     UpdateApiKeyResponse,
 )
-from magick_mind.models.v1.project import (
-    CreateProjectRequest,
-    GetProjectListResponse,
-    Project,
-    UpdateProjectRequest,
+from magick_mind.models.v1.mindspace import (
+    AddMindSpaceUsersRequest,
+    ChatHistoryItem,
+    ChatHistoryParams,
+    ContextPrepareResponse,
+    CorpusChunk,
+    CorpusParams,
+    CreateMindSpaceRequest,
+    FetcherParams,
+    GetMindSpaceListResponse,
+    LivekitJoinResponse,
+    LivekitTokenResponse,
+    MindSpace,
+    MindSpaceType,
+    MindspaceMessagesResponse,
+    SendMessageRequest,
+    UpdateMindSpaceRequest,
+)
+from magick_mind.models.v1.persona import (
+    CreatePersonaFromBlueprintRequest,
+    CreatePersonaRequest,
+    CreatePersonaVersionRequest,
+    ListPersonaVersionsResponse,
+    Persona,
+    PersonaVersion,
+    PersonaWithVersion,
+    PreparePersonaRequest,
+    PreparePersonaResponse,
+    SetActiveVersionRequest,
+    UpdatePersonaRequest,
 )
 from magick_mind.models.v1.personality import (
     BlueprintTrait,
@@ -64,8 +102,23 @@ from magick_mind.models.v1.personality import (
     GoalState,
     GrowthConfig,
     GrowthTrigger,
+    GrowthType,
+    Namespace,
     TraitConstraint,
     TraitValue,
+    TriggerDirection,
+    Visibility,
+)
+from magick_mind.models.v1.project import (
+    CreateProjectRequest,
+    GetProjectListResponse,
+    Project,
+    UpdateProjectRequest,
+)
+from magick_mind.models.v1.runtime import (
+    EffectivePersonality,
+    EffectiveSources,
+    EffectiveTrait,
 )
 from magick_mind.models.v1.trait import (
     CategoricalConfig,
@@ -84,19 +137,23 @@ from magick_mind.models.v1.trait import (
 
 
 __all__ = [
+    # Chat
     "ChatSendRequest",
     "ChatAck",
     "ChatSendResponse",
     "ChatHistoryMessage",
     "HistoryResponse",
+    # Project
     "Project",
     "CreateProjectRequest",
     "UpdateProjectRequest",
     "GetProjectListResponse",
+    # End user
     "EndUser",
     "CreateEndUserRequest",
     "QueryEndUserResponse",
     "UpdateEndUserRequest",
+    # Artifact
     "Artifact",
     "PresignArtifactRequest",
     "PresignArtifactResponse",
@@ -106,6 +163,7 @@ __all__ = [
     "FinalizeArtifactRequest",
     "FinalizeArtifactResponse",
     "ArtifactWebhookPayload",
+    # Corpus
     "Corpus",
     "CreateCorpusRequest",
     "ListCorpusResponse",
@@ -120,6 +178,7 @@ __all__ = [
     "Chunk",
     "Reference",
     "QueryMetadata",
+    # API keys
     "ApiKey",
     "KeyResponse",
     "CreateApiKeyRequest",
@@ -128,6 +187,12 @@ __all__ = [
     "UpdateApiKeyRequest",
     "UpdateApiKeyResponse",
     "DeleteApiKeyResponse",
+    # Personality primitives
+    "Namespace",
+    "Visibility",
+    "GrowthType",
+    "TriggerDirection",
+    "LockType",
     "BlueprintTrait",
     "Boundary",
     "Constraint",
@@ -138,10 +203,55 @@ __all__ = [
     "GrowthTrigger",
     "TraitConstraint",
     "TraitValue",
+    # Blueprint
+    "Blueprint",
+    "CreateBlueprintRequest",
+    "UpdateBlueprintRequest",
+    "PatchBlueprintRequest",
+    "CloneBlueprintRequest",
+    "ValidateBlueprintRequest",
+    "BlueprintValidationError",
+    "ValidateBlueprintResponse",
+    "HydratedBlueprintTrait",
+    "HydratedBlueprint",
+    "ListBlueprintsResponse",
+    # Mindspace
+    "MindSpace",
+    "MindSpaceType",
+    "CreateMindSpaceRequest",
+    "GetMindSpaceListResponse",
+    "UpdateMindSpaceRequest",
+    "AddMindSpaceUsersRequest",
+    "MindspaceMessagesResponse",
+    "ChatHistoryItem",
+    "ChatHistoryParams",
+    "CorpusChunk",
+    "CorpusParams",
+    "FetcherParams",
+    "SendMessageRequest",
+    "ContextPrepareResponse",
+    "LivekitTokenResponse",
+    "LivekitJoinResponse",
+    # Persona
+    "Persona",
+    "CreatePersonaRequest",
+    "UpdatePersonaRequest",
+    "CreatePersonaFromBlueprintRequest",
+    "PersonaVersion",
+    "CreatePersonaVersionRequest",
+    "SetActiveVersionRequest",
+    "PersonaWithVersion",
+    "PreparePersonaRequest",
+    "PreparePersonaResponse",
+    "ListPersonaVersionsResponse",
+    # Runtime
+    "EffectiveSources",
+    "EffectiveTrait",
+    "EffectivePersonality",
+    # Trait
     "CategoricalConfig",
     "CreateTraitRequest",
     "ListTraitsResponse",
-    "LockType",
     "MultilabelConfig",
     "NumericConfig",
     "PatchTraitRequest",

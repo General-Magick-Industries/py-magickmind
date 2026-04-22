@@ -6,7 +6,7 @@ Corpus represents a collection of artifacts that can be used for
 RAG (Retrieval Augmented Generation) workflows.
 """
 
-from typing import Optional
+from typing import ClassVar, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -21,7 +21,7 @@ class Corpus(BaseModel):
     used for semantic search and retrieval augmented generation.
     """
 
-    model_config = ConfigDict(populate_by_name=True)
+    model_config: ClassVar[ConfigDict] = ConfigDict(populate_by_name=True)
 
     id: str = Field(..., description="Unique corpus identifier")
     name: str = Field(..., description="Corpus name")

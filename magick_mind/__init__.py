@@ -31,7 +31,7 @@ from magick_mind.realtime.events import (
     parse_ws_event,
 )
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 
 __all__ = [
     "MagickMind",
