@@ -1,8 +1,5 @@
 {
-  "include": ["."],
-  "exclude": [
-    "docs/",
-    ".venv/"
-  ],
+  "include": ["magick_mind", "tests", "examples"],
+  "exclude": ["**/node_modules", "**/__pycache__", "**/.*", "docs", ".venv"],
   "pythonVersion": "3.12"
 }
