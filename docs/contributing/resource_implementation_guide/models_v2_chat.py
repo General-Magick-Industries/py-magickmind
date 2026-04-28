@@ -1,15 +1,15 @@
 """v2 chat API models (hypothetical future version)."""
 
-from enum import StrEnum
+from enum import Enum
 from typing import List
 from pydantic import BaseModel, Field
 
 
-class ChatContentType(StrEnum):
+class ChatContentType(str, Enum):
     TEXT = "text"
 
 
-class ChatRole(StrEnum):
+class ChatRole(str, Enum):
     ASSISTANT = "assistant"
 
 

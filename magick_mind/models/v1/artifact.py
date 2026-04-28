@@ -7,11 +7,12 @@ presigned S3 URLs and webhook-based completion confirmation.
 
 from __future__ import annotations
 
-from enum import StrEnum
 from typing import ClassVar, Optional
 from enum import Enum
 
 from pydantic import BaseModel, ConfigDict, Field
+
+from magick_mind.models.common import PageInfo
 
 
 class ArtifactStatusEnum(str, Enum):
@@ -22,13 +23,6 @@ class ArtifactStatusEnum(str, Enum):
     READY = "ready"
     FAILED = "failed"
     DELETED = "deleted"
-
-
-class ArtifactStatusEnum(StrEnum):
-    UPLOADED = "uploaded"
-    PROCESSING = "processing"
-    READY = "ready"
-    FAILED = "failed"
 
 
 class Artifact(BaseModel):

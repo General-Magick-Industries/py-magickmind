@@ -6,7 +6,7 @@ Mirrors the /v1/traits endpoint request/response schemas.
 
 from __future__ import annotations
 
-from enum import StrEnum
+from enum import Enum
 from typing import ClassVar, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -15,20 +15,26 @@ from magick_mind.models.common import PageInfo
 from magick_mind.models.v1.personality import LockType
 
 
-class TraitType(StrEnum):
+class TraitType(str, Enum):
+    """Trait value types."""
+
     NUMERIC = "NUMERIC"
     CATEGORICAL = "CATEGORICAL"
     MULTILABEL = "MULTILABEL"
 
 
-class TraitNamespace(StrEnum):
+class TraitNamespace(str, Enum):
+    """Trait namespaces for organizational purposes."""
+
     SYSTEM = "SYSTEM"
     USER = "USER"
     ORG = "ORG"
     PROMOTED = "PROMOTED"
 
 
-class TraitVisibility(StrEnum):
+class TraitVisibility(str, Enum):
+    """Visibility levels for traits."""
+
     PRIVATE = "PRIVATE"
     ORG = "ORG"
     PUBLIC = "PUBLIC"

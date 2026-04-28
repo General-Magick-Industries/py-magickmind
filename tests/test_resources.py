@@ -22,9 +22,15 @@ from magick_mind.models.v1.mindspace import (
     GetMindSpaceListResponse,
     MindSpace,
     MindspaceMessagesResponse,
+    MindSpaceType,
 )
 from magick_mind.models.v1.project import Project
-from magick_mind.models.v1.trait import Trait
+from magick_mind.models.v1.trait import (
+    Trait,
+    TraitNamespace,
+    TraitType,
+    TraitVisibility,
+)
 
 BASE_URL = "https://api.test"
 
@@ -35,7 +41,7 @@ BASE_URL = "https://api.test"
 MINDSPACE_PAYLOAD = {
     "id": "ms-123",
     "name": "Test Space",
-    "type": "PRIVATE",
+    "type": MindSpaceType.PRIVATE,
     "description": "test",
     "project_id": "proj-1",
     "created_by": "user-1",
@@ -334,7 +340,7 @@ class TestMindspace:
 
         await client.mindspace.create(
             name="Test Space",
-            type="PRIVATE",
+            type=MindSpaceType.PRIVATE,
             description="test",
             project_id="proj-1",
         )
@@ -345,7 +351,7 @@ class TestMindspace:
 
         body = json.loads(request.content)
         assert body["name"] == "Test Space"
-        assert body["type"] == "PRIVATE"
+        assert body["type"] == MindSpaceType.PRIVATE
         assert body["description"] == "test"
         assert body["project_id"] == "proj-1"
 
@@ -360,12 +366,14 @@ class TestMindspace:
             json=MINDSPACE_PAYLOAD,
         )
 
-        result = await client.mindspace.create(name="Test Space", type="PRIVATE")
+        result = await client.mindspace.create(
+            name="Test Space", type=MindSpaceType.PRIVATE
+        )
 
         assert isinstance(result, MindSpace)
         assert result.id == "ms-123"
         assert result.name == "Test Space"
-        assert result.type == "PRIVATE"
+        assert result.type == MindSpaceType.PRIVATE
         assert result.project_id == "proj-1"
 
     async def test_get_returns_mindspace(
@@ -693,11 +701,11 @@ class TestTrait:
 
         result = await client.v1.trait.create(
             name="openness",
-            namespace="SYSTEM",
+            namespace=TraitNamespace.SYSTEM,
             category="personality",
             display_name="Openness",
-            type="NUMERIC",
-            visibility="PUBLIC",
+            type=TraitType.NUMERIC,
+            visibility=TraitVisibility.PUBLIC,
             description="Openness to experience",
         )
 
@@ -789,10 +797,10 @@ class TestTrait:
             category="personality",
             display_name="Openness Updated",
             description="Updated description",
-            type="NUMERIC",
+            type=TraitType.NUMERIC,
             default_learning_rate=0.2,
             supports_dyadic=True,
-            visibility="ORG",
+            visibility=TraitVisibility.ORG,
         )
 
         assert isinstance(result, Trait)
@@ -825,7 +833,7 @@ class TestTrait:
         result = await client.v1.trait.patch(
             trait_id="tr-123",
             display_name="Openness Patched",
-            visibility="PUBLIC",
+            visibility=TraitVisibility.PUBLIC,
         )
 
         assert isinstance(result, Trait)
@@ -837,7 +845,7 @@ class TestTrait:
 
         body = json.loads(request.content)
         assert body["display_name"] == "Openness Patched"
-        assert body["visibility"] == "PUBLIC"
+        assert body["visibility"] == TraitVisibility.PUBLIC
         # Fields not passed should not be in the body (exclude_none)
         assert "category" not in body
 

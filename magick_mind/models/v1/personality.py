@@ -2,26 +2,32 @@
 
 from __future__ import annotations
 
-from enum import StrEnum
+from enum import Enum
 from typing import Optional
 
 from pydantic import BaseModel, Field
 
 
 # --- Enums ---
-class Namespace(StrEnum):
+class Namespace(str, Enum):
+    """Trait namespaces for organizational purposes."""
+
     SYSTEM = "SYSTEM"
     USER = "USER"
     ORG = "ORG"
 
 
-class Visibility(StrEnum):
+class Visibility(str, Enum):
+    """Visibility levels for traits."""
+
     PRIVATE = "PRIVATE"
     ORG = "ORG"
     PUBLIC = "PUBLIC"
 
 
-class GrowthType(StrEnum):
+class GrowthType(str, Enum):
+    """Types of personality growth dynamics."""
+
     FIXED = "FIXED"
     EXPANDING = "EXPANDING"
     CORRUPTING = "CORRUPTING"
@@ -29,12 +35,16 @@ class GrowthType(StrEnum):
     TRANSCENDING = "TRANSCENDING"
 
 
-class LockType(StrEnum):
+class LockType(str, Enum):
+    """Types of trait locks."""
+
     HARD = "HARD"
     SOFT = "SOFT"
 
 
-class TriggerDirection(StrEnum):
+class TriggerDirection(str, Enum):
+    """Directions for growth triggers."""
+
     TOWARD_TARGET = "toward_target"
     AWAY_FROM_TARGET = "away_from_target"
     NORMAL = "normal"

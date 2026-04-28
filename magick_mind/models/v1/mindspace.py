@@ -5,7 +5,7 @@ These models mirror the API types for /v1/mindspaces endpoint.
 
 from __future__ import annotations
 
-from enum import StrEnum
+from enum import Enum
 from typing import Optional
 
 from pydantic import BaseModel, Field, field_validator
@@ -15,7 +15,9 @@ from magick_mind.models.v1.history import HistoryResponse
 
 
 # Type enum for mindspace type (uppercase to match apidog)
-class MindSpaceType(StrEnum):
+class MindSpaceType(str, Enum):
+    """Mindspace type enum."""
+
     PRIVATE = "PRIVATE"
     GROUP = "GROUP"
 
