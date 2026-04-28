@@ -467,7 +467,7 @@ class CorpusResourceV1(BaseResource):
 
         resp = await self._http.post(
             Routes.corpus_query(corpus_id),
-            json=payload.model_dump(exclude_none=True),
+            json=payload.model_dump(mode="json", exclude_none=True),
             headers=headers if headers else None,
         )
 

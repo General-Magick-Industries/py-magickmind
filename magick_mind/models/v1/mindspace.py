@@ -5,7 +5,8 @@ These models mirror the API types for /v1/mindspaces endpoint.
 
 from __future__ import annotations
 
-from typing import Literal, Optional
+from enum import Enum
+from typing import Optional
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -13,16 +14,23 @@ from magick_mind.models.common import PageInfo
 from magick_mind.models.v1.history import HistoryResponse
 
 
-# Type alias for mindspace type enum (uppercase to match apidog)
-MindSpaceType = Literal["PRIVATE", "GROUP"]
+# Type enum for mindspace type (uppercase to match apidog)
+class MindSpaceType(str, Enum):
+    """Mindspace type enum."""
+
+    PRIVATE = "PRIVATE"
+    GROUP = "GROUP"
+
 
 # The API returns proto enum .String() values with MINDSPACE_TYPE_ prefix.
 # We normalize to short form for SDK consumers.
 _TYPE_NORMALIZE: dict[str, MindSpaceType] = {
-    "PRIVATE": "PRIVATE",
-    "GROUP": "GROUP",
-    "MINDSPACE_TYPE_PRIVATE": "PRIVATE",
-    "MINDSPACE_TYPE_GROUP": "GROUP",
+    "PRIVATE": MindSpaceType.PRIVATE,
+    "GROUP": MindSpaceType.GROUP,
+    "private": MindSpaceType.PRIVATE,
+    "group": MindSpaceType.GROUP,
+    "MINDSPACE_TYPE_PRIVATE": MindSpaceType.PRIVATE,
+    "MINDSPACE_TYPE_GROUP": MindSpaceType.GROUP,
 }
 
 
@@ -107,6 +115,17 @@ class CreateMindSpaceRequest(BaseModel):
     participant_ids: list[str] = Field(
         default_factory=list, description="List of participant IDs to grant access"
     )
+
+    @field_validator("type", mode="before")
+    @classmethod
+    def _normalize_type(cls, v: object) -> object:
+        if isinstance(v, str) and v in _TYPE_NORMALIZE:
+            return _TYPE_NORMALIZE[v]
+        if isinstance(v, str):
+            upper = v.upper()
+            if upper in _TYPE_NORMALIZE:
+                return _TYPE_NORMALIZE[upper]
+        return v
 
 
 class GetMindSpaceListResponse(BaseModel):

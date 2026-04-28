@@ -7,6 +7,7 @@ import json
 from pytest_httpx import HTTPXMock
 
 from magick_mind import MagickMind
+from magick_mind import MindSpaceType
 from magick_mind.models.v1.mindspace import (
     GetMindSpaceListResponse,
     MindSpace,
@@ -41,7 +42,7 @@ class TestMindspace:
 
         await client.mindspace.create(
             name="Test Space",
-            type="PRIVATE",
+            type=MindSpaceType.PRIVATE,
             description="test",
             project_id="proj-1",
         )
@@ -67,12 +68,15 @@ class TestMindspace:
             json=MINDSPACE_PAYLOAD,
         )
 
-        result = await client.mindspace.create(name="Test Space", type="PRIVATE")
+        result = await client.mindspace.create(
+            name="Test Space",
+            type=MindSpaceType.PRIVATE,
+        )
 
         assert isinstance(result, MindSpace)
         assert result.id == "ms-123"
         assert result.name == "Test Space"
-        assert result.type == "PRIVATE"
+        assert result.type == MindSpaceType.PRIVATE
         assert result.project_id == "proj-1"
 
     async def test_get_returns_mindspace(
@@ -217,6 +221,8 @@ class TestMindspace:
         )
 
         with pytest.raises(ProblemDetailsException) as exc:
-            await client.mindspace.create(name="Broken Space", type="PRIVATE")
+            await client.mindspace.create(
+                name="Broken Space", type=MindSpaceType.PRIVATE
+            )
 
         assert exc.value.status == 500

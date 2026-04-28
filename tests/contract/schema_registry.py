@@ -125,7 +125,7 @@ class UpdateEndUserRequestFactory(ModelFactory):
 
 class CreateMindSpaceRequestFactory(ModelFactory):
     __model__ = CreateMindSpaceRequest
-    type = "PRIVATE"  # Constrained Literal field
+    type = "PRIVATE"  # Constrained enum field
 
 
 class UpdateMindSpaceRequestFactory(ModelFactory):

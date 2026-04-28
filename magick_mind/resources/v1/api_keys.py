@@ -73,7 +73,7 @@ class ApiKeysResourceV1(BaseResource):
         )
 
         resp = await self._http.post(
-            Routes.KEYS, json=payload.model_dump(exclude_none=True)
+            Routes.KEYS, json=payload.model_dump(mode="json", exclude_none=True)
         )
 
         return CreateApiKeyResponse(**resp)
@@ -141,7 +141,7 @@ class ApiKeysResourceV1(BaseResource):
         )
 
         resp = await self._http.put(
-            Routes.KEYS, json=payload.model_dump(exclude_none=True)
+            Routes.KEYS, json=payload.model_dump(mode="json", exclude_none=True)
         )
 
         return UpdateApiKeyResponse(**resp)

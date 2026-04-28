@@ -39,7 +39,7 @@ class MindspaceResourceV1(BaseResource):
         # Create a private mindspace
         mindspace = await client.v1.mindspace.create(
             name="My Workspace",
-            type="private",
+            type="PRIVATE",
             description="Personal workspace",
             corpus_ids=["corp-123"]
         )
@@ -100,7 +100,7 @@ class MindspaceResourceV1(BaseResource):
 
         # Make API call
         response = await self._http.post(
-            Routes.MINDSPACES, json=request.model_dump(exclude_none=True)
+            Routes.MINDSPACES, json=request.model_dump(mode="json", exclude_none=True)
         )
 
         return MindSpace.model_validate(response)
@@ -131,7 +131,7 @@ class MindspaceResourceV1(BaseResource):
         self,
         participant_id: Optional[str] = None,
         project_id: Optional[str] = None,
-        type: Optional[MindSpaceType] = None,
+        type: Optional[MindSpaceType | str] = None,
         name: Optional[str] = None,
         cursor: Optional[str] = None,
         limit: Optional[int] = None,
@@ -167,7 +167,10 @@ class MindspaceResourceV1(BaseResource):
         if project_id is not None:
             params["project_id"] = project_id
         if type is not None:
-            params["type"] = type
+            if isinstance(type, str):
+                params["type"] = type.upper()
+            else:
+                params["type"] = type
         if name is not None:
             params["name"] = name
         if cursor is not None:
@@ -228,7 +231,7 @@ class MindspaceResourceV1(BaseResource):
         # Make API call
         response = await self._http.put(
             Routes.mindspace(mindspace_id),
-            json=request.model_dump(exclude_none=True),
+            json=request.model_dump(mode="json", exclude_none=True),
         )
 
         # Parse and validate response
@@ -348,7 +351,7 @@ class MindspaceResourceV1(BaseResource):
         )
         response = await self._http.post(
             Routes.mindspace_messages(mindspace_id),
-            json=request.model_dump(exclude_none=True),
+            json=request.model_dump(mode="json", exclude_none=True),
         )
         return ChatHistoryItem.model_validate(response)
 
@@ -385,7 +388,7 @@ class MindspaceResourceV1(BaseResource):
         # Make API call
         response = await self._http.post(
             Routes.mindspace_users(mindspace_id),
-            json=request.model_dump(exclude_none=True),
+            json=request.model_dump(mode="json", exclude_none=True),
         )
 
         # Parse and validate response
@@ -438,7 +441,9 @@ class MindspaceResourceV1(BaseResource):
         """
         body: dict[str, object] = {"participant_id": participant_id}
         if chat_history:
-            body["chat_history"] = chat_history.model_dump(exclude_none=True)
+            body["chat_history"] = chat_history.model_dump(
+                mode="json", exclude_none=True
+            )
         if corpus:
             body["corpus"] = corpus.model_dump()
         if pelican:

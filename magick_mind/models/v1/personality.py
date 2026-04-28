@@ -2,17 +2,52 @@
 
 from __future__ import annotations
 
-from typing import Literal, Optional
+from enum import Enum
+from typing import Optional
 
 from pydantic import BaseModel, Field
 
 
 # --- Enums ---
-Namespace = Literal["SYSTEM", "USER", "ORG"]
-Visibility = Literal["PRIVATE", "ORG", "PUBLIC"]
-GrowthType = Literal["FIXED", "EXPANDING", "CORRUPTING", "REDEEMING", "TRANSCENDING"]
-LockType = Literal["HARD", "SOFT"]
-TriggerDirection = Literal["toward_target", "away_from_target", "normal"]
+class Namespace(str, Enum):
+    """Trait namespaces for organizational purposes."""
+
+    SYSTEM = "SYSTEM"
+    USER = "USER"
+    ORG = "ORG"
+
+
+class Visibility(str, Enum):
+    """Visibility levels for traits."""
+
+    PRIVATE = "PRIVATE"
+    ORG = "ORG"
+    PUBLIC = "PUBLIC"
+
+
+class GrowthType(str, Enum):
+    """Types of personality growth dynamics."""
+
+    FIXED = "FIXED"
+    EXPANDING = "EXPANDING"
+    CORRUPTING = "CORRUPTING"
+    REDEEMING = "REDEEMING"
+    TRANSCENDING = "TRANSCENDING"
+
+
+class LockType(str, Enum):
+    """Types of trait locks."""
+
+    HARD = "HARD"
+    SOFT = "SOFT"
+
+
+class TriggerDirection(str, Enum):
+    """Directions for growth triggers."""
+
+    TOWARD_TARGET = "toward_target"
+    AWAY_FROM_TARGET = "away_from_target"
+    NORMAL = "normal"
 
 
 # --- Value types ---

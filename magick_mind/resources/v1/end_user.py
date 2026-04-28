@@ -156,7 +156,8 @@ class EndUserResourceV1(BaseResource):
         )
 
         response = await self._http.put(
-            Routes.end_user(end_user_id), json=request.model_dump(exclude_none=True)
+            Routes.end_user(end_user_id),
+            json=request.model_dump(mode="json", exclude_none=True),
         )
         return EndUser(**response)
 

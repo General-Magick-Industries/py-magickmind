@@ -16,7 +16,7 @@ import logging
 from typing import Dict
 from dotenv import load_dotenv, set_key
 
-from magick_mind import MagickMind
+from magick_mind import MagickMind, MindSpaceType
 from magick_mind.exceptions import (
     ProblemDetailsException,
     ValidationError,
@@ -176,7 +176,7 @@ async def _setup(client: MagickMind):
                 # create() returns MindSpace directly (not wrapped)
                 mindspace = await client.v1.mindspace.create(
                     name="Test Mindspace",
-                    type="PRIVATE",
+                    type=MindSpaceType.PRIVATE,
                     description="Realtime Test Mindspace",
                     project_id=project_id,
                     participant_ids=[user_id],

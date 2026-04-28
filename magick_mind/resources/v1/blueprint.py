@@ -93,7 +93,7 @@ class BlueprintResourceV1(BaseResource):
             visibility=visibility,
         )
         response = await self._http.post(
-            Routes.BLUEPRINTS, json=request.model_dump(exclude_none=True)
+            Routes.BLUEPRINTS, json=request.model_dump(mode="json", exclude_none=True)
         )
         return Blueprint.model_validate(response)
 
@@ -203,7 +203,7 @@ class BlueprintResourceV1(BaseResource):
         )
         response = await self._http.put(
             Routes.blueprint(blueprint_id),
-            json=request.model_dump(exclude_none=True),
+            json=request.model_dump(mode="json", exclude_none=True),
         )
         return Blueprint.model_validate(response)
 
@@ -245,7 +245,7 @@ class BlueprintResourceV1(BaseResource):
         )
         response = await self._http.patch(
             Routes.blueprint(blueprint_id),
-            json=request.model_dump(exclude_none=True),
+            json=request.model_dump(mode="json", exclude_none=True),
         )
         return Blueprint.model_validate(response)
 
@@ -284,7 +284,7 @@ class BlueprintResourceV1(BaseResource):
         )
         response = await self._http.post(
             Routes.blueprint_clone(blueprint_id),
-            json=request.model_dump(exclude_none=True),
+            json=request.model_dump(mode="json", exclude_none=True),
         )
         return Blueprint.model_validate(response)
 
@@ -333,7 +333,7 @@ class BlueprintResourceV1(BaseResource):
         )
         response = await self._http.post(
             Routes.BLUEPRINTS_VALIDATE,
-            json=request.model_dump(exclude_none=True),
+            json=request.model_dump(mode="json", exclude_none=True),
         )
         return ValidateBlueprintResponse.model_validate(response)
 

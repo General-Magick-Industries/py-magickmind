@@ -9,6 +9,7 @@ from pytest_httpx import HTTPXMock
 
 from magick_mind import MagickMind
 from magick_mind.exceptions import ProblemDetailsException
+from magick_mind import Namespace, Visibility
 
 from tests.factories import (
     BlueprintFactory,
@@ -44,8 +45,8 @@ class TestBlueprintResource:
             blueprint_id="friendly-bot",
             name="Friendly Bot",
             category="social",
-            namespace="USER",
-            visibility="PRIVATE",
+            namespace=Namespace.USER,
+            visibility=Visibility.PRIVATE,
         )
 
         assert result.id == "bp-1"
@@ -145,7 +146,7 @@ class TestBlueprintResource:
             name="Friendly Bot v2",
             description="desc",
             category="social",
-            visibility="PRIVATE",
+            visibility=Visibility.PRIVATE,
             traits=None,
         )
 
@@ -211,7 +212,7 @@ class TestBlueprintResource:
         await client.v1.blueprint.clone(
             blueprint_id="bp-1",
             new_owner_id="owner-2",
-            new_namespace="ORG",
+            new_namespace=Namespace.ORG,
         )
 
         body = json.loads(mock_auth.get_requests()[-1].content)
@@ -233,8 +234,8 @@ class TestBlueprintResource:
             blueprint_id="friendly-bot",
             name="Friendly",
             category="social",
-            namespace="USER",
-            visibility="PRIVATE",
+            namespace=Namespace.USER,
+            visibility=Visibility.PRIVATE,
         )
 
         assert result.valid is True

@@ -84,7 +84,7 @@ class TraitResourceV1(BaseResource):
             supports_dyadic=supports_dyadic,
         )
         response = await self._http.post(
-            Routes.TRAITS, json=request.model_dump(exclude_none=True)
+            Routes.TRAITS, json=request.model_dump(mode="json", exclude_none=True)
         )
         return Trait(**response)
 
@@ -179,7 +179,8 @@ class TraitResourceV1(BaseResource):
             default_lock=default_lock,
         )
         response = await self._http.put(
-            Routes.trait(trait_id), json=request.model_dump(exclude_none=True)
+            Routes.trait(trait_id),
+            json=request.model_dump(mode="json", exclude_none=True),
         )
         return Trait(**response)
 
@@ -234,7 +235,8 @@ class TraitResourceV1(BaseResource):
             visibility=visibility,
         )
         response = await self._http.patch(
-            Routes.trait(trait_id), json=request.model_dump(exclude_none=True)
+            Routes.trait(trait_id),
+            json=request.model_dump(mode="json", exclude_none=True),
         )
         return Trait(**response)
 

@@ -12,6 +12,8 @@ from enum import Enum
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from magick_mind.models.common import PageInfo
+
 
 class ArtifactStatusEnum(str, Enum):
     """Lifecycle status values for an artifact."""
@@ -159,6 +161,25 @@ class FinalizeArtifactResponse(BaseModel):
     message: Optional[str] = Field(None, description="Response message")
 
 
+class ArtifactStatus(BaseModel):
+    """Status of an artifact within a corpus."""
+
+    artifact_id: str = Field(..., description="Artifact ID")
+    status: ArtifactStatusEnum = Field(..., description="Processing status")
+    content_summary: Optional[str] = Field(None, description="Content summary")
+    content_length: Optional[int] = Field(None, description="Content length")
+    created_at: Optional[str] = Field(None, description="Creation timestamp")
+    updated_at: Optional[str] = Field(None, description="Update timestamp")
+    error: Optional[str] = Field(None, description="Error message if failed")
+
+
+class ListArtifactStatusesResponse(BaseModel):
+    """Response for listing artifact statuses with pagination."""
+
+    statuses: list[ArtifactStatus] = Field(..., description="List of artifact statuses")
+    paging: PageInfo = Field(..., description="Pagination information")
+
+
 class ArtifactWebhookPayload(BaseModel):
     """
     Webhook payload sent from S3 Lambda or client finalize.
@@ -176,5 +197,7 @@ class ArtifactWebhookPayload(BaseModel):
     content_type: Optional[str] = Field(None, description="MIME type")
     etag: Optional[str] = Field(None, description="S3 ETag")
     checksum_sha256: Optional[str] = Field(None, description="SHA256 checksum")
-    status: str = Field(..., description="Status: uploaded, processing, ready, failed")
+    status: ArtifactStatusEnum = Field(
+        ..., description="Status: uploaded, processing, ready, failed"
+    )
     error_code: Optional[str] = Field(None, description="Error code if failed")
