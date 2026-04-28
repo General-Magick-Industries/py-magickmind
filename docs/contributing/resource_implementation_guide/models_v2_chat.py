@@ -1,13 +1,22 @@
 """v2 chat API models (hypothetical future version)."""
 
-from typing import List, Literal
+from enum import StrEnum
+from typing import List
 from pydantic import BaseModel, Field
+
+
+class ChatContentType(StrEnum):
+    TEXT = "text"
+
+
+class ChatRole(StrEnum):
+    ASSISTANT = "assistant"
 
 
 class ChatContent(BaseModel):
     """Content block for v2 API."""
 
-    type: Literal["text"] = "text"
+    type: ChatContentType = ChatContentType.TEXT
     text: str
 
 
@@ -67,7 +76,7 @@ class ChatSendResponse(BaseModel):
     success: bool = Field(..., description="Whether request succeeded")
     message: str = Field(..., description="Status message")
     id: str = Field(..., description="Generated message ID")
-    role: Literal["assistant"] = "assistant"
+    role: ChatRole = ChatRole.ASSISTANT
     content: List[ChatContent] = Field(..., description="Response content blocks")
     sources: List[dict] = Field(default_factory=list, description="Citation sources")
     done: bool = Field(default=True, description="Whether response is complete")

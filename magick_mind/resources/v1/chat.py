@@ -131,7 +131,7 @@ class ChatResourceV1(BaseResource):
 
         # Make API call
         response = await self._http.post(
-            Routes.CHAT, json=request.model_dump(exclude_none=True)
+            Routes.CHAT, json=request.model_dump(mode="json", exclude_none=True)
         )
 
         # Parse and validate response

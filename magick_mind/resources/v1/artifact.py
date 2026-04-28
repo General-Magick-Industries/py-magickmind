@@ -89,7 +89,8 @@ class ArtifactResourceV1(BaseResource):
 
         # Use generic presign endpoint
         response = await self._http.post(
-            Routes.ARTIFACTS_PRESIGN, json=request.model_dump(exclude_none=True)
+            Routes.ARTIFACTS_PRESIGN,
+            json=request.model_dump(mode="json", exclude_none=True),
         )
         return PresignArtifactResponse(**response)
 
@@ -324,6 +325,6 @@ class ArtifactResourceV1(BaseResource):
             endpoint = Routes.ARTIFACTS_FINALIZE
 
         response = await self._http.post(
-            endpoint, json=request.model_dump(exclude_none=True)
+            endpoint, json=request.model_dump(mode="json", exclude_none=True)
         )
         return FinalizeArtifactResponse(**response)

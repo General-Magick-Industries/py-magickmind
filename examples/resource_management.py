@@ -16,7 +16,7 @@ import os
 
 from dotenv import load_dotenv
 
-from magick_mind import MagickMind
+from magick_mind import MagickMind, MindSpaceType
 
 load_dotenv()
 
@@ -157,7 +157,7 @@ async def main():
         print("\n1. Creating a private mindspace...")
         private_space = await client.v1.mindspace.create(
             name="My Personal Workspace",
-            type="PRIVATE",
+            type=MindSpaceType.PRIVATE,
             description="Private workspace for personal projects",
             corpus_ids=["corpus-123"],
         )
@@ -171,7 +171,7 @@ async def main():
         print("\n2. Creating a group mindspace...")
         group_space = await client.v1.mindspace.create(
             name="Engineering Team",
-            type="GROUP",
+            type=MindSpaceType.GROUP,
             description="Team collaboration space",
             corpus_ids=["corpus-1", "corpus-2"],
             participant_ids=["user-1", "user-2", "user-3"],

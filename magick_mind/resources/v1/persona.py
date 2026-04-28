@@ -92,7 +92,7 @@ class PersonaResourceV1(BaseResource):
             background_story=background_story,
         )
         response = await self._http.post(
-            Routes.PERSONAS, json=request.model_dump(exclude_none=True)
+            Routes.PERSONAS, json=request.model_dump(mode="json", exclude_none=True)
         )
         return Persona.model_validate(response)
 
@@ -144,7 +144,7 @@ class PersonaResourceV1(BaseResource):
         )
         response = await self._http.put(
             Routes.persona(persona_id),
-            json=request.model_dump(exclude_none=True),
+            json=request.model_dump(mode="json", exclude_none=True),
         )
         return Persona.model_validate(response)
 
@@ -179,7 +179,7 @@ class PersonaResourceV1(BaseResource):
         request = PreparePersonaRequest(user_id=user_id)
         response = await self._http.post(
             Routes.persona_prepare(persona_id),
-            json=request.model_dump(exclude_none=True),
+            json=request.model_dump(mode="json", exclude_none=True),
         )
         return PreparePersonaResponse.model_validate(response)
 
@@ -228,7 +228,7 @@ class PersonaResourceV1(BaseResource):
         )
         response = await self._http.post(
             Routes.PERSONA_FROM_BLUEPRINT,
-            json=request.model_dump(exclude_none=True),
+            json=request.model_dump(mode="json", exclude_none=True),
         )
         return PersonaWithVersion.model_validate(response)
 
@@ -263,7 +263,7 @@ class PersonaResourceV1(BaseResource):
         )
         response = await self._http.post(
             Routes.persona_versions(persona_id),
-            json=request.model_dump(exclude_none=True),
+            json=request.model_dump(mode="json", exclude_none=True),
         )
         return PersonaVersion.model_validate(response)
 

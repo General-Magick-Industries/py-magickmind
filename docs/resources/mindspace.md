@@ -13,8 +13,8 @@ A comprehensive guide to using the Mindspace resource in the Magick Mind SDK for
 - **Projects** - Optional organizational grouping
 
 **Two types:**
-- **`private`** - Single-user personal workspaces (individual context, personal AI)
-- **`group`** - Multi-user collaborative spaces (team knowledge, shared context)
+- **`PRIVATE`** - Single-user personal workspaces (individual context, personal AI)
+- **`GROUP`** - Multi-user collaborative spaces (team knowledge, shared context)
 
 ### Privacy Model
 
@@ -33,14 +33,14 @@ A comprehensive guide to using the Mindspace resource in the Magick Mind SDK for
 # Alice's private space can use team knowledge
 alice_personal = client.mindspace.create(
     name="Alice's Personal Assistant",
-    type="private",
+    type="PRIVATE",
     corpus_ids=["team-handbook", "company-docs"]  # ✅ Can access group corpus
 )
 
 # Team space cannot see Alice's personal conversations
 eng_team = client.mindspace.create(
     name="Engineering Team",
-    type="group",
+    type="GROUP",
     corpus_ids=["codebase", "specs"]
     # ❌ Cannot access Alice's private mindspace
 )
@@ -63,14 +63,14 @@ client = MagickMind(
 # Create a private mindspace
 workspace = client.mindspace.create(
     name="My Personal Workspace",
-    type="private",
+    type="PRIVATE",
     description="Personal workspace for my projects"
 )
 
 # Create a group mindspace
 team = client.mindspace.create(
     name="Engineering Team",
-    type="group",
+    type="GROUP",
     description="Team collaboration space",
     participant_ids=["user-1", "user-2", "user-3"],
     corpus_ids=["corp-handbook", "corp-docs"]
@@ -85,14 +85,14 @@ team = client.mindspace.create(
 # Private: individual workspace with personal+team knowledge
 private = client.mindspace.create(
     name="My Research",
-    type="private",
+    type="PRIVATE",
     corpus_ids=["team-docs", "personal-notes"]  # Can access both
 )
 
 # Group: collaborative team workspace
 team = client.mindspace.create(
     name="Product Team",
-    type="group",
+    type="GROUP",
     participant_ids=["alice", "bob", "charlie"],
     corpus_ids=["specs", "designs"],
     project_id="proj-v2"  # Optional project link
@@ -227,7 +227,7 @@ Set up a complete workspace for a project:
 # 1. Create the mindspace
 workspace = client.mindspace.create(
     name=f"Project: {project_name}",
-    type="group",
+    type="GROUP",
     description=f"Workspace for {project_name}",
     project_id=project_id,
     participant_ids=team_members,
@@ -331,14 +331,14 @@ What are the different contexts where users will interact with AI?
 # Example: Customer support application
 support_mindspace = client.mindspace.create(
     name="Customer Support - Acme Corp",
-    type="private",  # Each customer gets their own space
+    type="PRIVATE",  # Each customer gets their own space
     corpus_ids=["help-docs", "product-specs", "faq"]
 )
 
 # Example: Team collaboration
 team_mindspace = client.mindspace.create(
     name="Engineering Team",
-    type="group",  # Shared team space
+    type="GROUP",  # Shared team space
     participant_ids=team_members,
     corpus_ids=["codebase-docs", "technical-specs"]
 )
@@ -382,7 +382,7 @@ history = await client.v1.mindspace.get_messages("mind-123")
 def onboard_user(user_id: str):
     mindspace = client.mindspace.create(
         name=f"{user_id}'s Workspace",
-        type="private",
+        type="PRIVATE",
         corpus_ids=get_user_relevant_knowledge(user_id)
     )
     return mindspace.mindspace.id
@@ -395,7 +395,7 @@ def onboard_user(user_id: str):
 def setup_team_workspace(team_name: str, members: list[str]):
     mindspace = client.mindspace.create(
         name=f"{team_name} Team Space",
-        type="group",
+        type="GROUP",
         participant_ids=members,
         corpus_ids=get_team_knowledge_bases(team_name)
     )
@@ -409,7 +409,7 @@ def setup_team_workspace(team_name: str, members: list[str]):
 def create_project_workspace(project: Project):
     mindspace = client.mindspace.create(
         name=f"Project: {project.name}",
-        type="group",
+        type="GROUP",
         project_id=project.id,
         participant_ids=project.team_members,
         corpus_ids=project.required_knowledge
@@ -421,12 +421,12 @@ def create_project_workspace(project: Project):
 
 ### 1. Choose the Right Type
 
-- Use **`private`** for:
+- Use **`PRIVATE`** for:
   - Personal workspaces
   - User-specific contexts
   - Individual research or projects
 
-- Use **`group`** for:
+- Use **`GROUP`** for:
   - Team collaboration
   - Shared knowledge bases
   - Multi-user projects
@@ -438,7 +438,7 @@ Link related mindspaces to projects for better organization:
 ```python
 client.mindspace.create(
     name="Backend Team",
-    type="group",
+    type="GROUP",
     project_id="proj-backend-v2",  # Link to project
     participant_ids=backend_team
 )
@@ -452,7 +452,7 @@ Corpus provide context to LLM conversations. Keep them relevant:
 # Good: Focused corpus for specific domain
 client.mindspace.create(
     name="Customer Support",
-    type="group",
+    type="GROUP",
     corpus_ids=["corp-help-docs", "corp-faq", "corp-policies"]
 )
 
@@ -471,7 +471,7 @@ client.mindspace.create(
 try:
     space = client.mindspace.create(
         name="Test Space",
-        type="private"
+        type="PRIVATE"
     )
 except Exception as e:
     print(f"Failed to create mindspace: {e}")
@@ -485,7 +485,7 @@ Create a new mindspace.
 
 **Parameters:**
 - `name` (str, required): Mindspace name (max 100 chars)
-- `type` (Literal["private", "group"], required): Mindspace type
+- `type` (`MindSpaceType`, required): Mindspace type (`"PRIVATE"` or `"GROUP"`)
 - `description` (str, optional): Description (max 256 chars)
 - `project_id` (str, optional): Associated project ID
 - `corpus_ids` (list[str], optional): Corpus IDs to attach
@@ -577,3 +577,4 @@ Send a message to a mindspace.
 
 - [Corpus Resource Guide](./corpus.md) - Attaching knowledge bases to mindspaces
 - [Backend Integration Guide](../guides/backend_integration.md) - Server-side patterns
+

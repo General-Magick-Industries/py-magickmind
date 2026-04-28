@@ -6,7 +6,7 @@ import json
 
 from pytest_httpx import HTTPXMock
 
-from magick_mind import MagickMind
+from magick_mind import MagickMind, TraitNamespace, TraitType, TraitVisibility
 from magick_mind.models.v1.trait import Trait
 
 import pytest
@@ -36,22 +36,22 @@ class TestTrait:
 
         result = await client.v1.trait.create(
             name="openness",
-            namespace="SYSTEM",
+            namespace=TraitNamespace.SYSTEM,
             category="personality",
             display_name="Openness",
-            type="NUMERIC",
-            visibility="PUBLIC",
+            type=TraitType.NUMERIC,
+            visibility=TraitVisibility.PUBLIC,
             description="Openness to experience",
         )
 
         assert isinstance(result, Trait)
         assert result.id == "tr-123"
         assert result.name == "openness"
-        assert result.namespace == "SYSTEM"
+        assert result.namespace == TraitNamespace.SYSTEM
         assert result.category == "personality"
         assert result.display_name == "Openness"
-        assert result.type == "NUMERIC"
-        assert result.visibility == "PUBLIC"
+        assert result.type == TraitType.NUMERIC
+        assert result.visibility == TraitVisibility.PUBLIC
         assert result.numeric_config is not None
         assert result.numeric_config.min == 0.0
         assert result.numeric_config.max == 1.0
@@ -132,10 +132,10 @@ class TestTrait:
             category="personality",
             display_name="Openness Updated",
             description="Updated description",
-            type="NUMERIC",
+            type=TraitType.NUMERIC,
             default_learning_rate=0.2,
             supports_dyadic=True,
-            visibility="ORG",
+            visibility=TraitVisibility.ORG,
         )
 
         assert isinstance(result, Trait)
@@ -168,7 +168,7 @@ class TestTrait:
         result = await client.v1.trait.patch(
             trait_id="tr-123",
             display_name="Openness Patched",
-            visibility="PUBLIC",
+            visibility=TraitVisibility.PUBLIC,
         )
 
         assert isinstance(result, Trait)
@@ -234,11 +234,11 @@ class TestTrait:
         with pytest.raises(ProblemDetailsException) as exc:
             await client.v1.trait.create(
                 name="broken",
-                namespace="SYSTEM",
+                namespace=TraitNamespace.SYSTEM,
                 category="personality",
                 display_name="Broken",
-                type="NUMERIC",
-                visibility="PUBLIC",
+                type=TraitType.NUMERIC,
+                visibility=TraitVisibility.PUBLIC,
             )
 
         assert exc.value.status == 500

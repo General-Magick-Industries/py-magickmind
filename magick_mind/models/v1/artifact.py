@@ -7,11 +7,19 @@ presigned S3 URLs and webhook-based completion confirmation.
 
 from __future__ import annotations
 
+from enum import StrEnum
 from typing import ClassVar, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
 from magick_mind.models.common import PageInfo
+
+
+class ArtifactStatusEnum(StrEnum):
+    UPLOADED = "uploaded"
+    PROCESSING = "processing"
+    READY = "ready"
+    FAILED = "failed"
 
 
 class Artifact(BaseModel):
@@ -34,7 +42,7 @@ class Artifact(BaseModel):
     size_bytes: int = Field(..., description="Size in bytes")
     etag: Optional[str] = Field(None, description="S3 ETag")
     version_id: Optional[str] = Field(None, description="S3 version ID")
-    status: str = Field(
+    status: ArtifactStatusEnum = Field(
         ..., description="Artifact status (uploaded, processing, ready, failed)"
     )
     corpus_id: Optional[str] = Field(None, description="Associated corpus ID")
@@ -136,7 +144,7 @@ class ArtifactStatus(BaseModel):
     """Status of an artifact within a corpus."""
 
     artifact_id: str = Field(..., description="Artifact ID")
-    status: str = Field(..., description="Processing status")
+    status: ArtifactStatusEnum = Field(..., description="Processing status")
     content_summary: Optional[str] = Field(None, description="Content summary")
     content_length: Optional[int] = Field(None, description="Content length")
     created_at: Optional[str] = Field(None, description="Creation timestamp")
@@ -168,5 +176,7 @@ class ArtifactWebhookPayload(BaseModel):
     content_type: Optional[str] = Field(None, description="MIME type")
     etag: Optional[str] = Field(None, description="S3 ETag")
     checksum_sha256: Optional[str] = Field(None, description="SHA256 checksum")
-    status: str = Field(..., description="Status: uploaded, processing, ready, failed")
+    status: ArtifactStatusEnum = Field(
+        ..., description="Status: uploaded, processing, ready, failed"
+    )
     error_code: Optional[str] = Field(None, description="Error code if failed")

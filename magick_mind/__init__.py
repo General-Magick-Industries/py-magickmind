@@ -20,6 +20,16 @@ from magick_mind.models.v1 import (
     ChatHistoryMessage,
     HistoryResponse,
 )
+from magick_mind.models.v1.mindspace import MindSpaceType
+from magick_mind.models.v1.artifact import ArtifactStatusEnum
+from magick_mind.models.v1.personality import (
+    GrowthType,
+    LockType,
+    Namespace,
+    TriggerDirection,
+    Visibility,
+)
+from magick_mind.models.v1.trait import TraitNamespace, TraitType, TraitVisibility
 from magick_mind.realtime.events import (
     ArtifactData,
     ArtifactPayload,
@@ -48,6 +58,16 @@ __all__ = [
     "ChatSendResponse",
     "ChatHistoryMessage",
     "HistoryResponse",
+    "MindSpaceType",
+    "ArtifactStatusEnum",
+    "Namespace",
+    "Visibility",
+    "GrowthType",
+    "TriggerDirection",
+    "LockType",
+    "TraitNamespace",
+    "TraitType",
+    "TraitVisibility",
     "ArtifactData",
     "ArtifactPayload",
     "ImageGenerationEvent",
