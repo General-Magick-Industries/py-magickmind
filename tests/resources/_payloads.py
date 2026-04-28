@@ -83,6 +83,24 @@ TRAIT_PAYLOAD = {
     "updated_at": "2024-01-01T00:00:00Z",
 }
 
+ARTIFACT_PAYLOAD = {
+    "id": "art-123",
+    "bucket": "mm-bucket",
+    "key": "uploads/art-123/document.pdf",
+    "s3_url": "s3://mm-bucket/uploads/art-123/document.pdf",
+    "content_type": "application/pdf",
+    "size_bytes": 102400,
+    "status": "ready",
+    "corpus_id": None,
+    "end_user_id": "eu-1",
+    "created_by": "acc-1",
+    "created_at": 1700000000,
+    "updated_at": 1700000100,
+    "etag": None,
+    "version_id": None,
+    "error_code": None,
+}
+
 ERROR_ENVELOPE = {
     "error": {
         "type": "https://example.com/not-found",

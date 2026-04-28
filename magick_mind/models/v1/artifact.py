@@ -9,10 +9,19 @@ from __future__ import annotations
 
 from enum import StrEnum
 from typing import ClassVar, Optional
+from enum import Enum
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from magick_mind.models.common import PageInfo
+
+class ArtifactStatusEnum(str, Enum):
+    """Lifecycle status values for an artifact."""
+
+    UPLOADED = "uploaded"
+    PROCESSING = "processing"
+    READY = "ready"
+    FAILED = "failed"
+    DELETED = "deleted"
 
 
 class ArtifactStatusEnum(StrEnum):
@@ -35,15 +44,16 @@ class Artifact(BaseModel):
     )  # Allow additional fields from API responses
 
     id: str = Field(..., description="Unique artifact identifier")
-    bucket: str = Field(..., description="S3 bucket name")
-    key: str = Field(..., description="S3 object key")
-    s3_url: str = Field(..., description="S3 URL (s3://bucket/key)")
-    content_type: str = Field(..., description="MIME type of the artifact")
-    size_bytes: int = Field(..., description="Size in bytes")
+    bucket: Optional[str] = Field(None, description="S3 bucket name")
+    key: Optional[str] = Field(None, description="S3 object key")
+    s3_url: Optional[str] = Field(None, description="S3 URL (s3://bucket/key)")
+    content_type: Optional[str] = Field(None, description="MIME type of the artifact")
+    size_bytes: Optional[int] = Field(None, description="Size in bytes")
     etag: Optional[str] = Field(None, description="S3 ETag")
     version_id: Optional[str] = Field(None, description="S3 version ID")
-    status: ArtifactStatusEnum = Field(
-        ..., description="Artifact status (uploaded, processing, ready, failed)"
+    status: str = Field(
+        ...,
+        description="Artifact status (uploaded, processing, ready, failed, deleted)",
     )
     corpus_id: Optional[str] = Field(None, description="Associated corpus ID")
     end_user_id: Optional[str] = Field(
@@ -96,19 +106,36 @@ class PresignArtifactResponse(BaseModel):
 
 
 class GetArtifactResponse(BaseModel):
-    """Response for getting a single artifact by ID."""
+    """Response for getting a single artifact by ID.
 
-    success: bool = Field(..., description="Request success status")
-    message: str = Field(..., description="Response message")
+    Matches the ``{"artifact": {...}}`` envelope returned by
+    ``GET /v1/artifacts/{id}``.
+    """
+
     artifact: Artifact = Field(..., description="The artifact data")
 
 
 class ListArtifactsResponse(BaseModel):
-    """Response for listing/querying artifacts."""
+    """Response for listing/querying artifacts.
 
-    success: bool = Field(..., description="Request success status")
-    message: str = Field(..., description="Response message")
-    artifacts: list[Artifact] = Field(..., description="List of artifacts")
+    Matches the ``{"data": [...]}`` envelope returned by
+    ``GET /v1/artifacts``.
+    """
+
+    data: list[Artifact] = Field(..., description="List of artifacts")
+
+
+class DownloadUrlResponse(BaseModel):
+    """Response for retrieving a presigned artifact download URL.
+
+    Returned by ``GET /v1/artifacts/{id}/download``.
+    """
+
+    download_url: str = Field(..., description="Presigned S3 download URL")
+    expires_at: Optional[int] = Field(
+        None, description="URL expiration timestamp (unix seconds)"
+    )
+    file_name: Optional[str] = Field(None, description="Original file name")
 
 
 class DeleteArtifactResponse(BaseModel):
