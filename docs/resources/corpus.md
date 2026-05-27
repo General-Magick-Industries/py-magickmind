@@ -39,7 +39,7 @@ kb = client.v1.corpus.create(
 corpus_id = kb.corpus.id
 
 # Attach to a mindspace for RAG
-mindspace = client.v1.mindspace.create(
+mindspace = client.v1.magickspaces.create(
     name="Engineering Team Chat",
     type="group",
     corpus_ids=[corpus_id],  # AI can now reference this knowledge
@@ -325,7 +325,7 @@ shared_kb = client.v1.corpus.create(
 kb_id = shared_kb.corpus.id
 
 # Share with engineering team
-eng_space = client.v1.mindspace.create(
+eng_space = client.v1.magickspaces.create(
     name="Engineering Team",
     type="group",
     corpus_ids=[kb_id],  # Has access to handbook
@@ -333,7 +333,7 @@ eng_space = client.v1.mindspace.create(
 )
 
 # Share with sales team
-sales_space = client.v1.mindspace.create(
+sales_space = client.v1.magickspaces.create(
     name="Sales Team",
     type="group",
     corpus_ids=[kb_id],  # Also has access to handbook
@@ -366,7 +366,7 @@ product_kb = client.v1.corpus.create(
 )
 
 # Combine in a mindspace
-mindspace = client.v1.mindspace.create(
+mindspace = client.v1.magickspaces.create(
     name="Product Engineering Team",
     type="group",
     corpus_ids=[
@@ -477,7 +477,7 @@ team_corpus = client.v1.corpus.create(
 )
 
 # Combine in mindspace
-mindspace = client.v1.mindspace.create(
+mindspace = client.v1.magickspaces.create(
     name="Engineering Chat",
     type="group",
     corpus_ids=[company_corpus.corpus.id, team_corpus.corpus.id]

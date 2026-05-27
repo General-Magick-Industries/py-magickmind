@@ -191,7 +191,7 @@ class HTTPClient:
             MagickMindError: For unexpected errors or malformed responses
 
         Example:
-            >>> response = await client.http.get("/v1/mindspaces")
+            >>> response = await client.http.get("/v1/magickspaces")
             >>> print(response['data'])
         """
         # Refresh auth if needed

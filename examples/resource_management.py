@@ -155,7 +155,7 @@ async def main():
 
         # 1. Create a private mindspace
         print("\n1. Creating a private mindspace...")
-        private_space = await client.v1.mindspace.create(
+        private_space = await client.v1.magickspaces.create(
             name="My Personal Workspace",
             type="PRIVATE",
             description="Private workspace for personal projects",
@@ -169,7 +169,7 @@ async def main():
 
         # 2. Create a group mindspace
         print("\n2. Creating a group mindspace...")
-        group_space = await client.v1.mindspace.create(
+        group_space = await client.v1.magickspaces.create(
             name="Engineering Team",
             type="GROUP",
             description="Team collaboration space",
@@ -181,26 +181,26 @@ async def main():
 
         # 3. List all mindspaces
         print("\n3. Listing all mindspaces...")
-        mindspaces = await client.v1.mindspace.list()
+        mindspaces = await client.v1.magickspaces.list()
         print(f"✓ Found {len(mindspaces.data)} mindspace(s):")
         for ms in mindspaces.data[:3]:  # Show first 3
             print(f"  - {ms.name} ({ms.type}) - {ms.id}")
 
         # 4. List mindspaces filtered by user
         print("\n4. Listing mindspaces for specific user...")
-        user_mindspaces = await client.v1.mindspace.list(participant_id="user-1")
+        user_mindspaces = await client.v1.magickspaces.list(participant_id="user-1")
         print(f"✓ Found {len(user_mindspaces.data)} mindspace(s) for user-1")
 
         # 5. Get a specific mindspace
         print(f"\n5. Getting mindspace by ID {mindspace_id}...")
-        mindspace = await client.v1.mindspace.get(mindspace_id)
+        mindspace = await client.v1.magickspaces.get(mindspace_id)
         print(f"✓ Retrieved mindspace: {mindspace.name}")
         print(f"  Description: {mindspace.description}")
         print(f"  Project ID: {mindspace.project_id}")
 
         # 6. Update mindspace
         print(f"\n6. Updating mindspace {mindspace_id}...")
-        updated_mindspace = await client.v1.mindspace.update(
+        updated_mindspace = await client.v1.magickspaces.update(
             mindspace_id=mindspace_id,
             name="My Updated Workspace",
             description="Updated description with more details",
@@ -212,7 +212,7 @@ async def main():
 
         # 7. Get messages from mindspace (latest)
         print(f"\n7. Getting latest messages from mindspace {mindspace_id}...")
-        messages = await client.v1.mindspace.get_messages(mindspace_id, limit=10)
+        messages = await client.v1.magickspaces.get_messages(mindspace_id, limit=10)
 
         print(f"✓ Retrieved {len(messages.chat_histories)} message(s)")
         if messages.chat_histories:
@@ -225,7 +225,7 @@ async def main():
             # 8. Forward pagination (get newer messages)
             if messages.has_more and messages.next_after_id:
                 print("\n8. Getting newer messages (forward pagination)...")
-                newer = await client.v1.mindspace.get_messages(
+                newer = await client.v1.magickspaces.get_messages(
                     mindspace_id,
                     cursor=messages.next_after_id,
                     limit=10,
@@ -235,7 +235,7 @@ async def main():
             # 9. Backward pagination (get older messages)
             if messages.has_older and messages.next_before_id:
                 print("\n9. Getting older messages (backward pagination)...")
-                older = await client.v1.mindspace.get_messages(
+                older = await client.v1.magickspaces.get_messages(
                     mindspace_id,
                     cursor=messages.next_before_id,
                     limit=10,
@@ -359,7 +359,7 @@ async def main():
         # Delete mindspace
         print(f"\n1. Deleting mindspace {mindspace_id}...")
         try:
-            await client.v1.mindspace.delete(mindspace_id)
+            await client.v1.magickspaces.delete(mindspace_id)
             print(f"✓ Deleted mindspace: {mindspace_id}")
         except Exception as e:
             print(f"✗ Failed to delete mindspace: {e}")

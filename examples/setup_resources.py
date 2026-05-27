@@ -159,7 +159,7 @@ async def _setup(client: MagickMind):
         try:
             # Test mindspace.list() with the new pagination format
             logger.info(f"Listing mindspaces for user: {user_id}")
-            mindspace_list = await client.v1.mindspace.list(participant_id=user_id)
+            mindspace_list = await client.v1.magickspaces.list(participant_id=user_id)
 
             # Test new data+paging structure
             logger.info(f"  Found {len(mindspace_list.data)} mindspace(s)")
@@ -174,7 +174,7 @@ async def _setup(client: MagickMind):
                 updates["MINDSPACE_ID"] = mindspace_id
             else:
                 # create() returns MindSpace directly (not wrapped)
-                mindspace = await client.v1.mindspace.create(
+                mindspace = await client.v1.magickspaces.create(
                     name="Test Mindspace",
                     type="PRIVATE",
                     description="Realtime Test Mindspace",

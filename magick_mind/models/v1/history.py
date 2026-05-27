@@ -1,7 +1,7 @@
 """
 History models for Magick Mind SDK v1 API.
 
-Mirrors the /v1/mindspaces/messages endpoint response.
+Mirrors the /v1/magickspaces/messages endpoint response.
 """
 
 from typing import ClassVar, Optional
@@ -42,7 +42,7 @@ class ChatHistoryMessage(BaseModel):
 
 class HistoryResponse(BaseModel):
     """
-    Response from the /v1/mindspaces/messages endpoint.
+    Response from the /v1/magickspaces/messages endpoint.
 
     Uses standardized pagination format:
     {

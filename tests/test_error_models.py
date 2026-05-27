@@ -63,7 +63,7 @@ class TestProblemDetails:
             title="Not Found",
             status=404,
             detail="Mindspace ms-123 not found",
-            instance="/v1/mindspaces/ms-123",
+            instance="/v1/magickspaces/ms-123",
             request_id="trace-abc-123",
             errors=[
                 ValidationErrorField(
@@ -77,7 +77,7 @@ class TestProblemDetails:
         assert problem.title == "Not Found"
         assert problem.status == 404
         assert problem.detail == "Mindspace ms-123 not found"
-        assert problem.instance == "/v1/mindspaces/ms-123"
+        assert problem.instance == "/v1/magickspaces/ms-123"
         assert problem.request_id == "trace-abc-123"
         assert len(problem.errors) == 1
         assert problem.errors[0].field == "mindspace_id"

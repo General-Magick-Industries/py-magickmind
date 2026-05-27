@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-05-27
+
+### Added
+- **Magickspaces resource alias** - Added `client.magickspaces` and
+  `client.v1.magickspaces` as the new public resource accessors.
+
+### Changed
+- **Bifrost magickspaces route rename** - Updated all SDK magickspace management,
+  message history, send-message, context, participant, and LiveKit calls from
+  `/v1/mindspaces` to `/v1/magickspaces`.
+- Updated examples, docs, OpenAPI fixtures, and network tests to use
+  `magickspaces` naming and `/v1/magickspaces` endpoints.
+
+### Deprecated
+- `client.mindspace`, `client.v1.mindspace`, and `Routes.mindspace*` remain as
+  backward-compatible aliases for the new magickspaces APIs.
+
 ## [0.3.0] - 2026-04-17
 
 ### Added
@@ -90,7 +107,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Versioning: `create_version`, `list_versions`, `get_version`, `get_active_version`, `set_active_version`
 - **Runtime resource** (`client.v1.runtime`): Effective personality computation
     - `get_effective_personality`, `invalidate_cache`
-- **Mindspace context** (`client.v1.mindspace.prepare_context`): Composable multi-source context retrieval
+- **Mindspace context** (`client.v1.magickspaces.prepare_context`): Composable multi-source context retrieval
 - **Mindspace LiveKit**: `get_livekit_token`, `livekit_join`
 - **Shared personality models** (`models.v1.personality`): `TraitValue`, `TraitConstraint`, `GrowthConfig`, `DyadicConfig`, `BlueprintTrait`, etc.
 - **HTTP PATCH support**: Added `patch()` method to HTTP client

@@ -781,7 +781,7 @@
         ]
       }
     },
-    "/v1/mindspaces": {
+    "/v1/magickspaces": {
       "post": {
         "summary": "Create Mindspace",
         "deprecated": false,
@@ -1000,7 +1000,7 @@
         ]
       }
     },
-    "/v1/mindspaces/{id}": {
+    "/v1/magickspaces/{id}": {
       "get": {
         "summary": "Get Mindspace by ID",
         "deprecated": false,
@@ -1075,7 +1075,7 @@
         ]
       }
     },
-    "/v1/mindspaces/messages": {
+    "/v1/magickspaces/messages": {
       "get": {
         "summary": "Get Mindspace Messages",
         "deprecated": false,
@@ -1140,7 +1140,7 @@
         ]
       }
     },
-    "/v1/mindspaces/{id}/users": {
+    "/v1/magickspaces/{id}/users": {
       "post": {
         "summary": "Add Mindspace Users by ID",
         "deprecated": false,

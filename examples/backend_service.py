@@ -157,7 +157,7 @@ class ChatBackendService:
         logger.info(f"Syncing history (since={since_message_id or 'beginning'})...")
 
         try:
-            resp = await self.client.v1.mindspace.get_messages(
+            resp = await self.client.v1.magickspaces.get_messages(
                 mindspace_id,
                 cursor=since_message_id,
                 limit=100,

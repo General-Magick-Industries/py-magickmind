@@ -15,38 +15,69 @@ class Routes:
     # Chat endpoints
     CHAT = "/v1/chat/magickmind"
 
-    # Mindspace endpoints
-    MINDSPACES = "/v1/mindspaces"
+    # Magickspaces endpoints
+    MAGICKSPACES = "/v1/magickspaces"
+    MINDSPACES = MAGICKSPACES
+
+    @staticmethod
+    def magickspace(magickspace_id: str) -> str:
+        """Get path for a specific magickspace."""
+        return f"/v1/magickspaces/{magickspace_id}"
 
     @staticmethod
     def mindspace(mindspace_id: str) -> str:
-        """Get path for a specific mindspace."""
-        return f"/v1/mindspaces/{mindspace_id}"
+        """Deprecated alias for :meth:`magickspace`."""
+        return Routes.magickspace(mindspace_id)
+
+    @staticmethod
+    def magickspace_messages(magickspace_id: str) -> str:
+        """Get path for magickspace messages."""
+        return f"/v1/magickspaces/{magickspace_id}/messages"
 
     @staticmethod
     def mindspace_messages(mindspace_id: str) -> str:
-        """Get path for mindspace messages."""
-        return f"/v1/mindspaces/{mindspace_id}/messages"
+        """Deprecated alias for :meth:`magickspace_messages`."""
+        return Routes.magickspace_messages(mindspace_id)
+
+    @staticmethod
+    def magickspace_users(magickspace_id: str) -> str:
+        """Get path to add users to a specific magickspace."""
+        return f"/v1/magickspaces/{magickspace_id}/users"
 
     @staticmethod
     def mindspace_users(mindspace_id: str) -> str:
-        """Get path to add users to a specific mindspace."""
-        return f"/v1/mindspaces/{mindspace_id}/users"
+        """Deprecated alias for :meth:`magickspace_users`."""
+        return Routes.magickspace_users(mindspace_id)
+
+    @staticmethod
+    def magickspace_context(magickspace_id: str) -> str:
+        """Get path for magickspace context preparation."""
+        return f"/v1/magickspaces/{magickspace_id}/context"
 
     @staticmethod
     def mindspace_context(mindspace_id: str) -> str:
-        """Get path for mindspace context preparation."""
-        return f"/v1/mindspaces/{mindspace_id}/context"
+        """Deprecated alias for :meth:`magickspace_context`."""
+        return Routes.magickspace_context(mindspace_id)
+
+    @staticmethod
+    def magickspace_livekit_token(magickspace_id: str) -> str:
+        """Get path for LiveKit token generation."""
+        return f"/v1/magickspaces/{magickspace_id}/livekit-token"
 
     @staticmethod
     def mindspace_livekit_token(mindspace_id: str) -> str:
-        """Get path for LiveKit token generation."""
-        return f"/v1/mindspaces/{mindspace_id}/livekit-token"
+        """Deprecated alias for :meth:`magickspace_livekit_token`."""
+        return Routes.magickspace_livekit_token(mindspace_id)
+
+    @staticmethod
+    def magickspace_livekit_join(magickspace_id: str) -> str:
+        """Get path for LiveKit agent join signalling."""
+        return f"/v1/magickspaces/{magickspace_id}/livekit-join"
 
     @staticmethod
     def mindspace_livekit_join(mindspace_id: str) -> str:
-        """Get path for LiveKit agent join signalling."""
-        return f"/v1/mindspaces/{mindspace_id}/livekit-join"
+        """Deprecated alias for :meth:`magickspace_livekit_join`."""
+        return Routes.magickspace_livekit_join(mindspace_id)
 
     # Runtime endpoints
     RUNTIME_INVALIDATE_CACHE = "/v1/runtime/invalidate-cache"
@@ -180,6 +211,6 @@ class Routes:
     # API Keys endpoints
     KEYS = "/v1/keys"
 
-    # History endpoints (deprecated — use mindspace_messages instead)
-    # HISTORY_MESSAGES removed: was "/v1/mindspaces/messages" which doesn't exist in Bifrost.
-    # The correct route is /v1/mindspaces/{id}/messages via Routes.mindspace_messages(id).
+    # History endpoints (deprecated - use magickspace_messages instead)
+    # HISTORY_MESSAGES removed: was "/v1/magickspaces/messages" which doesn't exist in Bifrost.
+    # The correct route is /v1/magickspaces/{id}/messages via Routes.magickspace_messages(id).

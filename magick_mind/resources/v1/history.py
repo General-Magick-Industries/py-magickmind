@@ -4,7 +4,7 @@ History resource for Magick Mind SDK v1 API.
 Provides methods to fetch chat history with pagination.
 
 .. deprecated::
-    Use :class:`MindspaceResourceV1.get_messages` instead.
+    Use :class:`MagickspacesResourceV1.get_messages` instead.
 """
 
 from __future__ import annotations
@@ -22,9 +22,9 @@ class HistoryResourceV1(BaseResource):
     History resource for fetching chat messages.
 
     .. deprecated::
-        Use ``client.v1.mindspace.get_messages()`` instead. This resource
+        Use ``client.v1.magickspaces.get_messages()`` instead. This resource
         exists for backward compatibility and delegates to the correct
-        ``/v1/mindspaces/{id}/messages`` endpoint.
+        ``/v1/magickspaces/{id}/messages`` endpoint.
     """
 
     async def get_messages(
@@ -39,7 +39,7 @@ class HistoryResourceV1(BaseResource):
         Fetch chat history with cursor-based pagination.
 
         .. deprecated::
-            Use ``client.v1.mindspace.get_messages()`` instead.
+            Use ``client.v1.magickspaces.get_messages()`` instead.
 
         Args:
             mindspace_id: Mindspace to fetch messages from
@@ -52,7 +52,7 @@ class HistoryResourceV1(BaseResource):
         """
         warnings.warn(
             "HistoryResourceV1.get_messages() is deprecated. "
-            "Use client.v1.mindspace.get_messages() instead.",
+            "Use client.v1.magickspaces.get_messages() instead.",
             DeprecationWarning,
             stacklevel=2,
         )
@@ -66,7 +66,7 @@ class HistoryResourceV1(BaseResource):
             params["order"] = order
 
         response_data = await self._http.get(
-            Routes.mindspace_messages(mindspace_id),
+            Routes.magickspace_messages(mindspace_id),
             params=params if params else None,
         )
 

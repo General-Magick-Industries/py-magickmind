@@ -13,6 +13,7 @@ from magick_mind.exceptions import MagickMindError
 from magick_mind.http import HTTPClient
 from magick_mind.realtime import RealtimeClient
 from magick_mind.resources.v1.chat import ChatResourceV1
+from magick_mind.resources.v1.magickspaces import MagickspacesResourceV1
 from magick_mind.resources.v1.mindspace import MindspaceResourceV1
 
 
@@ -47,6 +48,7 @@ class MagickMind:
 
         # Or use convenience alias
         response = client.chat.send(...)
+        magickspaces = await client.magickspaces.list()
 
         # Use HTTP client directly for experimental endpoints
         response = client.http.post("/experimental/endpoint", json={...})
@@ -106,6 +108,7 @@ class MagickMind:
 
         # Convenience alias for default version
         self.chat: ChatResourceV1 = self.v1.chat
+        self.magickspaces: MagickspacesResourceV1 = self.v1.magickspaces
         self.mindspace: MindspaceResourceV1 = self.v1.mindspace
 
     @property

@@ -87,7 +87,7 @@ async def get_messages(
         raise Forbidden()
     
     # Proxy to the Magick Mind API with pagination
-    result = await client.v1.mindspace.get_messages(
+    result = await client.v1.magickspaces.get_messages(
         mindspace_id,
         cursor=cursor,
         limit=limit,
@@ -149,7 +149,7 @@ async def get_messages(
     user = Depends(verify_user)
 ):
     # No caching here - pagination is complex to cache
-    result = await client.v1.mindspace.get_messages(
+    result = await client.v1.magickspaces.get_messages(
         mindspace_id,
         cursor=cursor,
         limit=limit,
@@ -226,7 +226,7 @@ async def get_messages(mindspace_id: str, cursor: str = None, limit: int = 50):
             return json.loads(cached)
     
     # Fetch from the Magick Mind API
-    result = await client.v1.mindspace.get_messages(
+    result = await client.v1.magickspaces.get_messages(
         mindspace_id,
         cursor=cursor,
         limit=limit,
@@ -304,7 +304,7 @@ async def handle(event: ChatMessageEvent, ctx: EventContext):
 async def sync_with_api():
     last_cursor = await db.get_last_cursor()
     
-    history = await client.v1.mindspace.get_messages(
+    history = await client.v1.magickspaces.get_messages(
         mindspace_id,
         cursor=last_cursor,
         limit=100,
@@ -356,7 +356,7 @@ async def handle_notification(event: ChatMessageEvent, ctx: EventContext):
 
 async def fetch_from_history(user_id):
     """Fetch latest from the Magick Mind API history API."""
-    messages = await client.v1.mindspace.get_messages(
+    messages = await client.v1.magickspaces.get_messages(
         get_mindspace(user_id),
         cursor=get_last_cursor(user_id),
     )

@@ -28,10 +28,10 @@ Apidog was manually documented without contract tests. Documentation drifted fro
 | `POST /v1/projects` | `{success, message, project: {...}}` | **FLAT** `ProjectSchema` | ❌ BREAKING |
 | `GET /v1/projects/{id}` | `{success, message, project: {...}}` | **FLAT** `ProjectSchema` | ❌ BREAKING |
 | `PUT /v1/projects/{id}` | `{success, message, project: {...}}` | **FLAT** `ProjectSchema` | ❌ BREAKING |
-| `POST /v1/mindspaces` | `{success, message, mindspace: {...}}` | **FLAT** `MindSpaceSchema` | ❌ BREAKING |
-| `GET /v1/mindspaces/{id}` | `{success, message, mindspace: {...}}` | **FLAT** `MindSpaceSchema` | ❌ BREAKING |
-| `PUT /v1/mindspaces/{id}` | `{success, message, mindspace: {...}}` | **FLAT** `MindSpaceSchema` | ❌ BREAKING |
-| `POST /v1/mindspaces/{id}/users` | `{success, message, mindspace: {...}}` | **FLAT** `MindSpaceSchema` | ❌ BREAKING |
+| `POST /v1/magickspaces` | `{success, message, mindspace: {...}}` | **FLAT** `MindSpaceSchema` | ❌ BREAKING |
+| `GET /v1/magickspaces/{id}` | `{success, message, mindspace: {...}}` | **FLAT** `MindSpaceSchema` | ❌ BREAKING |
+| `PUT /v1/magickspaces/{id}` | `{success, message, mindspace: {...}}` | **FLAT** `MindSpaceSchema` | ❌ BREAKING |
+| `POST /v1/magickspaces/{id}/users` | `{success, message, mindspace: {...}}` | **FLAT** `MindSpaceSchema` | ❌ BREAKING |
 | `POST /v1/corpus` | `{success, message, corpus: {...}}` | **FLAT** `CorpusSchema` | ❌ BREAKING |
 | `GET /v1/corpus/{id}` | `{success, message, corpus: {...}}` | **FLAT** `CorpusSchema` | ❌ BREAKING |
 | `PUT /v1/corpus/{id}` | `{success, message, corpus: {...}}` | **FLAT** `CorpusSchema` | ❌ BREAKING |
@@ -46,10 +46,10 @@ Apidog was manually documented without contract tests. Documentation drifted fro
 | Endpoint | Apidog Documented | API Reality | Status |
 |----------|-------------------|-----------------|--------|
 | `GET /v1/projects` | `{success, message, projects: [...]}` | `{data: [...], paging: {}}` | ❌ BREAKING |
-| `GET /v1/mindspaces` | `{success, message, mindspaces: [...]}` | `{data: [...], paging: {}}` | ❌ BREAKING |
+| `GET /v1/magickspaces` | `{success, message, mindspaces: [...]}` | `{data: [...], paging: {}}` | ❌ BREAKING |
 | `GET /v1/corpus` | `{success, message, corpus: [...]}` | `{data: [...], paging: {}}` | ❌ BREAKING |
 | `GET /v1/end-users` | `{data: [...], paging: {}}` | `{data: [...], paging: {}}` | ✅ CORRECT |
-| `GET /v1/mindspaces/{id}/messages` | `{chat_histories: [...], last_id, ...}` | `{data: [...], paging: {}}` | ✅ FIXED |
+| `GET /v1/magickspaces/{id}/messages` | `{chat_histories: [...], last_id, ...}` | `{data: [...], paging: {}}` | ✅ FIXED |
 
 **The API standardized pagination structure (from `common.api`):**
 ```json

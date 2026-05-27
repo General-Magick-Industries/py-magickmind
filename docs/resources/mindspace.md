@@ -31,14 +31,14 @@ A comprehensive guide to using the Mindspace resource in the Magick Mind SDK for
 **Example:**
 ```python
 # Alice's private space can use team knowledge
-alice_personal = client.mindspace.create(
+alice_personal = client.magickspaces.create(
     name="Alice's Personal Assistant",
     type="private",
     corpus_ids=["team-handbook", "company-docs"]  # ✅ Can access group corpus
 )
 
 # Team space cannot see Alice's personal conversations
-eng_team = client.mindspace.create(
+eng_team = client.magickspaces.create(
     name="Engineering Team",
     type="group",
     corpus_ids=["codebase", "specs"]
@@ -61,14 +61,14 @@ client = MagickMind(
 )
 
 # Create a private mindspace
-workspace = client.mindspace.create(
+workspace = client.magickspaces.create(
     name="My Personal Workspace",
     type="private",
     description="Personal workspace for my projects"
 )
 
 # Create a group mindspace
-team = client.mindspace.create(
+team = client.magickspaces.create(
     name="Engineering Team",
     type="group",
     description="Team collaboration space",
@@ -83,14 +83,14 @@ team = client.mindspace.create(
 
 ```python
 # Private: individual workspace with personal+team knowledge
-private = client.mindspace.create(
+private = client.magickspaces.create(
     name="My Research",
     type="private",
     corpus_ids=["team-docs", "personal-notes"]  # Can access both
 )
 
 # Group: collaborative team workspace
-team = client.mindspace.create(
+team = client.magickspaces.create(
     name="Product Team",
     type="group",
     participant_ids=["alice", "bob", "charlie"],
@@ -103,20 +103,20 @@ team = client.mindspace.create(
 
 ```python
 # List all
-all_spaces = client.mindspace.list()
+all_spaces = client.magickspaces.list()
 
 # Filter by participant
-user_spaces = client.mindspace.list(participant_id="alice")
+user_spaces = client.magickspaces.list(participant_id="alice")
 
 # Get specific mindspace
-space = client.mindspace.get("mind-123")
+space = client.magickspaces.get("mind-123")
 ```
 
 ### Updating & Deleting
 
 ```python
 # Update (replaces entire lists, include all existing IDs)
-client.mindspace.update(
+client.magickspaces.update(
     mindspace_id="mind-123",
     name="Updated Name",
     corpus_ids=["corp-1", "corp-2", "corp-3"],  # All IDs
@@ -124,7 +124,7 @@ client.mindspace.update(
 )
 
 # Delete
-client.mindspace.delete("mind-123")
+client.magickspaces.delete("mind-123")
 ```
 
 > **Note**: `update()` replaces entire lists. To add one item, include all existing IDs plus the new one.
@@ -138,7 +138,7 @@ Mindspaces maintain chat message history. Use `get_messages()` with cursor-based
 Get the most recent N messages:
 
 ```python
-messages = await client.v1.mindspace.get_messages("mind-123", limit=50)
+messages = await client.v1.magickspaces.get_messages("mind-123", limit=50)
 
 print(f"Retrieved {len(messages.chat_histories)} messages")
 
@@ -157,11 +157,11 @@ Use cursors from the `paging` field to navigate:
 
 ```python
 # Start with latest
-initial = await client.v1.mindspace.get_messages("mind-123", limit=20)
+initial = await client.v1.magickspaces.get_messages("mind-123", limit=20)
 
 # Get next page if available
 if initial.has_more and initial.next_after_id:
-    page2 = await client.v1.mindspace.get_messages(
+    page2 = await client.v1.magickspaces.get_messages(
         "mind-123",
         cursor=initial.next_after_id,
         limit=20,
@@ -170,7 +170,7 @@ if initial.has_more and initial.next_after_id:
 
 # Get previous page
 if initial.has_older and initial.next_before_id:
-    older = await client.v1.mindspace.get_messages(
+    older = await client.v1.magickspaces.get_messages(
         "mind-123",
         cursor=initial.next_before_id,
         limit=20,
@@ -183,7 +183,7 @@ if initial.has_older and initial.next_before_id:
 Send a message directly to a mindspace:
 
 ```python
-msg = await client.v1.mindspace.send_message(
+msg = await client.v1.magickspaces.send_message(
     "mind-123",
     content="Hello, team!",
     sender_id="user-456",
@@ -191,7 +191,7 @@ msg = await client.v1.mindspace.send_message(
 print(f"Sent message {msg.id}")
 
 # With optional fields
-msg = await client.v1.mindspace.send_message(
+msg = await client.v1.magickspaces.send_message(
     "mind-123",
     content="Check this file",
     sender_id="user-456",
@@ -225,7 +225,7 @@ Set up a complete workspace for a project:
 
 ```python
 # 1. Create the mindspace
-workspace = client.mindspace.create(
+workspace = client.magickspaces.create(
     name=f"Project: {project_name}",
     type="group",
     description=f"Workspace for {project_name}",
@@ -237,7 +237,7 @@ workspace = client.mindspace.create(
 mindspace_id = workspace.id
 
 # 2. Verify setup
-space = client.mindspace.get(mindspace_id)
+space = client.magickspaces.get(mindspace_id)
 print(f"✓ Created workspace for {len(space.participant_ids)} members")
 print(f"✓ Attached {len(space.corpus_ids)} knowledge bases")
 ```
@@ -246,13 +246,13 @@ print(f"✓ Attached {len(space.corpus_ids)} knowledge bases")
 
 ```python
 # Get current state
-current = client.mindspace.get("mind-123")
+current = client.magickspaces.get("mind-123")
 
 # Add new corpus while preserving existing ones
 updated_corpus_ids = current.corpus_ids + ["new-corpus-id"]
 
 # Update
-client.mindspace.update(
+client.magickspaces.update(
     mindspace_id="mind-123",
     name=current.name,
     corpus_ids=updated_corpus_ids,
@@ -270,12 +270,12 @@ async def load_all_messages(mindspace_id: str, batch_size: int = 100):
     all_messages = []
     
     # Start with latest
-    response = await client.v1.mindspace.get_messages(mindspace_id, limit=batch_size)
+    response = await client.v1.magickspaces.get_messages(mindspace_id, limit=batch_size)
     all_messages.extend(response.chat_histories)
     
     # Keep loading older messages
     while response.has_older and response.next_before_id:
-        response = await client.v1.mindspace.get_messages(
+        response = await client.v1.magickspaces.get_messages(
             mindspace_id,
             cursor=response.next_before_id,
             limit=batch_size,
@@ -296,7 +296,7 @@ Poll for new messages (prefer Centrifugo realtime for production):
 ```python
 async def poll_new_messages(mindspace_id: str, cursor: str = None):
     """Check for new messages since last cursor."""
-    response = await client.v1.mindspace.get_messages(
+    response = await client.v1.magickspaces.get_messages(
         mindspace_id,
         cursor=cursor,
         limit=50,
@@ -329,14 +329,14 @@ What are the different contexts where users will interact with AI?
 
 ```python
 # Example: Customer support application
-support_mindspace = client.mindspace.create(
+support_mindspace = client.magickspaces.create(
     name="Customer Support - Acme Corp",
     type="private",  # Each customer gets their own space
     corpus_ids=["help-docs", "product-specs", "faq"]
 )
 
 # Example: Team collaboration
-team_mindspace = client.mindspace.create(
+team_mindspace = client.magickspaces.create(
     name="Engineering Team",
     type="group",  # Shared team space
     participant_ids=team_members,
@@ -370,7 +370,7 @@ response = client.chat.send(
 )
 
 # Messages are stored in the mindspace
-history = await client.v1.mindspace.get_messages("mind-123")
+history = await client.v1.magickspaces.get_messages("mind-123")
 ```
 
 ### Common Architecture Patterns
@@ -380,7 +380,7 @@ history = await client.v1.mindspace.get_messages("mind-123")
 ```python
 # Each user gets their own private workspace
 def onboard_user(user_id: str):
-    mindspace = client.mindspace.create(
+    mindspace = client.magickspaces.create(
         name=f"{user_id}'s Workspace",
         type="private",
         corpus_ids=get_user_relevant_knowledge(user_id)
@@ -393,7 +393,7 @@ def onboard_user(user_id: str):
 ```python
 # Teams share a collaborative space
 def setup_team_workspace(team_name: str, members: list[str]):
-    mindspace = client.mindspace.create(
+    mindspace = client.magickspaces.create(
         name=f"{team_name} Team Space",
         type="group",
         participant_ids=members,
@@ -407,7 +407,7 @@ def setup_team_workspace(team_name: str, members: list[str]):
 ```python
 # Create temporary mindspaces for specific tasks
 def create_project_workspace(project: Project):
-    mindspace = client.mindspace.create(
+    mindspace = client.magickspaces.create(
         name=f"Project: {project.name}",
         type="group",
         project_id=project.id,
@@ -436,7 +436,7 @@ def create_project_workspace(project: Project):
 Link related mindspaces to projects for better organization:
 
 ```python
-client.mindspace.create(
+client.magickspaces.create(
     name="Backend Team",
     type="group",
     project_id="proj-backend-v2",  # Link to project
@@ -450,7 +450,7 @@ Corpus provide context to LLM conversations. Keep them relevant:
 
 ```python
 # Good: Focused corpus for specific domain
-client.mindspace.create(
+client.magickspaces.create(
     name="Customer Support",
     type="group",
     corpus_ids=["corp-help-docs", "corp-faq", "corp-policies"]
@@ -469,7 +469,7 @@ client.mindspace.create(
 
 ```python
 try:
-    space = client.mindspace.create(
+    space = client.magickspaces.create(
         name="Test Space",
         type="private"
     )

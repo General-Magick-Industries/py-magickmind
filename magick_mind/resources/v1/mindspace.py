@@ -37,7 +37,7 @@ class MindspaceResourceV1(BaseResource):
 
     Example:
         # Create a private mindspace
-        mindspace = await client.v1.mindspace.create(
+        mindspace = await client.v1.magickspaces.create(
             name="My Workspace",
             type="private",
             description="Personal workspace",
@@ -45,10 +45,10 @@ class MindspaceResourceV1(BaseResource):
         )
 
         # List all mindspaces
-        mindspaces = await client.v1.mindspace.list(user_id="user-456")
+        mindspaces = await client.v1.magickspaces.list(user_id="user-456")
 
         # Get messages from mindspace
-        messages = await client.v1.mindspace.get_messages("mind-123", limit=50)
+        messages = await client.v1.magickspaces.get_messages("mind-123", limit=50)
     """
 
     async def create(
@@ -79,7 +79,7 @@ class MindspaceResourceV1(BaseResource):
 
         Example:
             # Create a group mindspace
-            mindspace = await client.v1.mindspace.create(
+            mindspace = await client.v1.magickspaces.create(
                 name="Engineering Team",
                 type="GROUP",
                 description="Team collaboration space",
@@ -100,7 +100,7 @@ class MindspaceResourceV1(BaseResource):
 
         # Make API call
         response = await self._http.post(
-            Routes.MINDSPACES, json=request.model_dump(exclude_none=True)
+            Routes.MAGICKSPACES, json=request.model_dump(exclude_none=True)
         )
 
         return MindSpace.model_validate(response)
@@ -119,12 +119,12 @@ class MindspaceResourceV1(BaseResource):
             HTTPError: If the API request fails or mindspace not found
 
         Example:
-            mindspace = await client.v1.mindspace.get("mind-123")
+            mindspace = await client.v1.magickspaces.get("mind-123")
             print(f"Mindspace: {mindspace.name}")
             print(f"Type: {mindspace.type}")
             print(f"Corpus: {mindspace.corpus_ids}")
         """
-        response_data = await self._http.get(Routes.mindspace(mindspace_id))
+        response_data = await self._http.get(Routes.magickspace(mindspace_id))
         return MindSpace.model_validate(response_data)
 
     async def list(
@@ -157,7 +157,7 @@ class MindspaceResourceV1(BaseResource):
 
         Example:
             # List all mindspaces for a participant
-            response = await client.v1.mindspace.list(participant_id="user-456")
+            response = await client.v1.magickspaces.list(participant_id="user-456")
             for ms in response.mindspaces:
                 print(f"- {ms.name} ({ms.type})")
         """
@@ -177,7 +177,7 @@ class MindspaceResourceV1(BaseResource):
         if order is not None:
             params["order"] = order
 
-        response_data = await self._http.get(Routes.MINDSPACES, params=params)
+        response_data = await self._http.get(Routes.MAGICKSPACES, params=params)
         return GetMindSpaceListResponse.model_validate(response_data)
 
     async def update(
@@ -209,7 +209,7 @@ class MindspaceResourceV1(BaseResource):
 
         Example:
             # Update mindspace to add more corpus
-            mindspace = await client.v1.mindspace.update(
+            mindspace = await client.v1.magickspaces.update(
                 mindspace_id="mind-123",
                 name="Engineering Team",
                 corpus_ids=["corp-1", "corp-2", "corp-3"]
@@ -227,7 +227,7 @@ class MindspaceResourceV1(BaseResource):
 
         # Make API call
         response = await self._http.put(
-            Routes.mindspace(mindspace_id),
+            Routes.magickspace(mindspace_id),
             json=request.model_dump(exclude_none=True),
         )
 
@@ -245,10 +245,10 @@ class MindspaceResourceV1(BaseResource):
             HTTPError: If the API request fails or mindspace not found
 
         Example:
-            await client.v1.mindspace.delete("mind-123")
+            await client.v1.magickspaces.delete("mind-123")
             print("Mindspace deleted successfully")
         """
-        await self._http.delete(Routes.mindspace(mindspace_id))
+        await self._http.delete(Routes.magickspace(mindspace_id))
 
     async def get_messages(
         self,
@@ -275,13 +275,13 @@ class MindspaceResourceV1(BaseResource):
 
         Example:
             # Get latest messages
-            messages = await client.v1.mindspace.get_messages("mind-123")
+            messages = await client.v1.magickspaces.get_messages("mind-123")
             for msg in messages.chat_histories:
                 print(f"{msg.sent_by_user_id}: {msg.content}")
 
             # Next page
             if messages.has_more:
-                page2 = await client.v1.mindspace.get_messages(
+                page2 = await client.v1.magickspaces.get_messages(
                     "mind-123",
                     cursor=messages.next_after_id,
                 )
@@ -295,7 +295,7 @@ class MindspaceResourceV1(BaseResource):
             params["order"] = order
 
         response_data = await self._http.get(
-            Routes.mindspace_messages(mindspace_id),
+            Routes.magickspace_messages(mindspace_id),
             params=params if params else None,
         )
 
@@ -331,7 +331,7 @@ class MindspaceResourceV1(BaseResource):
             ProblemDetailsException: If the request fails
 
         Example:
-            msg = await client.v1.mindspace.send_message(
+            msg = await client.v1.magickspaces.send_message(
                 "mind-123",
                 content="Hello, world!",
                 sender_id="user-456",
@@ -347,7 +347,7 @@ class MindspaceResourceV1(BaseResource):
             broadcast=broadcast,
         )
         response = await self._http.post(
-            Routes.mindspace_messages(mindspace_id),
+            Routes.magickspace_messages(mindspace_id),
             json=request.model_dump(exclude_none=True),
         )
         return ChatHistoryItem.model_validate(response)
@@ -373,7 +373,7 @@ class MindspaceResourceV1(BaseResource):
 
         Example:
             # Add participants to a group mindspace
-            mindspace = await client.v1.mindspace.add_participants(
+            mindspace = await client.v1.magickspaces.add_participants(
                 mindspace_id="mind-123",
                 participant_ids=["user-3", "user-4"]
             )
@@ -384,7 +384,7 @@ class MindspaceResourceV1(BaseResource):
 
         # Make API call
         response = await self._http.post(
-            Routes.mindspace_users(mindspace_id),
+            Routes.magickspace_users(mindspace_id),
             json=request.model_dump(exclude_none=True),
         )
 
@@ -449,7 +449,7 @@ class MindspaceResourceV1(BaseResource):
             headers["x-api-key"] = api_key
 
         response = await self._http.post(
-            Routes.mindspace_context(mindspace_id),
+            Routes.magickspace_context(mindspace_id),
             json=body,
             headers=headers if headers else None,
         )
@@ -471,7 +471,7 @@ class MindspaceResourceV1(BaseResource):
             LivekitTokenResponse with token and URL
         """
         response = await self._http.post(
-            Routes.mindspace_livekit_token(mindspace_id),
+            Routes.magickspace_livekit_token(mindspace_id),
             json={"participant_id": participant_id},
         )
         return LivekitTokenResponse.model_validate(response)
@@ -492,7 +492,7 @@ class MindspaceResourceV1(BaseResource):
             LivekitJoinResponse with list of signaled participants
         """
         response = await self._http.post(
-            Routes.mindspace_livekit_join(mindspace_id),
+            Routes.magickspace_livekit_join(mindspace_id),
             json={"participant_ids": participant_ids},
         )
         return LivekitJoinResponse.model_validate(response)

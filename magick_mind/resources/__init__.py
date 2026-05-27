@@ -15,6 +15,7 @@ if TYPE_CHECKING:
     from magick_mind.resources.v1.corpus import CorpusResourceV1
     from magick_mind.resources.v1.end_user import EndUserResourceV1
     from magick_mind.resources.v1.history import HistoryResourceV1
+    from magick_mind.resources.v1.magickspaces import MagickspacesResourceV1
     from magick_mind.resources.v1.mindspace import MindspaceResourceV1
     from magick_mind.resources.v1.persona import PersonaResourceV1
     from magick_mind.resources.v1.project import ProjectResourceV1
@@ -32,6 +33,7 @@ class V1Resources:
     corpus: CorpusResourceV1
     end_user: EndUserResourceV1
     history: HistoryResourceV1
+    magickspaces: MagickspacesResourceV1
     mindspace: MindspaceResourceV1
     persona: PersonaResourceV1
     project: ProjectResourceV1
@@ -52,7 +54,7 @@ class V1Resources:
         from magick_mind.resources.v1.corpus import CorpusResourceV1
         from magick_mind.resources.v1.end_user import EndUserResourceV1
         from magick_mind.resources.v1.history import HistoryResourceV1
-        from magick_mind.resources.v1.mindspace import MindspaceResourceV1
+        from magick_mind.resources.v1.magickspaces import MagickspacesResourceV1
         from magick_mind.resources.v1.persona import PersonaResourceV1
         from magick_mind.resources.v1.project import ProjectResourceV1
         from magick_mind.resources.v1.runtime import RuntimeResourceV1
@@ -65,7 +67,8 @@ class V1Resources:
         self.corpus = CorpusResourceV1(http_client)
         self.end_user = EndUserResourceV1(http_client)
         self.history = HistoryResourceV1(http_client)
-        self.mindspace = MindspaceResourceV1(http_client)
+        self.magickspaces = MagickspacesResourceV1(http_client)
+        self.mindspace = self.magickspaces
         self.persona = PersonaResourceV1(http_client)
         self.project = ProjectResourceV1(http_client)
         self.runtime = RuntimeResourceV1(http_client)

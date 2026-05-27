@@ -182,7 +182,7 @@ async def example_1_authentication_errors():
     )
 
     try:
-        await client.http.get("/v1/mindspaces")
+        await client.http.get("/v1/magickspaces")
     except AuthenticationError as e:
         logger.error(f"❌ Authentication failed: {e.message}")
         logger.info("ℹ️  Action: Check your email and password")

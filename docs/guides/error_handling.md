@@ -463,7 +463,7 @@ except TokenExpiredError as e:
 from magick_mind.exceptions import ProblemDetailsException
 
 try:
-    mindspace = client.v1.mindspace.get(mindspace_id="nonexistent")
+    mindspace = client.v1.magickspaces.get(mindspace_id="nonexistent")
 except ProblemDetailsException as e:
     if e.status == 404:
         logger.error(f"Mindspace not found: {e.detail}")

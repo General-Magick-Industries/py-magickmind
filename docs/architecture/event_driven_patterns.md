@@ -560,7 +560,7 @@ class ProductionChatBackend:
             
             try:
                 # Fetch history from the Magick Mind API
-                resp = await self.sdk_client.v1.mindspace.get_messages(
+                resp = await self.sdk_client.v1.magickspaces.get_messages(
                     mindspace_id,
                     cursor=self.last_sync_cursor,
                     limit=100,

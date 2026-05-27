@@ -122,7 +122,7 @@ class ChatBackendService:
         Note: Requires mindspaces.get_messages() to be implemented
               in the SDK (coming soon!)
         """
-        resp = await self.client.v1.mindspace.get_messages(
+        resp = await self.client.v1.magickspaces.get_messages(
             mindspace_id,
             cursor=since_message_id,
             limit=100,

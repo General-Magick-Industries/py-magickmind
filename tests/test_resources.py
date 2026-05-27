@@ -327,12 +327,12 @@ class TestMindspace:
         mock_auth: HTTPXMock,
     ):
         mock_auth.add_response(
-            url=f"{BASE_URL}/v1/mindspaces",
+            url=f"{BASE_URL}/v1/magickspaces",
             method="POST",
             json=MINDSPACE_PAYLOAD,
         )
 
-        await client.mindspace.create(
+        await client.magickspaces.create(
             name="Test Space",
             type="PRIVATE",
             description="test",
@@ -341,7 +341,7 @@ class TestMindspace:
 
         request = mock_auth.get_requests()[-1]
         assert request.method == "POST"
-        assert "/v1/mindspaces" in str(request.url)
+        assert "/v1/magickspaces" in str(request.url)
 
         body = json.loads(request.content)
         assert body["name"] == "Test Space"
@@ -355,12 +355,12 @@ class TestMindspace:
         mock_auth: HTTPXMock,
     ):
         mock_auth.add_response(
-            url=f"{BASE_URL}/v1/mindspaces",
+            url=f"{BASE_URL}/v1/magickspaces",
             method="POST",
             json=MINDSPACE_PAYLOAD,
         )
 
-        result = await client.mindspace.create(name="Test Space", type="PRIVATE")
+        result = await client.magickspaces.create(name="Test Space", type="PRIVATE")
 
         assert isinstance(result, MindSpace)
         assert result.id == "ms-123"
@@ -374,19 +374,19 @@ class TestMindspace:
         mock_auth: HTTPXMock,
     ):
         mock_auth.add_response(
-            url=f"{BASE_URL}/v1/mindspaces/ms-123",
+            url=f"{BASE_URL}/v1/magickspaces/ms-123",
             method="GET",
             json=MINDSPACE_PAYLOAD,
         )
 
-        result = await client.mindspace.get("ms-123")
+        result = await client.magickspaces.get("ms-123")
 
         assert isinstance(result, MindSpace)
         assert result.id == "ms-123"
 
         request = mock_auth.get_requests()[-1]
         assert request.method == "GET"
-        assert str(request.url).endswith("/v1/mindspaces/ms-123")
+        assert str(request.url).endswith("/v1/magickspaces/ms-123")
 
     async def test_list_returns_response(
         self,
@@ -402,7 +402,7 @@ class TestMindspace:
             },
         )
 
-        result = await client.mindspace.list(participant_id="user-1")
+        result = await client.magickspaces.list(participant_id="user-1")
 
         assert isinstance(result, GetMindSpaceListResponse)
         assert len(result.data) == 1
@@ -410,7 +410,7 @@ class TestMindspace:
 
         request = mock_auth.get_requests()[-1]
         assert request.method == "GET"
-        assert "/v1/mindspaces" in str(request.url)
+        assert "/v1/magickspaces" in str(request.url)
         assert "participant_id=user-1" in str(request.url)
 
     async def test_update_sends_put(
@@ -420,12 +420,12 @@ class TestMindspace:
     ):
         updated = {**MINDSPACE_PAYLOAD, "name": "Updated Space"}
         mock_auth.add_response(
-            url=f"{BASE_URL}/v1/mindspaces/ms-123",
+            url=f"{BASE_URL}/v1/magickspaces/ms-123",
             method="PUT",
             json=updated,
         )
 
-        result = await client.mindspace.update(
+        result = await client.magickspaces.update(
             mindspace_id="ms-123",
             name="Updated Space",
         )
@@ -435,7 +435,7 @@ class TestMindspace:
 
         request = mock_auth.get_requests()[-1]
         assert request.method == "PUT"
-        assert str(request.url).endswith("/v1/mindspaces/ms-123")
+        assert str(request.url).endswith("/v1/magickspaces/ms-123")
 
         body = json.loads(request.content)
         assert body["name"] == "Updated Space"
@@ -446,16 +446,16 @@ class TestMindspace:
         mock_auth: HTTPXMock,
     ):
         mock_auth.add_response(
-            url=f"{BASE_URL}/v1/mindspaces/ms-123",
+            url=f"{BASE_URL}/v1/magickspaces/ms-123",
             method="DELETE",
             json={},
         )
 
-        await client.mindspace.delete("ms-123")
+        await client.magickspaces.delete("ms-123")
 
         request = mock_auth.get_requests()[-1]
         assert request.method == "DELETE"
-        assert str(request.url).endswith("/v1/mindspaces/ms-123")
+        assert str(request.url).endswith("/v1/magickspaces/ms-123")
 
     async def test_get_messages(
         self,
@@ -468,7 +468,7 @@ class TestMindspace:
             json=HISTORY_PAYLOAD,
         )
 
-        result = await client.mindspace.get_messages("ms-1", limit=20)
+        result = await client.magickspaces.get_messages("ms-1", limit=20)
 
         assert isinstance(result, MindspaceMessagesResponse)
         assert len(result.data) == 1
@@ -476,7 +476,7 @@ class TestMindspace:
         assert result.data[0].content == "Hello"
 
         request = mock_auth.get_requests()[-1]
-        assert "/v1/mindspaces/ms-1/messages" in str(request.url)
+        assert "/v1/magickspaces/ms-1/messages" in str(request.url)
         assert "limit=20" in str(request.url)
 
 
@@ -886,7 +886,7 @@ class TestHistory:
 
         request = mock_auth.get_requests()[-1]
         assert request.method == "GET"
-        assert "/v1/mindspaces/ms-1/messages" in str(request.url)
+        assert "/v1/magickspaces/ms-1/messages" in str(request.url)
         assert "limit=10" in str(request.url)
 
     async def test_get_messages_with_cursor(
@@ -912,7 +912,7 @@ class TestHistory:
         assert result.has_more is True
 
         request = mock_auth.get_requests()[-1]
-        assert "/v1/mindspaces/ms-1/messages" in str(request.url)
+        assert "/v1/magickspaces/ms-1/messages" in str(request.url)
         assert "cursor=msg-5" in str(request.url)
 
 

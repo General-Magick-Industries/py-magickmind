@@ -1,6 +1,6 @@
 """V1 mindspace API models.
 
-These models mirror the API types for /v1/mindspaces endpoint.
+These models mirror the API types for /v1/magickspaces endpoint.
 """
 
 from __future__ import annotations
