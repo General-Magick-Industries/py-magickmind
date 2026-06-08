@@ -25,7 +25,7 @@ from magick_mind.reasoning.events import (
 async def test_reason_non_streaming_posts_wire_payload(httpx_mock: HTTPXMock) -> None:
     httpx_mock.add_response(
         method="POST",
-        url="https://api.test/v2/cortex/chat/completions",
+        url="https://api.test/v2/chat/completions",
         json={
             "text_answer": "hello from cortex",
             "trace_id": "trace-1",
@@ -63,7 +63,7 @@ async def test_reason_non_streaming_posts_wire_payload(httpx_mock: HTTPXMock) ->
 async def test_reason_streaming_yields_typed_events(httpx_mock: HTTPXMock) -> None:
     httpx_mock.add_response(
         method="POST",
-        url="https://api.test/v2/cortex/chat/completions",
+        url="https://api.test/v2/chat/completions",
         headers={"Content-Type": "text/event-stream"},
         stream=IteratorStream(
             [
@@ -239,7 +239,7 @@ def test_rlm_builder_rejects_unsupported_draft_fields() -> None:
 async def test_reason_raises_api_errors(httpx_mock: HTTPXMock) -> None:
     httpx_mock.add_response(
         method="POST",
-        url="https://api.test/v2/cortex/chat/completions",
+        url="https://api.test/v2/chat/completions",
         status_code=401,
         json={"code": 401, "message": "Unauthorized access"},
     )

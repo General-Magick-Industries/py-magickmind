@@ -43,14 +43,20 @@ async def main() -> None:
             stream=True,
         )
 
-        print("answer: ", end="", flush=True)
+        answer_started = False
         async for event in stream:
             if event.is_token():
+                if not answer_started:
+                    print("answer: ", end="", flush=True)
+                    answer_started = True
                 print(event.content, end="", flush=True)
             elif event.is_thinking():
+                if answer_started:
+                    print()
+                    answer_started = False
                 render_thinking_event(event.type, event.payload)
-                print("answer: ", end="", flush=True)
-        print()
+        if answer_started:
+            print()
 
 
 if __name__ == "__main__":

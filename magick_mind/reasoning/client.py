@@ -13,7 +13,7 @@ from magick_mind.reasoning.models import ChatMessage, ReasonResponse
 
 
 DEFAULT_BASE_URL = "https://api.magickmind.ai"
-REASON_PATH = "/v2/cortex/chat/completions"
+REASON_PATH = "/v2/chat/completions"
 
 
 class ReasonStream:

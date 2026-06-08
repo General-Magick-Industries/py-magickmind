@@ -28,7 +28,7 @@ async def main() -> None:
     rating_model = os.environ["MAGICKMIND_RATING_MODEL"]
     aggregator_model = os.environ["MAGICKMIND_AGGREGATOR_MODEL"]
 
-    async with Client(api_key=api_key, base_url=base_url) as client:
+    async with Client(api_key=api_key, base_url=base_url, timeout=180.0) as client:
         response = await client.reason(
             algorithm=MCTS(
                 nodes=[LLM(model_a), LLM(model_b)],
