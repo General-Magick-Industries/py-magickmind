@@ -254,6 +254,10 @@ The `examples/` directory contains working examples demonstrating key SDK patter
 | **persona_workflow.py** | Persona creation, versioning, and prepare (system prompt generation) |
 | **chat_workflow.py** | Complete chat workflow with realtime streaming |
 | **reason_basic.py** | Minimal Cortex v2 Reason API call |
+| **reason_singular_llm.py** | Cortex v2 Reason with a Singular LLM algorithm |
+| **reason_singular_rlm.py** | Cortex v2 Reason with a Singular RLM algorithm |
+| **reason_mcts.py** | Cortex v2 Reason with MCTS over LLM candidates |
+| **reason_mcts_mixed.py** | Cortex v2 Reason with mixed LLM and RLM MCTS candidates |
 | **reason_streaming.py** | Cortex v2 Reason streaming with typed events |
 | **bulk_subscribe.py** | Bulk subscriptions with message deduplication |
 | **backend_service.py** | Production-ready backend service pattern |
@@ -269,12 +273,17 @@ Quick start:
 export MAGICKMIND_BASE_URL="http://localhost:8888"
 export MAGICKMIND_EMAIL="user@example.com"
 export MAGICKMIND_PASSWORD="your_password"
+export MAGICKMIND_API_KEY="sk-your-api-key"
 
 # 2. Create test resources
 uv run python examples/setup_resources.py
 
 # 3. Run an example
 uv run python examples/authentication.py
+
+# Or run Cortex v2 Reason examples
+uv run python examples/reason_singular_llm.py
+uv run python examples/reason_streaming.py
 ```
 
 ## License

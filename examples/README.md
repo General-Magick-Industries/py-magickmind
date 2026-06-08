@@ -22,6 +22,15 @@ MAGICKMIND_PASSWORD="your_password"
 # Required for corpus ingest & query examples
 MAGICKMIND_API_KEY="sk-your-litellm-virtual-key"
 
+# Optional — for Cortex v2 Reason examples
+MAGICKMIND_REASON_MODEL="provider/model"
+MAGICKMIND_REASON_MODEL_A="provider/model-a"
+MAGICKMIND_REASON_MODEL_B="provider/model-b"
+MAGICKMIND_RLM_DECOMPOSER_MODEL="provider/decomposer-model"
+MAGICKMIND_RLM_LEAF_MODEL="provider/leaf-model"
+MAGICKMIND_RATING_MODEL="provider/rating-model"
+MAGICKMIND_AGGREGATOR_MODEL="provider/aggregator-model"
+
 # Required for realtime/chat examples
 MAGICKMIND_WS_ENDPOINT="wss://centrifugo.magickmind.ai/connection/websocket"
 
@@ -57,7 +66,14 @@ uv run python examples/authentication.py
 | `MAGICKMIND_BASE_URL` | All | API gateway URL |
 | `MAGICKMIND_EMAIL` | All | Login email |
 | `MAGICKMIND_PASSWORD` | All | Login password |
-| `MAGICKMIND_API_KEY` | corpus_ingest, resource_management | LiteLLM virtual key for per-tenant LLM/embedding usage |
+| `MAGICKMIND_API_KEY` | corpus_ingest, resource_management, Reason examples | LiteLLM virtual key for per-tenant LLM/embedding/reasoning usage |
+| `MAGICKMIND_REASON_MODEL` | reason_basic, reason_singular_llm, reason_streaming, reason_mcts_mixed | Model ID for Singular LLM and mixed MCTS examples |
+| `MAGICKMIND_REASON_MODEL_A` | reason_mcts | First MCTS LLM candidate model |
+| `MAGICKMIND_REASON_MODEL_B` | reason_mcts | Second MCTS LLM candidate model |
+| `MAGICKMIND_RLM_DECOMPOSER_MODEL` | reason_singular_rlm, reason_mcts_mixed | RLM decomposer/main model |
+| `MAGICKMIND_RLM_LEAF_MODEL` | reason_singular_rlm, reason_mcts_mixed | RLM leaf/sub model |
+| `MAGICKMIND_RATING_MODEL` | reason_mcts, reason_mcts_mixed | MCTS rating model |
+| `MAGICKMIND_AGGREGATOR_MODEL` | reason_mcts, reason_mcts_mixed | MCTS aggregator model |
 | `MAGICKMIND_WS_ENDPOINT` | chat_workflow, bulk_subscribe, backend_service | Centrifugo WebSocket URL |
 | `USER_ID` | chat_workflow, backend_service, setup_resources | End-user ID for subscriptions |
 | `MINDSPACE_ID` | chat_workflow, backend_service, error_handling | Mindspace to send messages to |
@@ -123,6 +139,80 @@ uv run python examples/completions.py
 ```
 
 **Requires:** `MAGICKMIND_BASE_URL`, `MAGICKMIND_EMAIL`, `MAGICKMIND_PASSWORD`, `MAGICKMIND_API_KEY`
+
+---
+
+### reason_basic.py — Minimal Cortex v2 Reason
+
+Smallest direct Cortex v2 Reason API call. This is equivalent to the Singular
+LLM example with less surrounding explanation.
+
+```bash
+uv run python examples/reason_basic.py
+```
+
+**Requires:** `MAGICKMIND_API_KEY`
+
+---
+
+### reason_singular_llm.py — Cortex v2 Singular LLM
+
+Direct Cortex v2 Reason API call with a single LLM node.
+
+```bash
+uv run python examples/reason_singular_llm.py
+```
+
+**Requires:** `MAGICKMIND_API_KEY`
+
+---
+
+### reason_singular_rlm.py — Cortex v2 Singular RLM
+
+Direct Cortex v2 Reason API call with an RLM node.
+
+```bash
+uv run python examples/reason_singular_rlm.py
+```
+
+**Requires:** `MAGICKMIND_API_KEY`
+
+---
+
+### reason_mcts.py — Cortex v2 MCTS
+
+Direct Cortex v2 Reason API call with MCTS over LLM candidates.
+
+```bash
+uv run python examples/reason_mcts.py
+```
+
+**Requires:** `MAGICKMIND_API_KEY`
+
+---
+
+### reason_mcts_mixed.py — Cortex v2 Mixed MCTS
+
+Direct Cortex v2 Reason API call with mixed LLM and RLM MCTS candidates.
+
+```bash
+uv run python examples/reason_mcts_mixed.py
+```
+
+**Requires:** `MAGICKMIND_API_KEY`
+
+---
+
+### reason_streaming.py — Cortex v2 Streaming + Thinking UI
+
+Streams Cortex v2 Reason events and renders answer tokens separately from
+`reason.*` thinking/progress events.
+
+```bash
+uv run python examples/reason_streaming.py
+```
+
+**Requires:** `MAGICKMIND_API_KEY`
 
 ---
 
