@@ -3,7 +3,17 @@ from __future__ import annotations
 import pytest
 from pytest_httpx import HTTPXMock, IteratorStream
 
-from magickmind import Client, LLM, MCTS, RLM, ReasonResponse, Singular
+from magickmind import (
+    AlgorithmConfig,
+    Client,
+    LLM,
+    MCTS,
+    ModelConfig,
+    NodeConfig,
+    RLM,
+    ReasonResponse,
+    Singular,
+)
 from magick_mind.reasoning.events import (
     ReasonCompleteEvent,
     ReasonThinkingEvent,
@@ -132,6 +142,56 @@ def test_mcts_builder_matches_v2_wire_format() -> None:
     }
 
 
+def test_llm_builder_supports_inline_model_config() -> None:
+    body = LLM(
+        "provider/model",
+        temperature=0.2,
+        max_tokens=256,
+        top_p=0.9,
+        reasoning_effort="medium",
+    ).to_dict()
+
+    assert body == {
+        "llm": {
+            "model_config": {
+                "model": "provider/model",
+                "temperature": 0.2,
+                "max_tokens": 256,
+                "top_p": 0.9,
+                "reasoning_effort": "medium",
+            }
+        }
+    }
+
+
+def test_llm_builder_accepts_model_config() -> None:
+    body = LLM(ModelConfig(model="provider/model", max_tokens=128)).to_dict()
+
+    assert body == {
+        "llm": {
+            "model_config": {
+                "model": "provider/model",
+                "max_tokens": 128,
+            }
+        }
+    }
+
+
+def test_llm_builder_rejects_model_config_with_inline_overrides() -> None:
+    with pytest.raises(ValueError, match="cannot be passed alongside ModelConfig"):
+        LLM(ModelConfig(model="provider/model"), temperature=0.2)
+
+
+def test_mcts_builder_defaults_iterations_to_four() -> None:
+    body = MCTS(
+        nodes=[LLM("provider/model-a"), LLM("provider/model-b")],
+        rating_model="provider/rating-model",
+        aggregator_model="provider/aggregator-model",
+    ).to_dict()
+
+    assert body["mcts"]["iterations"] == 4
+
+
 def test_rlm_builder_matches_current_v2_wire_format() -> None:
     body = RLM(
         decomposer_model="openrouter/openai/gpt-4o",
@@ -144,6 +204,24 @@ def test_rlm_builder_matches_current_v2_wire_format() -> None:
             "main_model_config": {"model": "openrouter/openai/gpt-4o"},
             "sub_model_config": {"model": "openrouter/openai/gpt-4o-mini"},
             "max_iterations": 2,
+        }
+    }
+
+
+def test_builder_type_aliases_are_usable_for_annotations() -> None:
+    node: NodeConfig = LLM("provider/model")
+    algorithm: AlgorithmConfig = Singular(node)
+
+    assert isinstance(algorithm, Singular)
+    assert algorithm.to_dict() == {
+        "singular": {
+            "node": {
+                "llm": {
+                    "model_config": {
+                        "model": "provider/model",
+                    }
+                }
+            }
         }
     }
 

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Literal, Mapping, Protocol
+from typing import Any, Literal, Mapping, Protocol, TypeAlias
 
 from pydantic import BaseModel, ConfigDict
 
@@ -48,17 +48,46 @@ class ModelConfig:
         )
 
 
+ModelLike: TypeAlias = str | ModelConfig
+NodeConfig: TypeAlias = WireSerializable | Mapping[str, Any]
+AlgorithmConfig: TypeAlias = WireSerializable | Mapping[str, Any]
+
+
 @dataclass(frozen=True)
 class LLM:
     """Single LLM node."""
 
-    model: str | ModelConfig
+    model: ModelLike
+    temperature: float | None = None
+    max_tokens: int | None = None
+    top_p: float | None = None
+    reasoning_effort: str | None = None
+
+    def __post_init__(self) -> None:
+        if isinstance(self.model, ModelConfig) and any(
+            value is not None
+            for value in (
+                self.temperature,
+                self.max_tokens,
+                self.top_p,
+                self.reasoning_effort,
+            )
+        ):
+            raise ValueError(
+                "LLM model parameters cannot be passed alongside ModelConfig"
+            )
 
     def to_dict(self) -> dict[str, Any]:
         if isinstance(self.model, ModelConfig):
             config = self.model.to_dict()
         else:
-            config = {"model": self.model}
+            config = ModelConfig(
+                model=self.model,
+                temperature=self.temperature,
+                max_tokens=self.max_tokens,
+                top_p=self.top_p,
+                reasoning_effort=self.reasoning_effort,
+            ).to_dict()
         return {"llm": {"model_config": config}}
 
 
@@ -66,9 +95,9 @@ class LLM:
 class RLM:
     """Recursive language model node."""
 
-    decomposer_model: str | ModelConfig
-    leaf_model: str | ModelConfig | None = None
-    synthesizer_model: str | ModelConfig | None = None
+    decomposer_model: ModelLike
+    leaf_model: ModelLike | None = None
+    synthesizer_model: ModelLike | None = None
     max_depth: int | None = None
     fanout: int | None = None
 
@@ -81,7 +110,8 @@ class RLM:
         if unsupported:
             names = ", ".join(unsupported)
             raise ValueError(
-                f"RLM {names} not supported by the current Reason API wire format"
+                f"RLM {names} not supported by the current Reason API wire format. "
+                "Supported RLM fields are decomposer_model, leaf_model, and max_depth."
             )
 
     def to_dict(self) -> dict[str, Any]:
@@ -116,7 +146,7 @@ class RLM:
 class Singular:
     """Singular Reason algorithm."""
 
-    node: WireSerializable | Mapping[str, Any]
+    node: NodeConfig
 
     def to_dict(self) -> dict[str, Any]:
         return {"singular": {"node": _serialize(self.node)}}
@@ -126,10 +156,10 @@ class Singular:
 class MCTS:
     """MCTS Reason algorithm."""
 
-    nodes: list[WireSerializable | Mapping[str, Any]]
-    iterations: int
-    rating_model: str | ModelConfig
-    aggregator_model: str | ModelConfig
+    nodes: list[NodeConfig]
+    rating_model: ModelLike
+    aggregator_model: ModelLike
+    iterations: int = 4
 
     def to_dict(self) -> dict[str, Any]:
         rating_config = (
