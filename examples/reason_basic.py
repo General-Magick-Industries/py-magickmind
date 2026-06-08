@@ -20,7 +20,9 @@ async def main() -> None:
     async with Client(api_key=api_key, base_url=base_url) as client:
         response = await client.reason(
             algorithm=Singular(LLM("openrouter/openai/gpt-4o")),
-            messages=[{"role": "user", "content": "Explain Cortex v2 in one sentence."}],
+            messages=[
+                {"role": "user", "content": "Explain Cortex v2 in one sentence."}
+            ],
         )
         print(response.content)
 

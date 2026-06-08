@@ -255,4 +255,6 @@ async def _raise_for_error(response: httpx.Response) -> None:
 def _is_retryable_exception(exc: Exception) -> bool:
     if isinstance(exc, (httpx.TimeoutException, httpx.NetworkError)):
         return True
-    return isinstance(exc, MagickMindError) and exc.status_code in _RETRYABLE_STATUS_CODES
+    return (
+        isinstance(exc, MagickMindError) and exc.status_code in _RETRYABLE_STATUS_CODES
+    )
