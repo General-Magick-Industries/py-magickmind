@@ -73,6 +73,55 @@ async def main():
 asyncio.run(main())
 ```
 
+### Cortex v2 Reason
+
+```python
+import asyncio
+from magickmind import Client, LLM, MCTS
+
+async def main():
+    async with Client(api_key="sk-your-api-key") as client:
+        response = await client.reason(
+            algorithm=MCTS(
+                nodes=[
+                    LLM("provider/model-a"),
+                    LLM("provider/model-b"),
+                ],
+                iterations=4,
+                rating_model="provider/rating-model",
+                aggregator_model="provider/aggregator-model",
+            ),
+            messages=[{"role": "user", "content": "Compare these options briefly."}],
+        )
+        print(response.content)
+
+asyncio.run(main())
+```
+
+Streaming returns typed events instead of raw SSE strings:
+
+```python
+import asyncio
+from magickmind import Client, LLM, Singular
+
+async def main():
+    async with Client(api_key="sk-your-api-key") as client:
+        stream = await client.reason(
+            algorithm=Singular(LLM("provider/model")),
+            messages=[{"role": "user", "content": "Think through this problem."}],
+            stream=True,
+        )
+
+        async for event in stream:
+            if event.is_token():
+                print(event.content, end="")
+            elif event.is_thinking():
+                # Use event.type and event.payload for progress/thinking UI updates.
+                pass
+
+asyncio.run(main())
+```
+
 ### Realtime (Decorator API)
 
 ```python
@@ -204,6 +253,8 @@ The `examples/` directory contains working examples demonstrating key SDK patter
 | **resource_management.py** | CRUD operations for End Users, Projects, and Mindspaces |
 | **persona_workflow.py** | Persona creation, versioning, and prepare (system prompt generation) |
 | **chat_workflow.py** | Complete chat workflow with realtime streaming |
+| **reason_basic.py** | Minimal Cortex v2 Reason API call |
+| **reason_streaming.py** | Cortex v2 Reason streaming with typed events |
 | **bulk_subscribe.py** | Bulk subscriptions with message deduplication |
 | **backend_service.py** | Production-ready backend service pattern |
 | **error_handling_patterns.py** | Comprehensive error handling patterns |

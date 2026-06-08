@@ -68,8 +68,21 @@ class RLM:
 
     decomposer_model: str | ModelConfig
     leaf_model: str | ModelConfig | None = None
+    synthesizer_model: str | ModelConfig | None = None
     max_depth: int | None = None
     fanout: int | None = None
+
+    def __post_init__(self) -> None:
+        unsupported = []
+        if self.synthesizer_model is not None:
+            unsupported.append("synthesizer_model")
+        if self.fanout is not None:
+            unsupported.append("fanout")
+        if unsupported:
+            names = ", ".join(unsupported)
+            raise ValueError(
+                f"RLM {names} not supported by the current Reason API wire format"
+            )
 
     def to_dict(self) -> dict[str, Any]:
         main_config = (
@@ -85,9 +98,9 @@ class RLM:
                 else {"model": self.leaf_model}
             )
 
-        # Cortex currently exposes max_iterations for RLM. Phase 5's draft names
-        # max_depth/fanout are preserved on the Python side; max_depth maps to the
-        # existing wire field without changing Bifrost or proto contracts.
+        # Cortex currently exposes max_iterations for RLM. Phase 5's draft
+        # max_depth name maps to the existing wire field without changing
+        # Bifrost or proto contracts.
         return {
             "rlm": _compact(
                 {

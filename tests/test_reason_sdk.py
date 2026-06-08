@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 from pytest_httpx import HTTPXMock, IteratorStream
 
-from magickmind import Client, LLM, MCTS, ReasonResponse, Singular
+from magickmind import Client, LLM, MCTS, RLM, ReasonResponse, Singular
 from magick_mind.reasoning.events import (
     ReasonCompleteEvent,
     ReasonThinkingEvent,
@@ -130,6 +130,32 @@ def test_mcts_builder_matches_v2_wire_format() -> None:
             "aggregator_model_config": {"model": "openrouter/openai/gpt-4o"},
         }
     }
+
+
+def test_rlm_builder_matches_current_v2_wire_format() -> None:
+    body = RLM(
+        decomposer_model="openrouter/openai/gpt-4o",
+        leaf_model="openrouter/openai/gpt-4o-mini",
+        max_depth=2,
+    ).to_dict()
+
+    assert body == {
+        "rlm": {
+            "main_model_config": {"model": "openrouter/openai/gpt-4o"},
+            "sub_model_config": {"model": "openrouter/openai/gpt-4o-mini"},
+            "max_iterations": 2,
+        }
+    }
+
+
+def test_rlm_builder_rejects_unsupported_draft_fields() -> None:
+    with pytest.raises(ValueError, match="synthesizer_model, fanout"):
+        RLM(
+            decomposer_model="openrouter/openai/gpt-4o",
+            leaf_model="openrouter/openai/gpt-4o-mini",
+            synthesizer_model="openrouter/openai/gpt-4o",
+            fanout=3,
+        )
 
 
 async def test_reason_raises_api_errors(httpx_mock: HTTPXMock) -> None:
