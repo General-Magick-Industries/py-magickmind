@@ -121,6 +121,11 @@ class GetMindSpaceListResponse(BaseModel):
     )
     paging: PageInfo = Field(..., description="Pagination information")
 
+    @field_validator("data", mode="before")
+    @classmethod
+    def _coerce_null_list(cls, v: object) -> object:
+        return v if v is not None else []
+
     @property
     def mindspaces(self) -> list[MindSpace]:
         """Alias for data field (backward compatibility)."""
@@ -225,6 +230,11 @@ class ContextPrepareResponse(BaseModel):
     corpus: list[CorpusChunk] = Field(default_factory=list)
     fetcher: str = ""
 
+    @field_validator("chat_history", "corpus", mode="before")
+    @classmethod
+    def _coerce_null_list(cls, v: object) -> object:
+        return v if v is not None else []
+
 
 class LivekitTokenResponse(BaseModel):
     """Response containing a LiveKit access token."""
@@ -237,3 +247,8 @@ class LivekitJoinResponse(BaseModel):
     """Response from signalling agents to join LiveKit room."""
 
     signaled: list[str] = Field(default_factory=list)
+
+    @field_validator("signaled", mode="before")
+    @classmethod
+    def _coerce_null_list(cls, v: object) -> object:
+        return v if v is not None else []

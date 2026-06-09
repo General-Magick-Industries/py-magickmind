@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from typing import ClassVar, Optional
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from magick_mind.models.common import PageInfo
 from magick_mind.models.v1.artifact import Artifact
@@ -100,6 +100,11 @@ class AddArtifactsResponse(BaseModel):
 
     added_count: int
     failed_artifact_ids: list[str] = Field(default_factory=list)
+
+    @field_validator("failed_artifact_ids", mode="before")
+    @classmethod
+    def _coerce_null_list(cls, v: object) -> object:
+        return v if v is not None else []
 
 
 class ArtifactStatus(BaseModel):
