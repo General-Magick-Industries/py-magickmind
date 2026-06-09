@@ -25,25 +25,46 @@ class ReasonStream:
         url: str,
         headers: dict[str, str],
         payload: dict[str, Any],
+        max_retries: int,
     ) -> None:
         self._client = client
         self._url = url
         self._headers = headers
         self._payload = payload
+        self._max_retries = max_retries
 
     def __aiter__(self) -> AsyncIterator[ReasonEvent]:
         return self._iter_events()
 
     async def _iter_events(self) -> AsyncIterator[ReasonEvent]:
-        async with self._client.stream(
-            "POST",
-            self._url,
-            json=self._payload,
-            headers=self._headers,
-        ) as response:
-            await _raise_for_error(response)
-            async for event in iter_sse_events(response.aiter_lines()):
-                yield event
+        last_error: Exception | None = None
+        for attempt in range(self._max_retries + 1):
+            yielded_any = False
+            try:
+                async with self._client.stream(
+                    "POST",
+                    self._url,
+                    json=self._payload,
+                    headers=self._headers,
+                ) as response:
+                    await _raise_for_error(response)
+                    async for event in iter_sse_events(response.aiter_lines()):
+                        yielded_any = True
+                        yield event
+                    return
+            except (httpx.TimeoutException, httpx.NetworkError, MagickMindError) as exc:
+                last_error = exc
+                if (
+                    yielded_any
+                    or attempt >= self._max_retries
+                    or not _is_retryable_exception(exc)
+                ):
+                    raise
+                await asyncio.sleep(0.25 * (2**attempt))
+
+        if last_error:
+            raise last_error
+        raise MagickMindError("Reason stream failed before receiving a response")
 
 
 class Client:
@@ -128,7 +149,13 @@ class Client:
         url = f"{self.base_url}{REASON_PATH}"
 
         if stream:
-            return ReasonStream(self._client, url, headers, payload)
+            return ReasonStream(
+                self._client,
+                url,
+                headers,
+                payload,
+                self.max_retries,
+            )
 
         response = await self._post_json_with_retries(url, payload, headers)
         return ReasonResponse.model_validate(response.json())
