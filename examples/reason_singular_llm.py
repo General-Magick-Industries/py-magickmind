@@ -1,4 +1,4 @@
-"""Minimal Cortex v2 Reason SDK example.
+"""Cortex v2 Reason example: Singular LLM.
 
 Set:
     export MAGICKMIND_API_KEY="sk-..."
@@ -26,7 +26,10 @@ async def main() -> None:
         response = await client.reason(
             algorithm=Singular(LLM(model)),
             messages=[
-                {"role": "user", "content": "Explain Cortex v2 in one sentence."}
+                {
+                    "role": "user",
+                    "content": "Explain Cortex v2 Reason in one sentence.",
+                }
             ],
         )
         print(response.content)

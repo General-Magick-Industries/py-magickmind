@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import httpx
 import pytest
 from pytest_httpx import HTTPXMock, IteratorStream
 
@@ -25,7 +26,7 @@ from magick_mind.reasoning.events import (
 async def test_reason_non_streaming_posts_wire_payload(httpx_mock: HTTPXMock) -> None:
     httpx_mock.add_response(
         method="POST",
-        url="https://api.test/v2/cortex/chat/completions",
+        url="https://api.test/v2/chat/completions",
         json={
             "text_answer": "hello from cortex",
             "trace_id": "trace-1",
@@ -63,7 +64,7 @@ async def test_reason_non_streaming_posts_wire_payload(httpx_mock: HTTPXMock) ->
 async def test_reason_streaming_yields_typed_events(httpx_mock: HTTPXMock) -> None:
     httpx_mock.add_response(
         method="POST",
-        url="https://api.test/v2/cortex/chat/completions",
+        url="https://api.test/v2/chat/completions",
         headers={"Content-Type": "text/event-stream"},
         stream=IteratorStream(
             [
@@ -96,6 +97,40 @@ async def test_reason_streaming_yields_typed_events(httpx_mock: HTTPXMock) -> No
     assert request is not None
     assert request.headers["Authorization"] == "Bearer sk-test"
     assert request.headers["Accept"] == "text/event-stream"
+
+    await client.close()
+
+
+async def test_reason_streaming_retries_before_first_event(
+    httpx_mock: HTTPXMock,
+) -> None:
+    httpx_mock.add_exception(
+        httpx.ReadTimeout("stream connect timed out"),
+        method="POST",
+        url="https://api.test/v2/chat/completions",
+    )
+    httpx_mock.add_response(
+        method="POST",
+        url="https://api.test/v2/chat/completions",
+        headers={"Content-Type": "text/event-stream"},
+        stream=IteratorStream(
+            [
+                b'event: reason.answer.delta\ndata: {"trace_id":"trace-1","answer_chunk":{"content":"ok"}}\n\n',
+            ]
+        ),
+    )
+
+    client = Client(api_key="sk-test", base_url="https://api.test", max_retries=1)
+    result = await client.reason(
+        algorithm=Singular(LLM("openrouter/openai/gpt-4o")),
+        message="hello",
+        stream=True,
+    )
+
+    events = [event async for event in result]
+
+    assert len(httpx_mock.get_requests()) == 2
+    assert events[0].content == "ok"
 
     await client.close()
 
@@ -239,7 +274,7 @@ def test_rlm_builder_rejects_unsupported_draft_fields() -> None:
 async def test_reason_raises_api_errors(httpx_mock: HTTPXMock) -> None:
     httpx_mock.add_response(
         method="POST",
-        url="https://api.test/v2/cortex/chat/completions",
+        url="https://api.test/v2/chat/completions",
         status_code=401,
         json={"code": 401, "message": "Unauthorized access"},
     )
