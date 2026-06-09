@@ -83,7 +83,7 @@ async def main():
         # All list fields in GrowthConfig and DyadicConfig must be provided
         # explicitly (do not rely on defaults).
         # ==================================================================
-        print(f"\n--- Step 2: Create Version ---")
+        print("\n--- Step 2: Create Version ---")
 
         version = await client.v1.persona.create_version(
             persona_id=persona.id,
@@ -136,7 +136,7 @@ async def main():
         #
         # Returns the updated Persona object with active_version set.
         # ==================================================================
-        print(f"\n--- Step 3: Set Active Version ---")
+        print("\n--- Step 3: Set Active Version ---")
 
         updated_persona = await client.v1.persona.set_active_version(
             persona.id, version.id
@@ -159,7 +159,7 @@ async def main():
         #   Incorporates dyadic/relationship-specific context if dyadic
         #   is enabled on the active version.
         # ==================================================================
-        print(f"\n--- Step 4: Prepare System Prompt ---")
+        print("\n--- Step 4: Prepare System Prompt ---")
 
         # 4a. Global mode — no user context
         print("\n4a. Preparing (global mode)...")
@@ -198,7 +198,7 @@ async def main():
         # ==================================================================
         # ADDITIONAL: VERSION MANAGEMENT
         # ==================================================================
-        print(f"\n--- Additional: Version Management ---")
+        print("\n--- Additional: Version Management ---")
 
         # List all versions
         print("\nListing all versions...")
@@ -216,7 +216,7 @@ async def main():
         # ==================================================================
         # CLEANUP
         # ==================================================================
-        print(f"\n--- Cleanup ---")
+        print("\n--- Cleanup ---")
 
         await client.v1.persona.delete(persona.id)
         print(f"Deleted persona: {persona.id}")
