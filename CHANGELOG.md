@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.1] - 2026-06-09
+
+### Fixed
+- **Null list coercion across response models** — API responses may return
+  `null` for empty list fields, but Pydantic's `default_factory=list` only
+  applies when a field is absent, not when it is explicitly `null`. This caused
+  `ValidationError` on any response containing unset list fields. Added
+  `field_validator(mode="before")` to coerce `null` → `[]` on all affected
+  response models: `TraitValue`, `Constraint`, `GrowthTrigger`, `Boundary`,
+  `GrowthConfig`, `DyadicConfig`, `Persona`, `PersonaVersion`,
+  `ListPersonaVersionsResponse`, `Blueprint`, `ValidateBlueprintResponse`,
+  `HydratedBlueprint`, `ListBlueprintsResponse`, `EffectivePersonality`,
+  `ListTraitsResponse`, `ContextPrepareResponse`, `LivekitJoinResponse`,
+  `GetMindSpaceListResponse`, `AddArtifactsResponse`, and `ProblemDetails`.
+- **`persona.set_active_version` return type** — The endpoint returns the
+  updated `Persona` (with `active_version` set), not a `PersonaVersion`. The
+  method previously failed to deserialize the response. It now correctly
+  returns a `Persona`.
+
+### Changed
+- Updated `examples/persona_workflow.py` to follow the correct sequential flow:
+  create persona → create version → set active version → prepare. The `prepare`
+  endpoint requires an active version to exist.
+
 ## [0.4.0] - 2026-05-27
 
 ### Added
