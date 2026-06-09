@@ -15,12 +15,83 @@ from magickmind import (
     ReasonResponse,
     Singular,
 )
-from magick_mind.reasoning.events import (
+from magick_mind import MagickMind
+from magick_mind.resources.v2.events import (
     ReasonCompleteEvent,
     ReasonThinkingEvent,
     ReasonTokenEvent,
     parse_sse_text,
 )
+
+
+async def test_v2_reason_resource_posts_with_api_key(httpx_mock: HTTPXMock) -> None:
+    httpx_mock.add_response(
+        method="POST",
+        url="https://api.test/v2/chat/completions",
+        json={"text_answer": "hello from resource", "success": True},
+    )
+
+    client = MagickMind(
+        base_url="https://api.test",
+        email="test@example.com",
+        password="secret",
+    )
+    result = await client.v2.reason(
+        api_key="sk-test",
+        algorithm=Singular(LLM("openrouter/openai/gpt-4o")),
+        message="hello",
+    )
+
+    assert result.content == "hello from resource"
+    assert client.reason is client.v2.reason
+
+    request = httpx_mock.get_request()
+    assert request is not None
+    assert request.headers["Authorization"] == "Bearer sk-test"
+    assert request.headers["Accept"] == "application/json"
+
+    await client.close()
+
+
+async def test_v2_reason_resource_can_use_shared_auth(
+    httpx_mock: HTTPXMock,
+) -> None:
+    httpx_mock.add_response(
+        method="POST",
+        url="https://api.test/v1/auth/login",
+        json={
+            "access_token": "test-access-token",
+            "refresh_token": "test-refresh-token",
+            "expires_in": 3600,
+            "refresh_expires_in": 86400,
+            "token_type": "Bearer",
+            "id_token": "test-id-token",
+            "not-before-policy": 0,
+            "session_state": "test-session-state",
+            "scope": "openid profile email",
+        },
+    )
+    httpx_mock.add_response(
+        method="POST",
+        url="https://api.test/v2/chat/completions",
+        json={"text_answer": "hello with jwt", "success": True},
+    )
+
+    client = MagickMind(
+        base_url="https://api.test",
+        email="test@example.com",
+        password="secret",
+    )
+    result = await client.reason(
+        algorithm=Singular(LLM("openrouter/openai/gpt-4o")),
+        message="hello",
+    )
+
+    assert result.content == "hello with jwt"
+    reason_request = httpx_mock.get_requests()[-1]
+    assert reason_request.headers["Authorization"] == "Bearer test-access-token"
+
+    await client.close()
 
 
 async def test_reason_non_streaming_posts_wire_payload(httpx_mock: HTTPXMock) -> None:
