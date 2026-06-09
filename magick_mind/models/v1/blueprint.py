@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from magick_mind.models.common import PageInfo
 from magick_mind.models.v1.personality import (
@@ -33,6 +33,11 @@ class Blueprint(BaseModel):
     created_by: str = ""
     created_at: str = ""
     updated_at: str = ""
+
+    @field_validator("traits", mode="before")
+    @classmethod
+    def _coerce_null_list(cls, v: object) -> object:
+        return v if v is not None else []
 
 
 class CreateBlueprintRequest(BaseModel):
@@ -110,6 +115,11 @@ class ValidateBlueprintResponse(BaseModel):
     valid: bool
     errors: list[ValidationError] = Field(default_factory=list)
 
+    @field_validator("errors", mode="before")
+    @classmethod
+    def _coerce_null_list(cls, v: object) -> object:
+        return v if v is not None else []
+
 
 class HydratedBlueprintTrait(BaseModel):
     """A blueprint trait enriched with full trait registry data."""
@@ -128,9 +138,19 @@ class HydratedBlueprint(BaseModel):
     blueprint: Blueprint
     hydrated_traits: list[HydratedBlueprintTrait] = Field(default_factory=list)
 
+    @field_validator("hydrated_traits", mode="before")
+    @classmethod
+    def _coerce_null_list(cls, v: object) -> object:
+        return v if v is not None else []
+
 
 class ListBlueprintsResponse(BaseModel):
     """Paginated list of blueprints."""
 
     data: list[Blueprint] = Field(default_factory=list)
     paging: PageInfo
+
+    @field_validator("data", mode="before")
+    @classmethod
+    def _coerce_null_list(cls, v: object) -> object:
+        return v if v is not None else []

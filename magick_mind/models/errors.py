@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from typing import ClassVar
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class ValidationErrorField(BaseModel):
@@ -59,6 +59,11 @@ class ProblemDetails(BaseModel):
     errors: list[ValidationErrorField] = Field(default_factory=list)
 
     model_config: ClassVar[ConfigDict] = ConfigDict(extra="allow")
+
+    @field_validator("errors", mode="before")
+    @classmethod
+    def _coerce_null_list(cls, v: object) -> object:
+        return v if v is not None else []
 
 
 class ErrorResponse(BaseModel):

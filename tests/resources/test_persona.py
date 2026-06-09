@@ -108,6 +108,12 @@ class TestPersonaResource:
             version="2.0",
             is_active=False,
         )
+        persona = PersonaFactory.build(
+            id="p-2",
+            name="Test",
+            role="assistant",
+            active_version="pv-2",
+        )
         mock_auth.add_response(
             url=f"{BASE_URL}/v1/persona/p-2/version",
             method="POST",
@@ -131,7 +137,7 @@ class TestPersonaResource:
         mock_auth.add_response(
             url=f"{BASE_URL}/v1/persona/p-2/version/active",
             method="PUT",
-            json=version.model_dump(mode="json"),
+            json=persona.model_dump(mode="json"),
         )
 
         created = await client.v1.persona.create_version(
@@ -149,7 +155,8 @@ class TestPersonaResource:
         assert active.id == "pv-2"
 
         set_active = await client.v1.persona.set_active_version("p-2", "2.0")
-        assert set_active.id == "pv-2"
+        assert set_active.id == "p-2"
+        assert set_active.active_version == "pv-2"
         body = json.loads(mock_auth.get_requests()[-1].content)
         assert body == {"version": "2.0"}
 

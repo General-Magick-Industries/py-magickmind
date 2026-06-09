@@ -323,20 +323,20 @@ class PersonaResourceV1(BaseResource):
         response = await self._http.get(Routes.persona_active_version(persona_id))
         return PersonaVersion.model_validate(response)
 
-    async def set_active_version(self, persona_id: str, version: str) -> PersonaVersion:
+    async def set_active_version(self, persona_id: str, version: str) -> Persona:
         """
         Set a version as active.
 
         Args:
             persona_id: Persona ID
-            version: Version string to activate
+            version: Version ID to activate
 
         Returns:
-            PersonaVersion
+            Persona with updated active_version
         """
         request = SetActiveVersionRequest(version=version)
         response = await self._http.put(
             Routes.persona_active_version(persona_id),
             json=request.model_dump(),
         )
-        return PersonaVersion.model_validate(response)
+        return Persona.model_validate(response)

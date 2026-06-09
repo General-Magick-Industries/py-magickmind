@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from magick_mind.models.common import PageInfo
 from magick_mind.models.v1.personality import (
@@ -27,6 +27,11 @@ class Persona(BaseModel):
     created_by: str = ""
     updated_by: str = ""
     active_version: Optional[str] = None
+
+    @field_validator("traits", "tones", mode="before")
+    @classmethod
+    def _coerce_null_list(cls, v: object) -> object:
+        return v if v is not None else []
 
 
 class CreatePersonaRequest(BaseModel):
@@ -79,6 +84,11 @@ class PersonaVersion(BaseModel):
     created_at: str = ""
     is_active: bool = False
 
+    @field_validator("constraints", mode="before")
+    @classmethod
+    def _coerce_null_list(cls, v: object) -> object:
+        return v if v is not None else []
+
 
 class CreatePersonaVersionRequest(BaseModel):
     """Request to create a new persona version."""
@@ -119,3 +129,8 @@ class ListPersonaVersionsResponse(BaseModel):
 
     data: list[PersonaVersion] = Field(default_factory=list)
     paging: PageInfo
+
+    @field_validator("data", mode="before")
+    @classmethod
+    def _coerce_null_list(cls, v: object) -> object:
+        return v if v is not None else []
