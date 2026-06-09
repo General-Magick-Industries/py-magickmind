@@ -5,7 +5,8 @@ from __future__ import annotations
 import http.client
 import json
 import logging
-from typing import Any, Dict, Optional
+from contextlib import asynccontextmanager
+from typing import Any, AsyncIterator, Dict, Optional
 
 import httpx
 from pydantic import ValidationError as PydanticValidationError
@@ -241,6 +242,64 @@ class HTTPClient:
 
         response = await self._client.post(url, json=json, headers=request_headers)
         return self._handle_response(response)
+
+    async def raw_request(
+        self,
+        method: str,
+        path: str,
+        json: Optional[Dict[str, Any]] = None,
+        headers: Optional[Dict[str, str]] = None,
+        use_auth: bool = True,
+    ) -> httpx.Response:
+        """Make a request and return the raw httpx response."""
+        url = self._build_url(path)
+        if use_auth:
+            await self.auth.refresh_if_needed_async()
+            request_headers = await self._get_headers(headers)
+        else:
+            request_headers = {
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+            }
+            if headers:
+                request_headers.update(headers)
+
+        return await self._client.request(
+            method,
+            url,
+            json=json,
+            headers=request_headers,
+        )
+
+    @asynccontextmanager
+    async def stream(
+        self,
+        method: str,
+        path: str,
+        json: Optional[Dict[str, Any]] = None,
+        headers: Optional[Dict[str, str]] = None,
+        use_auth: bool = True,
+    ) -> AsyncIterator[httpx.Response]:
+        """Stream a raw httpx response using this client's base URL and auth."""
+        url = self._build_url(path)
+        if use_auth:
+            await self.auth.refresh_if_needed_async()
+            request_headers = await self._get_headers(headers)
+        else:
+            request_headers = {
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+            }
+            if headers:
+                request_headers.update(headers)
+
+        async with self._client.stream(
+            method,
+            url,
+            json=json,
+            headers=request_headers,
+        ) as response:
+            yield response
 
     async def put(
         self,
