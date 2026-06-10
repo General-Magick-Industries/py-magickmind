@@ -138,10 +138,14 @@ class ReasonResourceV2(BaseResource):
     async def __call__(
         self,
         *,
-        algorithm: AlgorithmConfig,
+        algorithm: AlgorithmConfig | None = None,
+        model: str | None = None,
         messages: list[Mapping[str, Any] | ChatMessage] | None = None,
         message: str | None = None,
         stream: Literal[False] = False,
+        temperature: float | None = None,
+        max_tokens: int | None = None,
+        top_p: float | None = None,
         trace_id: str | None = None,
         response_format: str | None = None,
         verified: bool | None = None,
@@ -154,10 +158,14 @@ class ReasonResourceV2(BaseResource):
     async def __call__(
         self,
         *,
-        algorithm: AlgorithmConfig,
+        algorithm: AlgorithmConfig | None = None,
+        model: str | None = None,
         messages: list[Mapping[str, Any] | ChatMessage] | None = None,
         message: str | None = None,
         stream: Literal[True],
+        temperature: float | None = None,
+        max_tokens: int | None = None,
+        top_p: float | None = None,
         trace_id: str | None = None,
         response_format: str | None = None,
         verified: bool | None = None,
@@ -169,10 +177,14 @@ class ReasonResourceV2(BaseResource):
     async def __call__(
         self,
         *,
-        algorithm: AlgorithmConfig,
+        algorithm: AlgorithmConfig | None = None,
+        model: str | None = None,
         messages: list[Mapping[str, Any] | ChatMessage] | None = None,
         message: str | None = None,
         stream: bool = False,
+        temperature: float | None = None,
+        max_tokens: int | None = None,
+        top_p: float | None = None,
         trace_id: str | None = None,
         response_format: str | None = None,
         verified: bool | None = None,
@@ -183,9 +195,13 @@ class ReasonResourceV2(BaseResource):
         """Call Cortex v2 Reason using the shared SDK HTTP client."""
         return await self._request(
             algorithm=algorithm,
+            model=model,
             messages=messages,
             message=message,
             stream=stream,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            top_p=top_p,
             trace_id=trace_id,
             response_format=response_format,
             verified=verified,
@@ -198,10 +214,14 @@ class ReasonResourceV2(BaseResource):
     async def create(
         self,
         *,
-        algorithm: AlgorithmConfig,
+        algorithm: AlgorithmConfig | None = None,
+        model: str | None = None,
         messages: list[Mapping[str, Any] | ChatMessage] | None = None,
         message: str | None = None,
         stream: Literal[False] = False,
+        temperature: float | None = None,
+        max_tokens: int | None = None,
+        top_p: float | None = None,
         trace_id: str | None = None,
         response_format: str | None = None,
         verified: bool | None = None,
@@ -214,10 +234,14 @@ class ReasonResourceV2(BaseResource):
     async def create(
         self,
         *,
-        algorithm: AlgorithmConfig,
+        algorithm: AlgorithmConfig | None = None,
+        model: str | None = None,
         messages: list[Mapping[str, Any] | ChatMessage] | None = None,
         message: str | None = None,
         stream: Literal[True],
+        temperature: float | None = None,
+        max_tokens: int | None = None,
+        top_p: float | None = None,
         trace_id: str | None = None,
         response_format: str | None = None,
         verified: bool | None = None,
@@ -229,10 +253,14 @@ class ReasonResourceV2(BaseResource):
     async def create(
         self,
         *,
-        algorithm: AlgorithmConfig,
+        algorithm: AlgorithmConfig | None = None,
+        model: str | None = None,
         messages: list[Mapping[str, Any] | ChatMessage] | None = None,
         message: str | None = None,
         stream: bool = False,
+        temperature: float | None = None,
+        max_tokens: int | None = None,
+        top_p: float | None = None,
         trace_id: str | None = None,
         response_format: str | None = None,
         verified: bool | None = None,
@@ -243,9 +271,13 @@ class ReasonResourceV2(BaseResource):
         """Call Cortex v2 Reason."""
         return await self._request(
             algorithm=algorithm,
+            model=model,
             messages=messages,
             message=message,
             stream=stream,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            top_p=top_p,
             trace_id=trace_id,
             response_format=response_format,
             verified=verified,
@@ -257,10 +289,14 @@ class ReasonResourceV2(BaseResource):
     async def _request(
         self,
         *,
-        algorithm: AlgorithmConfig,
+        algorithm: AlgorithmConfig | None,
+        model: str | None,
         messages: list[Mapping[str, Any] | ChatMessage] | None,
         message: str | None,
         stream: bool,
+        temperature: float | None,
+        max_tokens: int | None,
+        top_p: float | None,
         trace_id: str | None,
         response_format: str | None,
         verified: bool | None,
@@ -270,9 +306,13 @@ class ReasonResourceV2(BaseResource):
     ) -> ReasonResponse | HTTPReasonStream:
         payload = _build_reason_payload(
             algorithm=algorithm,
+            model=model,
             messages=messages,
             message=message,
             stream=stream,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            top_p=top_p,
             trace_id=trace_id,
             response_format=response_format,
             verified=verified,
@@ -351,10 +391,14 @@ class Client:
     async def reason(
         self,
         *,
-        algorithm: AlgorithmConfig,
+        algorithm: AlgorithmConfig | None = None,
+        model: str | None = None,
         messages: list[Mapping[str, Any] | ChatMessage] | None = None,
         message: str | None = None,
         stream: Literal[False] = False,
+        temperature: float | None = None,
+        max_tokens: int | None = None,
+        top_p: float | None = None,
         trace_id: str | None = None,
         response_format: str | None = None,
         verified: bool | None = None,
@@ -366,10 +410,14 @@ class Client:
     async def reason(
         self,
         *,
-        algorithm: AlgorithmConfig,
+        algorithm: AlgorithmConfig | None = None,
+        model: str | None = None,
         messages: list[Mapping[str, Any] | ChatMessage] | None = None,
         message: str | None = None,
         stream: Literal[True],
+        temperature: float | None = None,
+        max_tokens: int | None = None,
+        top_p: float | None = None,
         trace_id: str | None = None,
         response_format: str | None = None,
         verified: bool | None = None,
@@ -380,10 +428,14 @@ class Client:
     async def reason(
         self,
         *,
-        algorithm: AlgorithmConfig,
+        algorithm: AlgorithmConfig | None = None,
+        model: str | None = None,
         messages: list[Mapping[str, Any] | ChatMessage] | None = None,
         message: str | None = None,
         stream: bool = False,
+        temperature: float | None = None,
+        max_tokens: int | None = None,
+        top_p: float | None = None,
         trace_id: str | None = None,
         response_format: str | None = None,
         verified: bool | None = None,
@@ -392,14 +444,19 @@ class Client:
     ) -> ReasonResponse | ReasonStream:
         """Call Cortex v2 Reason.
 
-        Pass either ``messages`` or ``message``. When ``stream=True``, the return
-        value is an async iterator of typed ``ReasonEvent`` objects.
+        Pass OpenAI-compatible ``messages`` or the convenience ``message``.
+        When ``stream=True``, the return value is an async iterator of typed
+        ``ReasonEvent`` objects.
         """
         payload = _build_reason_payload(
             algorithm=algorithm,
+            model=model,
             messages=messages,
             message=message,
             stream=stream,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            top_p=top_p,
             trace_id=trace_id,
             response_format=response_format,
             verified=verified,
@@ -466,31 +523,41 @@ _RETRYABLE_STATUS_CODES = {408, 409, 425, 429, 500, 502, 503, 504}
 
 def _build_reason_payload(
     *,
-    algorithm: AlgorithmConfig,
+    algorithm: AlgorithmConfig | None,
+    model: str | None,
     messages: list[Mapping[str, Any] | ChatMessage] | None,
     message: str | None,
     stream: bool,
+    temperature: float | None,
+    max_tokens: int | None,
+    top_p: float | None,
     trace_id: str | None,
     response_format: str | None,
     verified: bool | None,
     message_id: str | None,
     user_id: str | None,
 ) -> dict[str, Any]:
+    if algorithm is None and not model:
+        raise ValueError("model or algorithm is required")
     if messages is None and message is None:
         raise ValueError("messages or message is required")
-    if messages is not None and message is not None:
-        raise ValueError("pass either messages or message, not both")
+    if messages is not None and len(messages) == 0:
+        raise ValueError("messages must not be empty")
 
-    input_payload: dict[str, Any]
-    if messages is not None:
-        input_payload = {"messages": [_message_to_dict(item) for item in messages]}
+    if messages is None:
+        message_items = [{"role": "user", "content": message}]
     else:
-        input_payload = {"message": message}
+        message_items = [_message_to_dict(item) for item in messages]
 
     payload = {
-        "input": input_payload,
-        "algorithm": _to_wire_dict(algorithm),
+        "model": model,
+        "message": message,
+        "messages": message_items,
+        "algorithm": _to_wire_dict(algorithm) if algorithm is not None else None,
         "stream": stream,
+        "temperature": temperature,
+        "max_tokens": max_tokens,
+        "top_p": top_p,
         "trace_id": trace_id,
         "response_format": response_format,
         "verified": verified,
