@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Any, AsyncIterator, Literal, Mapping, overload
 import httpx
 
 from magick_mind.exceptions import MagickMindError
-from magick_mind.models.v2.reason import ChatMessage, ReasonResponse
+from magick_mind.models.v2.reason import AlgorithmConfig, ChatMessage, ReasonResponse
 from magick_mind.resources.base import BaseResource
 from magick_mind.resources.v2.events import ReasonEvent, iter_sse_events
 
@@ -138,7 +138,7 @@ class ReasonResourceV2(BaseResource):
     async def __call__(
         self,
         *,
-        algorithm: Any,
+        algorithm: AlgorithmConfig,
         messages: list[Mapping[str, Any] | ChatMessage] | None = None,
         message: str | None = None,
         stream: Literal[False] = False,
@@ -154,7 +154,7 @@ class ReasonResourceV2(BaseResource):
     async def __call__(
         self,
         *,
-        algorithm: Any,
+        algorithm: AlgorithmConfig,
         messages: list[Mapping[str, Any] | ChatMessage] | None = None,
         message: str | None = None,
         stream: Literal[True],
@@ -169,7 +169,7 @@ class ReasonResourceV2(BaseResource):
     async def __call__(
         self,
         *,
-        algorithm: Any,
+        algorithm: AlgorithmConfig,
         messages: list[Mapping[str, Any] | ChatMessage] | None = None,
         message: str | None = None,
         stream: bool = False,
@@ -198,7 +198,7 @@ class ReasonResourceV2(BaseResource):
     async def create(
         self,
         *,
-        algorithm: Any,
+        algorithm: AlgorithmConfig,
         messages: list[Mapping[str, Any] | ChatMessage] | None = None,
         message: str | None = None,
         stream: Literal[False] = False,
@@ -214,7 +214,7 @@ class ReasonResourceV2(BaseResource):
     async def create(
         self,
         *,
-        algorithm: Any,
+        algorithm: AlgorithmConfig,
         messages: list[Mapping[str, Any] | ChatMessage] | None = None,
         message: str | None = None,
         stream: Literal[True],
@@ -229,7 +229,7 @@ class ReasonResourceV2(BaseResource):
     async def create(
         self,
         *,
-        algorithm: Any,
+        algorithm: AlgorithmConfig,
         messages: list[Mapping[str, Any] | ChatMessage] | None = None,
         message: str | None = None,
         stream: bool = False,
@@ -257,7 +257,7 @@ class ReasonResourceV2(BaseResource):
     async def _request(
         self,
         *,
-        algorithm: Any,
+        algorithm: AlgorithmConfig,
         messages: list[Mapping[str, Any] | ChatMessage] | None,
         message: str | None,
         stream: bool,
@@ -351,7 +351,7 @@ class Client:
     async def reason(
         self,
         *,
-        algorithm: Any,
+        algorithm: AlgorithmConfig,
         messages: list[Mapping[str, Any] | ChatMessage] | None = None,
         message: str | None = None,
         stream: Literal[False] = False,
@@ -366,7 +366,7 @@ class Client:
     async def reason(
         self,
         *,
-        algorithm: Any,
+        algorithm: AlgorithmConfig,
         messages: list[Mapping[str, Any] | ChatMessage] | None = None,
         message: str | None = None,
         stream: Literal[True],
@@ -380,7 +380,7 @@ class Client:
     async def reason(
         self,
         *,
-        algorithm: Any,
+        algorithm: AlgorithmConfig,
         messages: list[Mapping[str, Any] | ChatMessage] | None = None,
         message: str | None = None,
         stream: bool = False,
@@ -466,7 +466,7 @@ _RETRYABLE_STATUS_CODES = {408, 409, 425, 429, 500, 502, 503, 504}
 
 def _build_reason_payload(
     *,
-    algorithm: Any,
+    algorithm: AlgorithmConfig,
     messages: list[Mapping[str, Any] | ChatMessage] | None,
     message: str | None,
     stream: bool,
@@ -510,14 +510,12 @@ def _headers(*, stream: bool, api_key: str | None = None) -> dict[str, str]:
     return headers
 
 
-def _to_wire_dict(value: Any) -> dict[str, Any]:
+def _to_wire_dict(value: AlgorithmConfig) -> dict[str, Any]:
+    if isinstance(value, Mapping):
+        return dict(value)
     if hasattr(value, "to_dict"):
-        data = value.to_dict()
-    elif isinstance(value, Mapping):
-        data = dict(value)
-    else:
-        raise TypeError("algorithm must be a mapping or expose to_dict()")
-    return data
+        return value.to_dict()
+    raise TypeError("algorithm must be a mapping or expose to_dict()")
 
 
 def _message_to_dict(value: Mapping[str, Any] | ChatMessage) -> dict[str, Any]:
