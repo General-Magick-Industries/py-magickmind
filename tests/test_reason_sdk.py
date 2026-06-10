@@ -206,6 +206,42 @@ async def test_reason_streaming_retries_before_first_event(
     await client.close()
 
 
+async def test_reason_streaming_retries_retryable_http_status(
+    httpx_mock: HTTPXMock,
+) -> None:
+    httpx_mock.add_response(
+        method="POST",
+        url="https://api.test/v2/chat/completions",
+        status_code=503,
+        headers={"Content-Type": "application/json"},
+        stream=IteratorStream([b'{"message":"temporarily unavailable"}']),
+    )
+    httpx_mock.add_response(
+        method="POST",
+        url="https://api.test/v2/chat/completions",
+        headers={"Content-Type": "text/event-stream"},
+        stream=IteratorStream(
+            [
+                b'event: reason.answer.delta\ndata: {"trace_id":"trace-1","answer_chunk":{"content":"ok"}}\n\n',
+            ]
+        ),
+    )
+
+    client = Client(api_key="sk-test", base_url="https://api.test", max_retries=1)
+    result = await client.reason(
+        algorithm=Singular(LLM("openrouter/openai/gpt-4o")),
+        message="hello",
+        stream=True,
+    )
+
+    events = [event async for event in result]
+
+    assert len(httpx_mock.get_requests()) == 2
+    assert events[0].content == "ok"
+
+    await client.close()
+
+
 def test_parse_sse_text_handles_reason_taxonomy() -> None:
     events = parse_sse_text(
         'event: reason.rlm.repl_step\ndata: {"trace_id":"t","rlm_repl_step":{"iteration":1,"reasoning":"try code"}}\n\n'

@@ -51,6 +51,8 @@ class ReasonStream:
                     json=self._payload,
                     headers=self._headers,
                 ) as response:
+                    if response.status_code >= 400:
+                        await response.aread()
                     await _raise_for_error(response)
                     async for event in iter_sse_events(response.aiter_lines()):
                         yielded_any = True
@@ -103,6 +105,8 @@ class HTTPReasonStream:
                     headers=self._headers,
                     use_auth=self._use_auth,
                 ) as response:
+                    if response.status_code >= 400:
+                        await response.aread()
                     await _raise_for_error(response)
                     async for event in iter_sse_events(response.aiter_lines()):
                         yielded_any = True
