@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Literal, Mapping, Protocol, TypeAlias
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class WireSerializable(Protocol):
@@ -93,7 +93,12 @@ class LLM:
 
 @dataclass(frozen=True)
 class RLM:
-    """Recursive language model node."""
+    """Recursive language model node.
+
+    ``max_depth`` is sent to Cortex as the ``max_iterations`` wire field; the
+    SDK keeps the ``max_depth`` name without changing the Bifrost or proto
+    contracts.
+    """
 
     decomposer_model: ModelLike
     leaf_model: ModelLike | None = None
@@ -217,7 +222,7 @@ class ReasonResponse(BaseModel):
     trace_id: str | None = None
     success: bool | None = None
     error: str | None = None
-    degradations: list[str] = []
+    degradations: list[str] = Field(default_factory=list)
 
     @property
     def content(self) -> str | None:
