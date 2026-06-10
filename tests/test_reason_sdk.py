@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+
 import httpx
 import pytest
 from pytest_httpx import HTTPXMock, IteratorStream
@@ -122,12 +124,85 @@ async def test_reason_non_streaming_posts_wire_payload(httpx_mock: HTTPXMock) ->
     assert request is not None
     assert request.headers["Authorization"] == "Bearer sk-test"
     assert request.headers["Accept"] == "application/json"
-    assert request.read() == (
-        b'{"input":{"messages":[{"role":"user","content":"hello"}]},'
-        b'"algorithm":{"singular":{"node":{"llm":{"model_config":'
-        b'{"model":"openrouter/openai/gpt-4o"}}}}},"stream":false,'
-        b'"trace_id":"trace-1"}'
+    assert json.loads(request.read()) == {
+        "messages": [{"role": "user", "content": "hello"}],
+        "algorithm": {
+            "singular": {
+                "node": {
+                    "llm": {
+                        "model_config": {
+                            "model": "openrouter/openai/gpt-4o",
+                        }
+                    }
+                }
+            }
+        },
+        "stream": False,
+        "trace_id": "trace-1",
+    }
+
+    await client.close()
+
+
+async def test_reason_message_only_builds_openai_messages(
+    httpx_mock: HTTPXMock,
+) -> None:
+    httpx_mock.add_response(
+        method="POST",
+        url="https://api.test/v2/chat/completions",
+        json={"text_answer": "hello from cortex", "success": True},
     )
+
+    client = Client(api_key="sk-test", base_url="https://api.test")
+    await client.reason(model="gpt-5.1", message="hello", temperature=0.7)
+
+    request = httpx_mock.get_request()
+    assert request is not None
+    assert json.loads(request.read()) == {
+        "model": "gpt-5.1",
+        "message": "hello",
+        "messages": [{"role": "user", "content": "hello"}],
+        "stream": False,
+        "temperature": 0.7,
+    }
+
+    await client.close()
+
+
+async def test_reason_allows_message_override_with_messages(
+    httpx_mock: HTTPXMock,
+) -> None:
+    httpx_mock.add_response(
+        method="POST",
+        url="https://api.test/v2/chat/completions",
+        json={"text_answer": "hello from cortex", "success": True},
+    )
+
+    client = Client(api_key="sk-test", base_url="https://api.test")
+    await client.reason(
+        model="gpt-5.1",
+        message="legacy prompt",
+        messages=[
+            {"role": "system", "content": "system prompt"},
+            {"role": "user", "content": "openai prompt"},
+        ],
+        max_tokens=1000,
+        top_p=0.9,
+    )
+
+    request = httpx_mock.get_request()
+    assert request is not None
+    assert json.loads(request.read()) == {
+        "model": "gpt-5.1",
+        "message": "legacy prompt",
+        "messages": [
+            {"role": "system", "content": "system prompt"},
+            {"role": "user", "content": "openai prompt"},
+        ],
+        "stream": False,
+        "max_tokens": 1000,
+        "top_p": 0.9,
+    }
 
     await client.close()
 
