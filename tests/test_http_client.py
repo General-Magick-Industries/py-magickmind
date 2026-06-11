@@ -60,8 +60,8 @@ class TestHTTPClientRFC7807Parsing:
                 "type": "about:blank",
                 "title": "Not Found",
                 "status": 404,
-                "detail": "Mindspace not found",
-                "instance": "/v1/mindspace/ms-123",
+                "detail": "MagickSpace not found",
+                "instance": "/v1/magickspace/ms-123",
                 "request_id": "req-abc123",
             }
         }
@@ -78,8 +78,8 @@ class TestHTTPClientRFC7807Parsing:
         exc = exc_info.value
         assert exc.status == 404
         assert exc.title == "Not Found"
-        assert exc.detail == "Mindspace not found"
-        assert exc.instance == "/v1/mindspace/ms-123"
+        assert exc.detail == "MagickSpace not found"
+        assert exc.instance == "/v1/magickspace/ms-123"
         assert exc.request_id == "req-abc123"
         assert exc.type_uri == "about:blank"
 

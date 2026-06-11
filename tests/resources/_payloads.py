@@ -43,7 +43,7 @@ HISTORY_PAYLOAD = {
     "data": [
         {
             "id": "msg-1",
-            "mindspace_id": "ms-1",
+            "magickspace_id": "ms-1",
             "content": "Hello",
             "sent_by_user_id": "user-1",
             "create_at": "2024-01-01T00:00:00Z",

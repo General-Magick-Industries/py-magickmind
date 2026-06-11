@@ -230,7 +230,7 @@ class HTTPClient:
         Example:
             >>> response = await client.http.post(
             ...     "/v1/magickmind/chat",
-            ...     json={"message": "Hello", "mindspace_id": "mind-123"}
+            ...     json={"message": "Hello", "magickspace_id": "mind-123"}
             ... )
         """
         # Refresh auth if needed

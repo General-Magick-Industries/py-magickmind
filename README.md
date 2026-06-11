@@ -1,6 +1,6 @@
 # Magick Mind SDK
 
-Python SDK for backend services integrating with the Magick Mind platform. Provides type-safe, validated access to chat, mindspace, and realtime features.
+Python SDK for backend services integrating with the Magick Mind platform. Provides type-safe, validated access to chat, magickspace, and realtime features.
 
 ## Installation
 
@@ -64,7 +64,7 @@ async def main():
     ) as client:
         response = await client.v1.chat.send(
             api_key="sk-your-llm-key",
-            mindspace_id="mind-789",
+            magickspace_id="mind-789",
             message="Hello!",
             enduser_id="user-456",
         )
@@ -105,16 +105,16 @@ asyncio.run(main())
 
 ## Key Concepts
 
-### Mindspaces
+### MagickSpaces
 
-**Mindspace is the central organizing concept in the Magick Mind API** - it's where conversations, knowledge, and collaboration converge:
+**MagickSpace is the central organizing concept in the Magick Mind API** - it's where conversations, knowledge, and collaboration converge:
 
-- All chat conversations happen within a mindspace
-- Knowledge (corpus) attaches to mindspaces to provide context for AI responses  
-- Users collaborate through mindspaces (private for individuals, group for teams)
-- Most operations reference a `mindspace_id`
+- All chat conversations happen within a magickspace
+- Knowledge (corpus) attaches to magickspaces to provide context for AI responses  
+- Users collaborate through magickspaces (private for individuals, group for teams)
+- Most operations reference a `magickspace_id`
 
-📖 **Learn more:** [Mindspace Resource Guide](docs/resources/mindspace.md)
+📖 **Learn more:** [MagickSpace Resource Guide](docs/resources/magickspace.md)
 
 ### Service Users
 
@@ -145,7 +145,7 @@ For direct device-to-API patterns (robotics/IoT), see [Event-Driven Patterns](do
 
 ### Resources
 
-- [Mindspace](docs/resources/mindspace.md) - Central organizing concept
+- [MagickSpace](docs/resources/magickspace.md) - Central organizing concept
 - [Corpus](docs/resources/corpus.md) - Knowledge base management
 - [Artifact](docs/resources/artifact.md) - Document/blob storage
 - [End User](docs/resources/end_user.md) - User identity management
@@ -201,7 +201,7 @@ The `examples/` directory contains working examples demonstrating key SDK patter
 | Example | Description |
 |---------|-------------|
 | **authentication.py** | Email/password authentication with auto-refresh |
-| **resource_management.py** | CRUD operations for End Users, Projects, and Mindspaces |
+| **resource_management.py** | CRUD operations for End Users, Projects, and MagickSpaces |
 | **persona_workflow.py** | Persona creation, versioning, and prepare (system prompt generation) |
 | **chat_workflow.py** | Complete chat workflow with realtime streaming |
 | **bulk_subscribe.py** | Bulk subscriptions with message deduplication |

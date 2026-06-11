@@ -51,7 +51,7 @@ with long-term memory, knowledge retrieval, and personality customisation.
 
 - **Corpus & RAG**: Upload documents to build knowledge bases. The system
   extracts entities and relationships into a knowledge graph for semantic search.
-- **Mindspaces**: Persistent conversation contexts where AI agents can
+- **MagickSpaces**: Persistent conversation contexts where AI agents can
   reference corpus knowledge and maintain conversation history.
 - **Personas**: Customisable AI personalities with traits, growth curves,
   and dyadic relationship modelling.
@@ -62,7 +62,7 @@ with long-term memory, knowledge retrieval, and personality customisation.
 
 Requests flow through Bifrost (REST gateway) to domain services via gRPC:
 Xavier (chat orchestration), Corpus (knowledge management), Semantic Memory
-(vector search & knowledge graph), Artifact (file storage), and Mindspace
+(vector search & knowledge graph), Artifact (file storage), and MagickSpace
 (session management).
 
 ## Getting Started

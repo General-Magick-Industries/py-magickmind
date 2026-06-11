@@ -23,8 +23,8 @@ class TestProblemDetailsException:
             type="https://example.com/errors/not-found",
             title="Resource Not Found",
             status=404,
-            detail="The requested mindspace does not exist",
-            instance="/v1/mindspace/ms-123",
+            detail="The requested magickspace does not exist",
+            instance="/v1/magickspace/ms-123",
             request_id="req-abc-123",
         )
 
@@ -33,8 +33,8 @@ class TestProblemDetailsException:
         assert exc.type_uri == "https://example.com/errors/not-found"
         assert exc.title == "Resource Not Found"
         assert exc.status == 404
-        assert exc.detail == "The requested mindspace does not exist"
-        assert exc.instance == "/v1/mindspace/ms-123"
+        assert exc.detail == "The requested magickspace does not exist"
+        assert exc.instance == "/v1/magickspace/ms-123"
         assert exc.request_id == "req-abc-123"
         assert exc.validation_errors == []
         assert exc.problem == problem

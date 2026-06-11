@@ -5,6 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed (BREAKING)
+- **Completed the `mindspace` → `magickspace` rename.** All remaining `mindspace`
+  public names were removed (no deprecated aliases). Migration:
+  - Models: `MindSpace`→`MagickSpace`, `MindSpaceType`→`MagickSpaceType`,
+    `CreateMindSpaceRequest`→`CreateMagickSpaceRequest`,
+    `UpdateMindSpaceRequest`→`UpdateMagickSpaceRequest`,
+    `AddMindSpaceUsersRequest`→`AddMagickSpaceUsersRequest`,
+    `GetMindSpaceListResponse`→`GetMagickSpaceListResponse`
+    (`.mindspaces` property → `.magickspaces`),
+    `MindspaceMessagesResponse`→`MagickSpaceMessagesResponse`.
+  - Resource: `MindspaceResourceV1`/`MagickspacesResourceV1`→`MagickSpacesResourceV1`
+    (module `resources/v1/mindspace.py` removed; canonical impl now in
+    `resources/v1/magickspaces.py`). `client.v1.mindspace` and `client.mindspace`
+    removed — use `client.v1.magickspaces` / `client.magickspaces`.
+  - All `mindspace_id` parameters and request/response fields → `magickspace_id`
+    (matches the Bifrost wire contract).
+  - `Routes.mindspace*` deprecated aliases and `Routes.MINDSPACES` removed.
+- **Casing standardized to `MagickSpace`** (capital S, paralleling `MagickMind`).
+
+### Notes
+- Realtime event payloads (`ChatMessagePayload`, `ArtifactPayload`) now expose
+  `magickspace_id` but still accept Xavier's current `mindspace_id` wire key via a
+  validation alias, so they work before and after Xavier's own rename.
+- The backend proto enum values `MINDSPACE_TYPE_PRIVATE`/`MINDSPACE_TYPE_GROUP`
+  are still normalized (they reflect the unmigrated backend contract).
+
 ## [0.4.1] - 2026-06-09
 
 ### Fixed

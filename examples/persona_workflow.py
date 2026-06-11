@@ -189,7 +189,7 @@ async def main():
         #       persona_id, user_id=current_user_id
         #   )
         #   await client.v1.chat.send(
-        #       mindspace_id=mindspace_id,
+        #       magickspace_id=magickspace_id,
         #       message="Hello, can you help me?",
         #       system_prompt=prep.system_prompt,
         #   )

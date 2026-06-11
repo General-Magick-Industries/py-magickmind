@@ -18,12 +18,12 @@ class ConfigSchema(BaseModel):
 
 class ChatSendRequest(BaseModel):
     """
-    Request to send a chat message to a mindspace.
+    Request to send a chat message to a magickspace.
 
     Example:
         request = ChatSendRequest(
             api_key="sk-...",
-            mindspace_id="mind-123",
+            magickspace_id="mind-123",
             message="Hello!",
             enduser_id="user-456",
             config=ConfigSchema(
@@ -35,7 +35,7 @@ class ChatSendRequest(BaseModel):
     """
 
     api_key: str = Field(..., description="API key for LLM access")
-    mindspace_id: str = Field(..., description="Mindspace/chat conversation ID")
+    magickspace_id: str = Field(..., description="MagickSpace/chat conversation ID")
     message: str = Field(..., description="User message text to send")
     enduser_id: str = Field(..., description="End-user identifier")
     config: ConfigSchema = Field(..., description="Model configuration")

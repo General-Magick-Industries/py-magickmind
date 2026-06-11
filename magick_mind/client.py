@@ -13,8 +13,7 @@ from magick_mind.exceptions import MagickMindError
 from magick_mind.http import HTTPClient
 from magick_mind.realtime import RealtimeClient
 from magick_mind.resources.v1.chat import ChatResourceV1
-from magick_mind.resources.v1.magickspaces import MagickspacesResourceV1
-from magick_mind.resources.v1.mindspace import MindspaceResourceV1
+from magick_mind.resources.v1.magickspaces import MagickSpacesResourceV1
 
 
 class MagickMind:
@@ -40,7 +39,7 @@ class MagickMind:
         # Use typed resources (recommended)
         response = client.v1.chat.send(
             api_key="sk-...",
-            mindspace_id="mind-123",
+            magickspace_id="ms-123",
             message="Hello!",
             sender_id="user-456"
         )
@@ -108,8 +107,7 @@ class MagickMind:
 
         # Convenience alias for default version
         self.chat: ChatResourceV1 = self.v1.chat
-        self.magickspaces: MagickspacesResourceV1 = self.v1.magickspaces
-        self.mindspace: MindspaceResourceV1 = self.v1.mindspace
+        self.magickspaces: MagickSpacesResourceV1 = self.v1.magickspaces
 
     @property
     def http(self) -> HTTPClient:

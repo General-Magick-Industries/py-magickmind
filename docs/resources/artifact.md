@@ -331,7 +331,7 @@ presign_resp, upload_resp = client.v1.artifact.upload_file(
 # Step 2: Send chat with artifact attached
 chat_response = client.v1.chat.send(
     api_key="sk-...",
-    mindspace_id="mind-123",
+    magickspace_id="mind-123",
     message="Summarize the key findings from this report",
     enduser_id="user-456",
     artifact_ids=[presign_resp.id]  # Attach the artifact
@@ -357,7 +357,7 @@ doc2_resp, _ = client.v1.artifact.upload_file(
 # Send chat with both attached
 response = client.v1.chat.send(
     api_key="sk-...",
-    mindspace_id="mind-123",
+    magickspace_id="mind-123",
     message="Compare these two reports and highlight differences",
     enduser_id="user-456",
     artifact_ids=[doc1_resp.id, doc2_resp.id]

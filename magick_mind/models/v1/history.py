@@ -21,8 +21,8 @@ class ChatHistoryMessage(BaseModel):
     model_config: ClassVar[ConfigDict] = ConfigDict(populate_by_name=True)
 
     id: Optional[str] = Field(None, description="Message ID")
-    mindspace_id: Optional[str] = Field(
-        None, description="Mindspace this message belongs to"
+    magickspace_id: Optional[str] = Field(
+        None, description="MagickSpace this message belongs to"
     )
     sent_by_user_id: Optional[str] = Field(
         None, description="User who sent the message"

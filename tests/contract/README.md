@@ -47,14 +47,14 @@ cp ../bifrost/api/openapi.json specs/openapi.dev.json
    ```python
    MODEL_REGISTRY = [
        (ChatSendRequest, "ChatReq"),
-       (MindspaceCreateRequest, "CreateMindSpaceReq"),  # Add here
+       (MagickSpaceCreateRequest, "CreateMagickSpaceReq"),  # Add here
    ]
    ```
 
 2. Add instance creation in `create_minimal_instance()`:
    ```python
-   if model_class == MindspaceCreateRequest:
-       return MindspaceCreateRequest(
+   if model_class == MagickSpaceCreateRequest:
+       return MagickSpaceCreateRequest(
            name="test",
            # ... required fields
        )
@@ -84,7 +84,7 @@ The test runner categorizes schemas into three buckets:
   - Internal schemas (`CentrifugoRpcRequest`, `ArtifactWebhookReq`)
   - OpenAI compatibility layer (`ChatCompletionsReq`, `ModelsListResp`)
   - Path-parameter-only requests (`GetProjectByIdReq`)
-  - Shared components (`BaseSchema`, `MindspaceType`, `TokenSchema`)
+  - Shared components (`BaseSchema`, `MagickSpaceType`, `TokenSchema`)
 - **NOT REGISTERED**: Leave out of registry entirely. Test runner warns about these as debt.
 
 ```python

@@ -3,7 +3,7 @@ OpenAI-compatible completions via the Magick Mind API.
 
 The API exposes POST /v1/chat/completions — a full OpenAI-compatible
 endpoint backed by Brain/Cortex. Use client.openai_client() to get a
-pre-configured AsyncOpenAI pointed at it. No Centrifugo, no mindspace
+pre-configured AsyncOpenAI pointed at it. No Centrifugo, no magickspace
 context, no ChatHistory service needed — stateless LLM calls only.
 
 Install the optional dep first:

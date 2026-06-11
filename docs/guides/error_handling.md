@@ -176,7 +176,7 @@ from magick_mind.exceptions import ProblemDetailsException
 try:
     response = client.v1.chat.send(
         api_key="sk-test",
-        mindspace_id="nonexistent-id",
+        magickspace_id="nonexistent-id",
         message="Hello",
         enduser_id="user-123"
     )
@@ -234,7 +234,7 @@ from magick_mind.exceptions import ValidationError
 try:
     response = client.v1.chat.send(
         api_key="",  # Invalid: empty
-        mindspace_id="",  # Invalid: empty
+        magickspace_id="",  # Invalid: empty
         message="",  # Invalid: empty
         enduser_id="user-123"
     )
@@ -251,7 +251,7 @@ except ValidationError as e:
     # Example output:
     # api_key:
     #   - Field required
-    # mindspace_id:
+    # magickspace_id:
     #   - Field required
     # message:
     #   - String should have at least 1 character
@@ -310,13 +310,13 @@ def exponential_backoff(attempt: int, base_delay: float = 1.0) -> float:
     """Calculate backoff delay with max cap."""
     return min(base_delay * (2 ** attempt), 60.0)  # Max 60 seconds
 
-def send_with_retry(client, mindspace_id, message, max_retries=3):
+def send_with_retry(client, magickspace_id, message, max_retries=3):
     """Send message with retry logic."""
     for attempt in range(max_retries):
         try:
             return client.v1.chat.send(
                 api_key="sk-test",
-                mindspace_id=mindspace_id,
+                magickspace_id=magickspace_id,
                 message=message,
                 enduser_id="user-123"
             )
@@ -403,7 +403,7 @@ async def send_with_retry(client, message, max_retries=5):
             response = await asyncio.to_thread(
                 client.v1.chat.send,
                 api_key="sk-test",
-                mindspace_id="mind-123",
+                magickspace_id="mind-123",
                 message=message,
                 enduser_id="user-456"
             )
@@ -463,11 +463,11 @@ except TokenExpiredError as e:
 from magick_mind.exceptions import ProblemDetailsException
 
 try:
-    mindspace = client.v1.magickspaces.get(mindspace_id="nonexistent")
+    magickspace = client.v1.magickspaces.get(magickspace_id="nonexistent")
 except ProblemDetailsException as e:
     if e.status == 404:
-        logger.error(f"Mindspace not found: {e.detail}")
-        # Create the mindspace or use a different ID
+        logger.error(f"MagickSpace not found: {e.detail}")
+        # Create the magickspace or use a different ID
     else:
         logger.error(f"Unexpected error [{e.status}]: {e.detail}")
         logger.error(f"Request ID: {e.request_id}")
@@ -495,7 +495,7 @@ def send_with_server_retry(client, message, max_retries=3):
         try:
             return client.v1.chat.send(
                 api_key="sk-test",
-                mindspace_id="mind-123",
+                magickspace_id="mind-123",
                 message=message,
                 enduser_id="user-456"
             )
@@ -705,7 +705,7 @@ def send_message(client, message):
     """Send message with automatic retry."""
     return client.v1.chat.send(
         api_key="sk-test",
-        mindspace_id="mind-123",
+        magickspace_id="mind-123",
         message=message,
         enduser_id="user-456"
     )
@@ -733,12 +733,12 @@ class ChatService:
     def __init__(self, client: MagickMind):
         self.client = client
     
-    def send_message(self, mindspace_id: str, message: str, user_id: str):
+    def send_message(self, magickspace_id: str, message: str, user_id: str):
         """Send chat message with production-ready error handling."""
         try:
             response = self.client.v1.chat.send(
                 api_key=self._get_api_key(),
-                mindspace_id=mindspace_id,
+                magickspace_id=magickspace_id,
                 message=message,
                 enduser_id=user_id
             )
@@ -786,7 +786,7 @@ class ChatService:
             # Decide whether to retry based on status
             if e.status >= 500:
                 # Server error - retry later
-                self._schedule_retry(mindspace_id, message, user_id)
+                self._schedule_retry(magickspace_id, message, user_id)
             
             raise
     
@@ -799,7 +799,7 @@ class ChatService:
         # Implement circuit breaker pattern
         pass
     
-    def _schedule_retry(self, mindspace_id, message, user_id):
+    def _schedule_retry(self, magickspace_id, message, user_id):
         """Schedule message for retry (e.g., via task queue)."""
         # Add to retry queue (Celery, RQ, etc.)
         pass

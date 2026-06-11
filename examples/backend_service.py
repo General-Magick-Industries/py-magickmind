@@ -142,7 +142,7 @@ class ChatBackendService:
         logger.info("Would trigger webhook")
 
     async def sync_history(
-        self, mindspace_id: str, since_message_id: Optional[str] = None
+        self, magickspace_id: str, since_message_id: Optional[str] = None
     ) -> None:
         """
         Sync chat history from the API.
@@ -158,7 +158,7 @@ class ChatBackendService:
 
         try:
             resp = await self.client.v1.magickspaces.get_messages(
-                mindspace_id,
+                magickspace_id,
                 cursor=since_message_id,
                 limit=100,
             )
@@ -171,7 +171,7 @@ class ChatBackendService:
             for msg in messages:
                 # Map history format to ChatMessagePayload
                 payload = ChatMessagePayload(
-                    mindspace_id=msg.mindspace_id or "",
+                    magickspace_id=msg.magickspace_id or "",
                     message_id=msg.id or "",
                     task_id="",
                     message=msg.content or "",
@@ -192,12 +192,12 @@ class ChatBackendService:
             logger.error(f"History sync failed: {e}", exc_info=True)
             self.metrics["errors"] += 1
 
-    async def periodic_sync(self, mindspace_id: str, interval: int = 300) -> None:
+    async def periodic_sync(self, magickspace_id: str, interval: int = 300) -> None:
         """
         Run periodic sync in background to catch missed events.
 
         Args:
-            mindspace_id: Mindspace to sync
+            magickspace_id: MagickSpace to sync
             interval: Seconds between syncs (default: 5 minutes)
         """
         logger.info(f"Starting periodic sync (every {interval}s)")
@@ -208,21 +208,21 @@ class ChatBackendService:
             try:
                 logger.info("Running periodic sync...")
                 await self.sync_history(
-                    mindspace_id=mindspace_id, since_message_id=self.last_sync_cursor
+                    magickspace_id=magickspace_id, since_message_id=self.last_sync_cursor
                 )
                 logger.info(f"Metrics: {self.metrics}")
 
             except Exception as e:
                 logger.error(f"Periodic sync failed: {e}", exc_info=True)
 
-    async def start(self, mindspace_id: str, user_id: str) -> None:
+    async def start(self, magickspace_id: str, user_id: str) -> None:
         """
         Start the backend service.
 
         This is the main entry point that sets everything up.
 
         Args:
-            mindspace_id: Mindspace to monitor
+            magickspace_id: MagickSpace to monitor
             user_id: End-user ID whose channel to subscribe to
         """
         logger.info("=" * 60)
@@ -237,7 +237,7 @@ class ChatBackendService:
 
         # 2. Initial history sync
         logger.info("Step 1: Syncing initial history...")
-        await self.sync_history(mindspace_id=mindspace_id)
+        await self.sync_history(magickspace_id=magickspace_id)
 
         # 3. Connect to realtime WebSocket
         logger.info("Step 2: Connecting to realtime...")
@@ -249,7 +249,7 @@ class ChatBackendService:
 
         # 5. Start periodic sync in background
         logger.info("Step 4: Starting periodic sync...")
-        asyncio.create_task(self.periodic_sync(mindspace_id))
+        asyncio.create_task(self.periodic_sync(magickspace_id))
 
         logger.info("=" * 60)
         logger.info("✓ Backend service is running!")
@@ -265,7 +265,7 @@ async def main() -> None:
     base_url = os.getenv("MAGICKMIND_BASE_URL", "https://api.magickmind.ai")
     email = os.getenv("MAGICKMIND_EMAIL")
     password = os.getenv("MAGICKMIND_PASSWORD")
-    mindspace_id = os.getenv("MINDSPACE_ID", "mind-123")
+    magickspace_id = os.getenv("MINDSPACE_ID", "mind-123")
     user_id = os.getenv("USER_ID", "service-user")
 
     if not email or not password:
@@ -284,7 +284,7 @@ async def main() -> None:
     service = ChatBackendService(client)
 
     try:
-        await service.start(mindspace_id=mindspace_id, user_id=user_id)
+        await service.start(magickspace_id=magickspace_id, user_id=user_id)
 
         # Keep running indefinitely
         await asyncio.Future()
@@ -307,7 +307,7 @@ if __name__ == "__main__":
         MAGICKMIND_BASE_URL - Magick Mind API URL
         MAGICKMIND_EMAIL    - Service account email
         MAGICKMIND_PASSWORD - Service account password
-        MINDSPACE_ID        - Mindspace to monitor
+        MINDSPACE_ID        - MagickSpace to monitor
         USER_ID             - Service user ID
 
     Example:

@@ -105,7 +105,7 @@ def is_retryable_error(exception: Exception) -> bool:
 
 
 async def send_with_retry(
-    client: MagickMind, mindspace_id: str, message: str, max_retries: int = 3
+    client: MagickMind, magickspace_id: str, message: str, max_retries: int = 3
 ) -> Optional[ChatSendResponse]:
     """
     Send chat message with retry logic for transient errors.
@@ -116,7 +116,7 @@ async def send_with_retry(
         try:
             response = await client.v1.chat.send(
                 api_key=os.getenv("OPENROUTER_API_KEY", "sk-test"),
-                mindspace_id=mindspace_id,
+                magickspace_id=magickspace_id,
                 message=message,
                 enduser_id=os.getenv("USER_ID", "user-test"),
                 fast_model_id="openrouter/openrouter/meta-llama/llama-4-maverick",
@@ -201,7 +201,7 @@ async def example_2_validation_errors(client: MagickMind):
         # Send invalid request - empty required fields
         await client.v1.chat.send(
             api_key="",  # Invalid: empty
-            mindspace_id="",  # Invalid: empty
+            magickspace_id="",  # Invalid: empty
             message="",  # Invalid: empty
             enduser_id="user-123",
             fast_model_id="gpt-4",
@@ -229,10 +229,10 @@ async def example_3_problem_details_with_request_id(client: MagickMind):
     logger.info("=" * 70)
 
     try:
-        # Try to access non-existent mindspace
+        # Try to access non-existent magickspace
         await client.v1.chat.send(
             api_key="sk-test",
-            mindspace_id="nonexistent-mindspace-id",
+            magickspace_id="nonexistent-magickspace-id",
             message="Hello",
             enduser_id="user-123",
             fast_model_id="gpt-4",
@@ -247,7 +247,7 @@ async def example_3_problem_details_with_request_id(client: MagickMind):
         if e.request_id:
             logger.error(f"Request ID: {e.request_id} ← SAVE THIS FOR SUPPORT!")
 
-        logger.info("ℹ️  Action: Verify the mindspace ID exists")
+        logger.info("ℹ️  Action: Verify the magickspace ID exists")
         logger.info("✓ Caught ProblemDetailsException with request_id")
 
 
@@ -257,12 +257,12 @@ async def example_4_retry_pattern(client: MagickMind):
     logger.info("EXAMPLE 4: Retry Pattern (Exponential Backoff)")
     logger.info("=" * 70)
 
-    mindspace_id = os.getenv("MINDSPACE_ID", "mind-test-123")
+    magickspace_id = os.getenv("MINDSPACE_ID", "mind-test-123")
 
     try:
         # This will retry on rate limits and server errors
         response = await send_with_retry(
-            client, mindspace_id=mindspace_id, message="Test with retry pattern"
+            client, magickspace_id=magickspace_id, message="Test with retry pattern"
         )
 
         if response:
@@ -281,12 +281,12 @@ async def example_5_production_error_handling(client: MagickMind):
     logger.info("EXAMPLE 5: Production Error Handling (Comprehensive)")
     logger.info("=" * 70)
 
-    mindspace_id = os.getenv("MINDSPACE_ID", "mind-test-123")
+    magickspace_id = os.getenv("MINDSPACE_ID", "mind-test-123")
 
     try:
         response = await client.v1.chat.send(
             api_key=os.getenv("OPENROUTER_API_KEY", "sk-test"),
-            mindspace_id=mindspace_id,
+            magickspace_id=magickspace_id,
             message="Production example message",
             enduser_id=os.getenv("USER_ID", "user-test"),
             fast_model_id="openrouter/openrouter/meta-llama/llama-4-maverick",
@@ -406,7 +406,7 @@ if __name__ == "__main__":
         MAGICKMIND_EMAIL    - Your service account email
         MAGICKMIND_PASSWORD - Your service account password
         MAGICKMIND_BASE_URL - Magick Mind API URL (default: https://api.magickmind.ai)
-        MINDSPACE_ID        - Mindspace ID for testing (optional)
+        MINDSPACE_ID        - MagickSpace ID for testing (optional)
         USER_ID             - End user ID for testing (optional)
         OPENROUTER_API_KEY  - API key for LLM (optional)
 

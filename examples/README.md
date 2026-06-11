@@ -42,7 +42,7 @@ All examples call `load_dotenv()` so the `.env` file is picked up automatically.
 uv run python examples/setup_resources.py
 ```
 
-This creates an End User, Project, and Mindspace, and writes their IDs back to `.env`.
+This creates an End User, Project, and MagickSpace, and writes their IDs back to `.env`.
 
 ### 4. Run an example
 
@@ -60,7 +60,7 @@ uv run python examples/authentication.py
 | `MAGICKMIND_API_KEY` | corpus_ingest, resource_management | LiteLLM virtual key for per-tenant LLM/embedding usage |
 | `MAGICKMIND_WS_ENDPOINT` | chat_workflow, bulk_subscribe, backend_service | Centrifugo WebSocket URL |
 | `USER_ID` | chat_workflow, backend_service, setup_resources | End-user ID for subscriptions |
-| `MINDSPACE_ID` | chat_workflow, backend_service, error_handling | Mindspace to send messages to |
+| `MINDSPACE_ID` | chat_workflow, backend_service, error_handling | MagickSpace to send messages to |
 | `PROJECT_ID` | setup_resources | Project ID (auto-created if missing) |
 | `OPENROUTER_API_KEY` | chat_workflow, error_handling | LLM provider API key for chat |
 
@@ -104,7 +104,7 @@ uv run python examples/authentication.py
 
 ### resource_management.py — CRUD for All Resources
 
-End Users, Projects, Mindspaces, Corpus, and Artifacts — create, list, query, update, delete. Also includes corpus query examples (LLM and context-only).
+End Users, Projects, MagickSpaces, Corpus, and Artifacts — create, list, query, update, delete. Also includes corpus query examples (LLM and context-only).
 
 ```bash
 uv run python examples/resource_management.py
@@ -189,7 +189,7 @@ uv run python examples/error_handling_patterns.py
 
 ### setup_resources.py — Bootstrap Dev Environment
 
-Creates End User, Project, and Mindspace if they don't exist. Writes IDs to `.env` for other examples to use.
+Creates End User, Project, and MagickSpace if they don't exist. Writes IDs to `.env` for other examples to use.
 
 ```bash
 uv run python examples/setup_resources.py

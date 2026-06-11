@@ -62,12 +62,12 @@ class TestProblemDetails:
             type="https://api.example.com/errors/not-found",
             title="Not Found",
             status=404,
-            detail="Mindspace ms-123 not found",
+            detail="MagickSpace ms-123 not found",
             instance="/v1/magickspaces/ms-123",
             request_id="trace-abc-123",
             errors=[
                 ValidationErrorField(
-                    field="mindspace_id",
+                    field="magickspace_id",
                     message="Invalid format",
                     code="invalid_format",
                 )
@@ -76,11 +76,11 @@ class TestProblemDetails:
         assert problem.type == "https://api.example.com/errors/not-found"
         assert problem.title == "Not Found"
         assert problem.status == 404
-        assert problem.detail == "Mindspace ms-123 not found"
+        assert problem.detail == "MagickSpace ms-123 not found"
         assert problem.instance == "/v1/magickspaces/ms-123"
         assert problem.request_id == "trace-abc-123"
         assert len(problem.errors) == 1
-        assert problem.errors[0].field == "mindspace_id"
+        assert problem.errors[0].field == "magickspace_id"
 
     def test_status_validation_min(self):
         """Status must be >= 400."""

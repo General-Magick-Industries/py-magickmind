@@ -85,7 +85,7 @@ class TestWantsContext:
 _CHAT_DATA = {
     "type": "chat_message",
     "payload": {
-        "mindspace_id": "ms-1",
+        "magickspace_id": "ms-1",
         "message_id": "msg-1",
         "task_id": "t-1",
         "message": "hello",
@@ -217,7 +217,7 @@ async def test_subscribe_many_different_users_dispatch():
         data = {
             "type": "chat_message",
             "payload": {
-                "mindspace_id": "ms-1",
+                "magickspace_id": "ms-1",
                 "message_id": f"msg-{uid}",
                 "task_id": "t-1",
                 "message": f"hi {uid}",

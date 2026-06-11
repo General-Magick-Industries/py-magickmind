@@ -74,9 +74,9 @@ async def handle(event: ChatMessageEvent, ctx: EventContext):
 ```
 Backend Service
     │
-    └─ subscribe("room_mindspace_123")
+    └─ subscribe("room_magickspace_123")
         ↓
-    ALL users in mindspace receive ALL messages
+    ALL users in magickspace receive ALL messages
         ↓
     user_1: [msg_a, msg_b, msg_c, msg_d, msg_e]
     user_2: [msg_a, msg_b, msg_c, msg_d, msg_e]  # Same messages!
@@ -89,7 +89,7 @@ Backend Service
 
 ```python
 # ❌ DON'T DO THIS for personal messages
-await client.realtime.subscribe("room_mindspace_123")
+await client.realtime.subscribe("room_magickspace_123")
 
 # Receives EVERYTHING — must manually filter
 @client.realtime.on("chat_message")

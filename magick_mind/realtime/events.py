@@ -19,7 +19,7 @@ import re
 from dataclasses import dataclass
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import AliasChoices, BaseModel, ConfigDict, Field
 
 _CHANNEL_RE = re.compile(r"^personal:(?P<target>[^#]+)#(?P<service>.+)$")
 
@@ -49,7 +49,13 @@ class EventContext:
 class ChatMessagePayload(BaseModel):
     """Payload for type="chat_message" realtime events."""
 
-    mindspace_id: str
+    # Xavier currently broadcasts the wire key as "mindspace_id"; accept both
+    # it and "magickspace_id" while exposing it as magickspace_id on the SDK.
+    model_config = ConfigDict(populate_by_name=True)
+
+    magickspace_id: str = Field(
+        validation_alias=AliasChoices("magickspace_id", "mindspace_id")
+    )
     message_id: str
     task_id: str
     message: str
@@ -82,7 +88,13 @@ class ArtifactData(BaseModel):
 class ArtifactPayload(BaseModel):
     """Payload for type="image_generation" realtime events."""
 
-    mindspace_id: str
+    # Xavier currently broadcasts the wire key as "mindspace_id"; accept both
+    # it and "magickspace_id" while exposing it as magickspace_id on the SDK.
+    model_config = ConfigDict(populate_by_name=True)
+
+    magickspace_id: str = Field(
+        validation_alias=AliasChoices("magickspace_id", "mindspace_id")
+    )
     message_id: str
     task_id: str
     reply_to: str | None = None

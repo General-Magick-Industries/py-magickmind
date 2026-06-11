@@ -17,7 +17,6 @@ class Routes:
 
     # Magickspaces endpoints
     MAGICKSPACES = "/v1/magickspaces"
-    MINDSPACES = MAGICKSPACES
 
     @staticmethod
     def magickspace(magickspace_id: str) -> str:
@@ -25,19 +24,9 @@ class Routes:
         return f"/v1/magickspaces/{magickspace_id}"
 
     @staticmethod
-    def mindspace(mindspace_id: str) -> str:
-        """Deprecated alias for :meth:`magickspace`."""
-        return Routes.magickspace(mindspace_id)
-
-    @staticmethod
     def magickspace_messages(magickspace_id: str) -> str:
         """Get path for magickspace messages."""
         return f"/v1/magickspaces/{magickspace_id}/messages"
-
-    @staticmethod
-    def mindspace_messages(mindspace_id: str) -> str:
-        """Deprecated alias for :meth:`magickspace_messages`."""
-        return Routes.magickspace_messages(mindspace_id)
 
     @staticmethod
     def magickspace_users(magickspace_id: str) -> str:
@@ -45,19 +34,9 @@ class Routes:
         return f"/v1/magickspaces/{magickspace_id}/users"
 
     @staticmethod
-    def mindspace_users(mindspace_id: str) -> str:
-        """Deprecated alias for :meth:`magickspace_users`."""
-        return Routes.magickspace_users(mindspace_id)
-
-    @staticmethod
     def magickspace_context(magickspace_id: str) -> str:
         """Get path for magickspace context preparation."""
         return f"/v1/magickspaces/{magickspace_id}/context"
-
-    @staticmethod
-    def mindspace_context(mindspace_id: str) -> str:
-        """Deprecated alias for :meth:`magickspace_context`."""
-        return Routes.magickspace_context(mindspace_id)
 
     @staticmethod
     def magickspace_livekit_token(magickspace_id: str) -> str:
@@ -65,19 +44,9 @@ class Routes:
         return f"/v1/magickspaces/{magickspace_id}/livekit-token"
 
     @staticmethod
-    def mindspace_livekit_token(mindspace_id: str) -> str:
-        """Deprecated alias for :meth:`magickspace_livekit_token`."""
-        return Routes.magickspace_livekit_token(mindspace_id)
-
-    @staticmethod
     def magickspace_livekit_join(magickspace_id: str) -> str:
         """Get path for LiveKit agent join signalling."""
         return f"/v1/magickspaces/{magickspace_id}/livekit-join"
-
-    @staticmethod
-    def mindspace_livekit_join(mindspace_id: str) -> str:
-        """Deprecated alias for :meth:`magickspace_livekit_join`."""
-        return Routes.magickspace_livekit_join(mindspace_id)
 
     # Runtime endpoints
     RUNTIME_INVALIDATE_CACHE = "/v1/runtime/invalidate-cache"

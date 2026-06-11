@@ -1,12 +1,12 @@
-# Mindspace Resource Guide
+# MagickSpace Resource Guide
 
-A comprehensive guide to using the Mindspace resource in the Magick Mind SDK for managing organizational containers for chat conversations, knowledge bases, and user collaboration.
+A comprehensive guide to using the MagickSpace resource in the Magick Mind SDK for managing organizational containers for chat conversations, knowledge bases, and user collaboration.
 
 ## Overview
 
-**Mindspace is central to the Magick Mind API** - it's where everything starts and ends. Conversations, knowledge, and users all come together in mindspaces.
+**MagickSpace is central to the Magick Mind API** - it's where everything starts and ends. Conversations, knowledge, and users all come together in magickspaces.
 
-**Mindspaces** are organizational containers that group together:
+**MagickSpaces** are organizational containers that group together:
 - **Chat conversations** - Message history and interactions
 - **Knowledge bases** - Attached corpus for contextual AI responses
 - **Users** - Members with access to the space
@@ -20,11 +20,11 @@ A comprehensive guide to using the Mindspace resource in the Magick Mind SDK for
 
 **Asymmetric access pattern** - designed for privacy while maximizing utility:
 
-- ✅ **Private → Group**: Private mindspaces **can access** group knowledge
+- ✅ **Private → Group**: Private magickspaces **can access** group knowledge
   - Personal AI benefits from team corpus, company docs, shared resources
   - Individual gets collective knowledge without exposing personal context
   
-- ❌ **Group → Private**: Group mindspaces **cannot access** private conversations
+- ❌ **Group → Private**: Group magickspaces **cannot access** private conversations
   - Personal conversations stay personal
   - Clear privacy boundary: group is shared, private is isolated
 
@@ -42,7 +42,7 @@ eng_team = client.magickspaces.create(
     name="Engineering Team",
     type="group",
     corpus_ids=["codebase", "specs"]
-    # ❌ Cannot access Alice's private mindspace
+    # ❌ Cannot access Alice's private magickspace
 )
 ```
 
@@ -60,14 +60,14 @@ client = MagickMind(
     password="password"
 )
 
-# Create a private mindspace
+# Create a private magickspace
 workspace = client.magickspaces.create(
     name="My Personal Workspace",
     type="private",
     description="Personal workspace for my projects"
 )
 
-# Create a group mindspace
+# Create a group magickspace
 team = client.magickspaces.create(
     name="Engineering Team",
     type="group",
@@ -79,7 +79,7 @@ team = client.magickspaces.create(
 
 ## Core Operations
 
-### Creating Mindspaces
+### Creating MagickSpaces
 
 ```python
 # Private: individual workspace with personal+team knowledge
@@ -108,7 +108,7 @@ all_spaces = client.magickspaces.list()
 # Filter by participant
 user_spaces = client.magickspaces.list(participant_id="alice")
 
-# Get specific mindspace
+# Get specific magickspace
 space = client.magickspaces.get("mind-123")
 ```
 
@@ -117,7 +117,7 @@ space = client.magickspaces.get("mind-123")
 ```python
 # Update (replaces entire lists, include all existing IDs)
 client.magickspaces.update(
-    mindspace_id="mind-123",
+    magickspace_id="mind-123",
     name="Updated Name",
     corpus_ids=["corp-1", "corp-2", "corp-3"],  # All IDs
     participant_ids=["user-1", "user-2", "user-3", "user-4"]  # All IDs
@@ -131,7 +131,7 @@ client.magickspaces.delete("mind-123")
 
 ## Message History
 
-Mindspaces maintain chat message history. Use `get_messages()` with cursor-based pagination.
+MagickSpaces maintain chat message history. Use `get_messages()` with cursor-based pagination.
 
 ### Latest Messages
 
@@ -180,7 +180,7 @@ if initial.has_older and initial.next_before_id:
 
 ### Sending Messages
 
-Send a message directly to a mindspace:
+Send a message directly to a magickspace:
 
 ```python
 msg = await client.v1.magickspaces.send_message(
@@ -208,7 +208,7 @@ Each message in `chat_histories` contains:
 message = messages.chat_histories[0]
 
 print(f"ID: {message.id}")
-print(f"Mindspace: {message.mindspace_id}")
+print(f"MagickSpace: {message.magickspace_id}")
 print(f"Sender: {message.sent_by_user_id}")
 print(f"Content: {message.content}")
 print(f"Status: {message.status}")
@@ -224,7 +224,7 @@ print(f"Created: {message.create_at}")
 Set up a complete workspace for a project:
 
 ```python
-# 1. Create the mindspace
+# 1. Create the magickspace
 workspace = client.magickspaces.create(
     name=f"Project: {project_name}",
     type="group",
@@ -234,10 +234,10 @@ workspace = client.magickspaces.create(
     corpus_ids=knowledge_bases
 )
 
-mindspace_id = workspace.id
+magickspace_id = workspace.id
 
 # 2. Verify setup
-space = client.magickspaces.get(mindspace_id)
+space = client.magickspaces.get(magickspace_id)
 print(f"✓ Created workspace for {len(space.participant_ids)} members")
 print(f"✓ Attached {len(space.corpus_ids)} knowledge bases")
 ```
@@ -253,7 +253,7 @@ updated_corpus_ids = current.corpus_ids + ["new-corpus-id"]
 
 # Update
 client.magickspaces.update(
-    mindspace_id="mind-123",
+    magickspace_id="mind-123",
     name=current.name,
     corpus_ids=updated_corpus_ids,
     participant_ids=current.participant_ids
@@ -265,18 +265,18 @@ client.magickspaces.update(
 Efficiently load all messages using cursor pagination:
 
 ```python
-async def load_all_messages(mindspace_id: str, batch_size: int = 100):
-    """Load all messages from a mindspace using cursor pagination."""
+async def load_all_messages(magickspace_id: str, batch_size: int = 100):
+    """Load all messages from a magickspace using cursor pagination."""
     all_messages = []
     
     # Start with latest
-    response = await client.v1.magickspaces.get_messages(mindspace_id, limit=batch_size)
+    response = await client.v1.magickspaces.get_messages(magickspace_id, limit=batch_size)
     all_messages.extend(response.chat_histories)
     
     # Keep loading older messages
     while response.has_older and response.next_before_id:
         response = await client.v1.magickspaces.get_messages(
-            mindspace_id,
+            magickspace_id,
             cursor=response.next_before_id,
             limit=batch_size,
         )
@@ -294,10 +294,10 @@ print(f"Loaded {len(all_msgs)} total messages")
 Poll for new messages (prefer Centrifugo realtime for production):
 
 ```python
-async def poll_new_messages(mindspace_id: str, cursor: str = None):
+async def poll_new_messages(magickspace_id: str, cursor: str = None):
     """Check for new messages since last cursor."""
     response = await client.v1.magickspaces.get_messages(
-        mindspace_id,
+        magickspace_id,
         cursor=cursor,
         limit=50,
     )
@@ -319,9 +319,9 @@ while True:
 
 ## Design Guidance
 
-### Thinking Mindspace-First
+### Thinking MagickSpace-First
 
-When architecting your Magick Mind application, **start with mindspaces**:
+When architecting your Magick Mind application, **start with magickspaces**:
 
 #### 1. **Define Your Conversation Contexts**
 
@@ -329,14 +329,14 @@ What are the different contexts where users will interact with AI?
 
 ```python
 # Example: Customer support application
-support_mindspace = client.magickspaces.create(
+support_magickspace = client.magickspaces.create(
     name="Customer Support - Acme Corp",
     type="private",  # Each customer gets their own space
     corpus_ids=["help-docs", "product-specs", "faq"]
 )
 
 # Example: Team collaboration
-team_mindspace = client.magickspaces.create(
+team_magickspace = client.magickspaces.create(
     name="Engineering Team",
     type="group",  # Shared team space
     participant_ids=team_members,
@@ -346,7 +346,7 @@ team_mindspace = client.magickspaces.create(
 
 #### 2. **Map Knowledge to Contexts**
 
-Which knowledge should be available in each mindspace?
+Which knowledge should be available in each magickspace?
 
 - **Customer Support** → Help docs, product manuals, policies
 - **Engineering Team** → Codebase, technical specs, architecture docs
@@ -354,67 +354,67 @@ Which knowledge should be available in each mindspace?
 
 #### 3. **Consider Access Patterns**
 
-- **Private mindspaces** for individual user contexts (personal assistants, customer support tickets)
-- **Group mindspaces** for team collaboration (shared projects, team knowledge bases)
-- **Project-scoped mindspaces** for temporary initiatives
+- **Private magickspaces** for individual user contexts (personal assistants, customer support tickets)
+- **Group magickspaces** for team collaboration (shared projects, team knowledge bases)
+- **Project-scoped magickspaces** for temporary initiatives
 
 #### 4. **Design Your Message Flow**
 
 ```python
-# All chat interactions reference a mindspace
+# All chat interactions reference a magickspace
 response = client.chat.send(
     api_key="sk-...",
-    mindspace_id="mind-123",  # The context for this conversation
+    magickspace_id="mind-123",  # The context for this conversation
     message="How do I deploy to production?",
     enduser_id="user-456"
 )
 
-# Messages are stored in the mindspace
+# Messages are stored in the magickspace
 history = await client.v1.magickspaces.get_messages("mind-123")
 ```
 
 ### Common Architecture Patterns
 
-#### Pattern 1: One Mindspace per User Session
+#### Pattern 1: One MagickSpace per User Session
 
 ```python
 # Each user gets their own private workspace
 def onboard_user(user_id: str):
-    mindspace = client.magickspaces.create(
+    magickspace = client.magickspaces.create(
         name=f"{user_id}'s Workspace",
         type="private",
         corpus_ids=get_user_relevant_knowledge(user_id)
     )
-    return mindspace.mindspace.id
+    return magickspace.magickspace.id
 ```
 
-#### Pattern 2: One Mindspace per Team/Organization
+#### Pattern 2: One MagickSpace per Team/Organization
 
 ```python
 # Teams share a collaborative space
 def setup_team_workspace(team_name: str, members: list[str]):
-    mindspace = client.magickspaces.create(
+    magickspace = client.magickspaces.create(
         name=f"{team_name} Team Space",
         type="group",
         participant_ids=members,
         corpus_ids=get_team_knowledge_bases(team_name)
     )
-    return mindspace.mindspace.id
+    return magickspace.magickspace.id
 ```
 
-#### Pattern 3: Dynamic Mindspace per Conversation Topic
+#### Pattern 3: Dynamic MagickSpace per Conversation Topic
 
 ```python
-# Create temporary mindspaces for specific tasks
+# Create temporary magickspaces for specific tasks
 def create_project_workspace(project: Project):
-    mindspace = client.magickspaces.create(
+    magickspace = client.magickspaces.create(
         name=f"Project: {project.name}",
         type="group",
         project_id=project.id,
         participant_ids=project.team_members,
         corpus_ids=project.required_knowledge
     )
-    return mindspace.mindspace.id
+    return magickspace.magickspace.id
 ```
 
 ## Best Practices
@@ -433,7 +433,7 @@ def create_project_workspace(project: Project):
 
 ### 2. Organize with Projects
 
-Link related mindspaces to projects for better organization:
+Link related magickspaces to projects for better organization:
 
 ```python
 client.magickspaces.create(
@@ -474,71 +474,71 @@ try:
         type="private"
     )
 except Exception as e:
-    print(f"Failed to create mindspace: {e}")
+    print(f"Failed to create magickspace: {e}")
 ```
 
 ## API Reference
 
 ### `create()`
 
-Create a new mindspace.
+Create a new magickspace.
 
 **Parameters:**
-- `name` (str, required): Mindspace name (max 100 chars)
-- `type` (Literal["private", "group"], required): Mindspace type
+- `name` (str, required): MagickSpace name (max 100 chars)
+- `type` (Literal["private", "group"], required): MagickSpace type
 - `description` (str, optional): Description (max 256 chars)
 - `project_id` (str, optional): Associated project ID
 - `corpus_ids` (list[str], optional): Corpus IDs to attach
 - `participant_ids` (list[str], optional): User IDs to grant access
 
-**Returns:** `CreateMindSpaceResponse`
+**Returns:** `CreateMagickSpaceResponse`
 
 ---
 
 ### `get()`
 
-Get mindspace by ID.
+Get magickspace by ID.
 
 **Parameters:**
-- `mindspace_id` (str, required): Mindspace ID
+- `magickspace_id` (str, required): MagickSpace ID
 
-**Returns:** `GetMindSpaceResponse`
+**Returns:** `GetMagickSpaceResponse`
 
 ---
 
 ### `list()`
 
-List mindspaces, optionally filtered by user.
+List magickspaces, optionally filtered by user.
 
 **Parameters:**
 - `user_id` (str, optional): Filter by user ID
 
-**Returns:** `GetMindSpaceListResponse`
+**Returns:** `GetMagickSpaceListResponse`
 
 ---
 
 ### `update()`
 
-Update an existing mindspace.
+Update an existing magickspace.
 
 **Parameters:**
-- `mindspace_id` (str, required): Mindspace ID to update
+- `magickspace_id` (str, required): MagickSpace ID to update
 - `name` (str, required): Updated name
 - `description` (str, optional): Updated description
 - `project_id` (str, optional): Updated project ID
 - `corpus_ids` (list[str], optional): Updated corpus list
 - `participant_ids` (list[str], optional): Updated user list
 
-**Returns:** `UpdateMindSpaceResponse`
+**Returns:** `UpdateMagickSpaceResponse`
 
 ---
 
 ### `delete()`
 
-Delete a mindspace.
+Delete a magickspace.
 
 **Parameters:**
-- `mindspace_id` (str, required): Mindspace ID to delete
+- `magickspace_id` (str, required): MagickSpace ID to delete
 
 **Returns:** None
 
@@ -549,21 +549,21 @@ Delete a mindspace.
 Fetch chat messages with cursor-based pagination.
 
 **Parameters:**
-- `mindspace_id` (str, required): Mindspace to fetch from
+- `magickspace_id` (str, required): MagickSpace to fetch from
 - `cursor` (str, optional): Pagination cursor from `paging.cursors.after` or `.before`
 - `limit` (int, optional): Max messages to return
 - `order` (str, optional): Sort order — `"asc"` or `"desc"` (default: asc)
 
-**Returns:** `MindspaceMessagesResponse`
+**Returns:** `MagickSpaceMessagesResponse`
 
 ---
 
 ### `send_message()`
 
-Send a message to a mindspace.
+Send a message to a magickspace.
 
 **Parameters:**
-- `mindspace_id` (str, required): Mindspace to send to
+- `magickspace_id` (str, required): MagickSpace to send to
 - `content` (str, required): Message content text
 - `sender_id` (str, required): ID of the user sending the message
 - `reply_to_message_id` (str, optional): ID of message being replied to
@@ -575,5 +575,5 @@ Send a message to a mindspace.
 
 ## Related Resources
 
-- [Corpus Resource Guide](./corpus.md) - Attaching knowledge bases to mindspaces
+- [Corpus Resource Guide](./corpus.md) - Attaching knowledge bases to magickspaces
 - [Backend Integration Guide](../guides/backend_integration.md) - Server-side patterns

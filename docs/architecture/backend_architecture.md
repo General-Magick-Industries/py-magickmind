@@ -68,7 +68,7 @@ async def send(request: ChatRequest, user = Depends(verify_user)):
     # Proxy to the Magick Mind API
     response = client.v1.chat.send(
         api_key=request.api_key,
-        mindspace_id=request.mindspace_id,
+        magickspace_id=request.magickspace_id,
         message=request.message,
         sender_id=user.id
     )
@@ -77,18 +77,18 @@ async def send(request: ChatRequest, user = Depends(verify_user)):
 # Get message history with pagination
 @app.get("/messages")
 async def get_messages(
-    mindspace_id: str,
+    magickspace_id: str,
     cursor: str = None,      # Cursor for pagination
     limit: int = 50,
     user = Depends(verify_user)
 ):
-    # Verify user has access to mindspace
-    if not user.can_access(mindspace_id):
+    # Verify user has access to magickspace
+    if not user.can_access(magickspace_id):
         raise Forbidden()
     
     # Proxy to the Magick Mind API with pagination
     result = await client.v1.magickspaces.get_messages(
-        mindspace_id,
+        magickspace_id,
         cursor=cursor,
         limit=limit,
     )
@@ -104,10 +104,10 @@ async def get_messages(
 **Frontend usage:**
 ```javascript
 // First page
-let resp = await fetch('/messages?mindspace_id=mind-123&limit=50');
+let resp = await fetch('/messages?magickspace_id=mind-123&limit=50');
 
 // Next page
-resp = await fetch(`/messages?mindspace_id=mind-123&cursor=${resp.next_cursor}&limit=50`);
+resp = await fetch(`/messages?magickspace_id=mind-123&cursor=${resp.next_cursor}&limit=50`);
 ```
 
 **Pros:**
@@ -143,14 +143,14 @@ redis_client = redis.Redis()
 # List endpoint: ALWAYS fetch from the Magick Mind API (don't cache pagination)
 @app.get("/messages")
 async def get_messages(
-    mindspace_id: str,
+    magickspace_id: str,
     cursor: str = None,
     limit: int = 50,
     user = Depends(verify_user)
 ):
     # No caching here - pagination is complex to cache
     result = await client.v1.magickspaces.get_messages(
-        mindspace_id,
+        magickspace_id,
         cursor=cursor,
         limit=limit,
     )
@@ -184,7 +184,7 @@ async def get_message(message_id: str, user = Depends(verify_user)):
 @app.post("/messages/send")
 async def send_message(request: SendRequest, user = Depends(verify_user)):
     response = client.v1.chat.send(
-        mindspace_id=request.mindspace_id,
+        magickspace_id=request.magickspace_id,
         message=request.message,
         sender_id=user.id
     )
@@ -217,17 +217,17 @@ If you want to cache lists, only cache the first page (most commonly accessed):
 
 ```python
 @app.get("/messages")
-async def get_messages(mindspace_id: str, cursor: str = None, limit: int = 50):
+async def get_messages(magickspace_id: str, cursor: str = None, limit: int = 50):
     # Only cache first page
     if cursor is None:
-        cache_key = f"messages:{mindspace_id}:first_page"
+        cache_key = f"messages:{magickspace_id}:first_page"
         cached = redis_client.get(cache_key)
         if cached:
             return json.loads(cached)
     
     # Fetch from the Magick Mind API
     result = await client.v1.magickspaces.get_messages(
-        mindspace_id,
+        magickspace_id,
         cursor=cursor,
         limit=limit,
     )
@@ -244,7 +244,7 @@ async def send_message(request: SendRequest):
     response = client.v1.chat.send(...)
     
     # Invalidate first page
-    redis_client.delete(f"messages:{request.mindspace_id}:first_page")
+    redis_client.delete(f"messages:{request.magickspace_id}:first_page")
     
     return response
 ```
@@ -264,7 +264,7 @@ async def send_message(request: SendRequest):
 
 ```python
 # ❌ Don't do this
-cache_key = f"messages:{mindspace_id}:cursor:{cursor}:limit:{limit}"
+cache_key = f"messages:{magickspace_id}:cursor:{cursor}:limit:{limit}"
 # Too many cache keys, hard to invalidate all pages
 ```
 
@@ -305,7 +305,7 @@ async def sync_with_api():
     last_cursor = await db.get_last_cursor()
     
     history = await client.v1.magickspaces.get_messages(
-        mindspace_id,
+        magickspace_id,
         cursor=last_cursor,
         limit=100,
     )
@@ -357,7 +357,7 @@ async def handle_notification(event: ChatMessageEvent, ctx: EventContext):
 async def fetch_from_history(user_id):
     """Fetch latest from the Magick Mind API history API."""
     messages = await client.v1.magickspaces.get_messages(
-        get_mindspace(user_id),
+        get_magickspace(user_id),
         cursor=get_last_cursor(user_id),
     )
     # Store and/or send to frontend
@@ -480,7 +480,7 @@ async def chat(request):
 # Track SDK usage per user
 logger.info(f"User {user.id} sent chat message", extra={
     "user_id": user.id,
-    "mindspace_id": mindspace_id,
+    "magickspace_id": magickspace_id,
     "timestamp": datetime.utcnow()
 })
 ```

@@ -4,7 +4,7 @@ History resource for Magick Mind SDK v1 API.
 Provides methods to fetch chat history with pagination.
 
 .. deprecated::
-    Use :class:`MagickspacesResourceV1.get_messages` instead.
+    Use :class:`MagickSpacesResourceV1.get_messages` instead.
 """
 
 from __future__ import annotations
@@ -29,7 +29,7 @@ class HistoryResourceV1(BaseResource):
 
     async def get_messages(
         self,
-        mindspace_id: str,
+        magickspace_id: str,
         *,
         cursor: Optional[str] = None,
         limit: Optional[int] = None,
@@ -42,7 +42,7 @@ class HistoryResourceV1(BaseResource):
             Use ``client.v1.magickspaces.get_messages()`` instead.
 
         Args:
-            mindspace_id: Mindspace to fetch messages from
+            magickspace_id: MagickSpace to fetch messages from
             cursor: Pagination cursor
             limit: Maximum number of messages to return
             order: Sort order — ``"asc"`` or ``"desc"``
@@ -66,7 +66,7 @@ class HistoryResourceV1(BaseResource):
             params["order"] = order
 
         response_data = await self._http.get(
-            Routes.magickspace_messages(mindspace_id),
+            Routes.magickspace_messages(magickspace_id),
             params=params if params else None,
         )
 

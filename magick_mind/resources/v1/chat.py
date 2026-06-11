@@ -18,12 +18,12 @@ class ChatResourceV1(BaseResource):
     """
     Chat resource client for V1 API.
 
-    Provides typed interface for sending chat messages to mindspaces.
+    Provides typed interface for sending chat messages to magickspaces.
 
     Example:
         response = await client.v1.chat.send(
             api_key="sk-...",
-            mindspace_id="mind-123",
+            magickspace_id="mind-123",
             message="Hello!",
             enduser_id="user-456",
             fast_model_id="gpt-4",
@@ -36,7 +36,7 @@ class ChatResourceV1(BaseResource):
     async def send(
         self,
         api_key: str,
-        mindspace_id: str,
+        magickspace_id: str,
         message: str,
         enduser_id: str,
         fast_model_id: str = "",
@@ -48,11 +48,11 @@ class ChatResourceV1(BaseResource):
         artifact_ids: Optional[list[str]] = None,
     ) -> ChatSendResponse:
         """
-        Send a chat message to a mindspace and get AI response.
+        Send a chat message to a magickspace and get AI response.
 
         Args:
             api_key: API key for LLM access
-            mindspace_id: Mindspace/chat conversation ID
+            magickspace_id: MagickSpace/chat conversation ID
             message: User message text to send
             enduser_id: End-user identifier
             fast_model_id: Model ID for fast brain
@@ -69,8 +69,8 @@ class ChatResourceV1(BaseResource):
             ChatSendResponse with AI-generated response
 
         Raises:
-            ValidationError: If message is empty, mindspace_id invalid, or required fields missing
-            ProblemDetailsException: If mindspace not found (404), permission denied (403),
+            ValidationError: If message is empty, magickspace_id invalid, or required fields missing
+            ProblemDetailsException: If magickspace not found (404), permission denied (403),
                 or server error (500+). Always includes request_id for support.
             RateLimitError: If API rate limit exceeded (429)
             AuthenticationError: If JWT token is invalid or expired (auto-refreshed transparently)
@@ -79,7 +79,7 @@ class ChatResourceV1(BaseResource):
             # Basic chat with flat params (preferred)
             response = await chat.send(
                 api_key="sk-test",
-                mindspace_id="mind-123",
+                magickspace_id="mind-123",
                 message="What's the weather?",
                 enduser_id="user-456",
                 fast_model_id="gpt-4",
@@ -89,7 +89,7 @@ class ChatResourceV1(BaseResource):
             # Chat with attached artifacts
             response = await chat.send(
                 api_key="sk-test",
-                mindspace_id="mind-123",
+                magickspace_id="mind-123",
                 message="Analyze these documents",
                 enduser_id="user-456",
                 fast_model_id="gpt-4",
@@ -101,7 +101,7 @@ class ChatResourceV1(BaseResource):
             # Advanced: pass a pre-built ConfigSchema directly
             response = await chat.send(
                 api_key="sk-test",
-                mindspace_id="mind-123",
+                magickspace_id="mind-123",
                 message="Hello",
                 enduser_id="user-456",
                 config=ConfigSchema(fast_model_id="gpt-4", smart_model_ids=["gpt-4"]),
@@ -120,7 +120,7 @@ class ChatResourceV1(BaseResource):
         # Build and validate request
         request = ChatSendRequest(
             api_key=api_key,
-            mindspace_id=mindspace_id,
+            magickspace_id=magickspace_id,
             message=message,
             enduser_id=enduser_id,
             config=resolved_config,

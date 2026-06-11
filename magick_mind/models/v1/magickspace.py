@@ -1,4 +1,4 @@
-"""V1 mindspace API models.
+"""V1 magickspace API models.
 
 These models mirror the API types for /v1/magickspaces endpoint.
 """
@@ -13,12 +13,12 @@ from magick_mind.models.common import PageInfo
 from magick_mind.models.v1.history import HistoryResponse
 
 
-# Type alias for mindspace type enum (uppercase to match apidog)
-MindSpaceType = Literal["PRIVATE", "GROUP"]
+# Type alias for magickspace type enum (uppercase to match apidog)
+MagickSpaceType = Literal["PRIVATE", "GROUP"]
 
 # The API returns proto enum .String() values with MINDSPACE_TYPE_ prefix.
 # We normalize to short form for SDK consumers.
-_TYPE_NORMALIZE: dict[str, MindSpaceType] = {
+_TYPE_NORMALIZE: dict[str, MagickSpaceType] = {
     "PRIVATE": "PRIVATE",
     "GROUP": "GROUP",
     "MINDSPACE_TYPE_PRIVATE": "PRIVATE",
@@ -26,11 +26,11 @@ _TYPE_NORMALIZE: dict[str, MindSpaceType] = {
 }
 
 
-class MindSpace(BaseModel):
+class MagickSpace(BaseModel):
     """
-    Mindspace schema model.
+    MagickSpace schema model.
 
-    Represents a mindspace container that can be private (single user)
+    Represents a magickspace container that can be private (single user)
     or group (multiple users), with attached corpus for knowledge.
 
     Example:
@@ -49,24 +49,26 @@ class MindSpace(BaseModel):
         }
     """
 
-    id: str = Field(..., description="Mindspace ID")
-    name: str = Field(..., description="Mindspace name")
-    description: Optional[str] = Field(None, description="Mindspace description")
+    id: str = Field(..., description="MagickSpace ID")
+    name: str = Field(..., description="MagickSpace name")
+    description: Optional[str] = Field(None, description="MagickSpace description")
     project_id: str = Field(..., description="Associated project ID")
     corpus_ids: list[str] = Field(
         default_factory=list,
-        description="List of corpus IDs attached to this mindspace",
+        description="List of corpus IDs attached to this magickspace",
     )
     participant_ids: list[str] = Field(
         default_factory=list,
-        description="List of participant IDs with access to this mindspace",
+        description="List of participant IDs with access to this magickspace",
     )
-    type: MindSpaceType = Field(..., description="Mindspace type: 'PRIVATE' or 'GROUP'")
+    type: MagickSpaceType = Field(
+        ..., description="MagickSpace type: 'PRIVATE' or 'GROUP'"
+    )
     created_by: Optional[str] = Field(
-        None, description="User ID who created the mindspace"
+        None, description="User ID who created the magickspace"
     )
     updated_by: Optional[str] = Field(
-        None, description="User ID who last updated the mindspace"
+        None, description="User ID who last updated the magickspace"
     )
     created_at: Optional[str] = Field(None, description="Creation timestamp (RFC3339)")
     updated_at: Optional[str] = Field(
@@ -88,17 +90,19 @@ class MindSpace(BaseModel):
         return v
 
 
-class CreateMindSpaceRequest(BaseModel):
+class CreateMagickSpaceRequest(BaseModel):
     """
-    Request to create a new mindspace.
+    Request to create a new magickspace.
     """
 
     name: Optional[str] = Field(
-        None, description="Mindspace name (Relaxed)", max_length=100
+        None, description="MagickSpace name (Relaxed)", max_length=100
     )
-    type: Optional[MindSpaceType] = Field(None, description="Mindspace type (Relaxed)")
+    type: Optional[MagickSpaceType] = Field(
+        None, description="MagickSpace type (Relaxed)"
+    )
     description: Optional[str] = Field(
-        default=None, description="Mindspace description", max_length=256
+        default=None, description="MagickSpace description", max_length=256
     )
     project_id: Optional[str] = Field(default=None, description="Associated project ID")
     corpus_ids: list[str] = Field(
@@ -109,15 +113,15 @@ class CreateMindSpaceRequest(BaseModel):
     )
 
 
-class GetMindSpaceListResponse(BaseModel):
+class GetMagickSpaceListResponse(BaseModel):
     """
-    Response from listing mindspaces.
+    Response from listing magickspaces.
 
     Uses standardized pagination format: {data: [], paging: {}}.
     """
 
-    data: list[MindSpace] = Field(
-        default_factory=list, description="List of mindspaces"
+    data: list[MagickSpace] = Field(
+        default_factory=list, description="List of magickspaces"
     )
     paging: PageInfo = Field(..., description="Pagination information")
 
@@ -127,21 +131,21 @@ class GetMindSpaceListResponse(BaseModel):
         return v if v is not None else []
 
     @property
-    def mindspaces(self) -> list[MindSpace]:
+    def magickspaces(self) -> list[MagickSpace]:
         """Alias for data field (backward compatibility)."""
         return self.data
 
 
-class UpdateMindSpaceRequest(BaseModel):
+class UpdateMagickSpaceRequest(BaseModel):
     """
-    Request to update an existing mindspace.
+    Request to update an existing magickspace.
     """
 
     name: Optional[str] = Field(
-        None, description="Mindspace name (Relaxed)", max_length=100
+        None, description="MagickSpace name (Relaxed)", max_length=100
     )
     description: Optional[str] = Field(
-        default=None, description="Mindspace description", max_length=256
+        default=None, description="MagickSpace description", max_length=256
     )
     project_id: Optional[str] = Field(default=None, description="Associated project ID")
     corpus_ids: list[str] = Field(
@@ -152,18 +156,18 @@ class UpdateMindSpaceRequest(BaseModel):
     )
 
 
-class AddMindSpaceUsersRequest(BaseModel):
+class AddMagickSpaceUsersRequest(BaseModel):
     """
-    Request to add participants to an existing mindspace.
+    Request to add participants to an existing magickspace.
     """
 
     participant_ids: list[str] = Field(
-        ..., description="List of participant IDs to add to the mindspace"
+        ..., description="List of participant IDs to add to the magickspace"
     )
 
 
 # Reuse HistoryResponse for messages endpoint since it's the same structure
-MindspaceMessagesResponse = HistoryResponse
+MagickSpaceMessagesResponse = HistoryResponse
 
 
 class ChatHistoryParams(BaseModel):
@@ -194,7 +198,7 @@ class ChatHistoryItem(BaseModel):
     """A single chat history message."""
 
     id: str
-    mindspace_id: str
+    magickspace_id: str
     sent_by_user_id: str
     content: str
     reply_to_message_id: Optional[str] = None
@@ -205,7 +209,7 @@ class ChatHistoryItem(BaseModel):
 
 
 class SendMessageRequest(BaseModel):
-    """Request for sending a message to a mindspace."""
+    """Request for sending a message to a magickspace."""
 
     content: str = Field(..., description="Message content text")
     sender_id: str = Field(..., description="ID of the user sending the message")
@@ -224,7 +228,7 @@ class SendMessageRequest(BaseModel):
 class ContextPrepareResponse(BaseModel):
     """Response from composable context retrieval."""
 
-    mindspace_id: str
+    magickspace_id: str
     participant_id: str
     chat_history: list[ChatHistoryItem] = Field(default_factory=list)
     corpus: list[CorpusChunk] = Field(default_factory=list)

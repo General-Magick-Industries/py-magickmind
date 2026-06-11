@@ -40,7 +40,7 @@ class TestChatSend:
 
         await client.chat.send(
             api_key="sk-test",
-            mindspace_id="ms-1",
+            magickspace_id="ms-1",
             message="Hello",
             enduser_id="u-1",
             fast_model_id="gpt-4",
@@ -54,7 +54,7 @@ class TestChatSend:
 
         body = json.loads(request.content)
         assert body["api_key"] == "sk-test"
-        assert body["mindspace_id"] == "ms-1"
+        assert body["magickspace_id"] == "ms-1"
         assert body["message"] == "Hello"
         assert body["enduser_id"] == "u-1"
         assert body["config"]["fast_model_id"] == "gpt-4"
@@ -73,7 +73,7 @@ class TestChatSend:
 
         await client.chat.send(
             api_key="sk-test",
-            mindspace_id="ms-1",
+            magickspace_id="ms-1",
             message="Reply",
             enduser_id="u-1",
             fast_model_id="gpt-4",
@@ -104,7 +104,7 @@ class TestChatSend:
 
         result = await client.chat.send(
             api_key="sk-test",
-            mindspace_id="ms-1",
+            magickspace_id="ms-1",
             message="Hello",
             enduser_id="u-1",
             fast_model_id="gpt-4",
@@ -131,7 +131,7 @@ class TestChatSend:
 
         await client.chat.send(
             api_key="sk-test",
-            mindspace_id="ms-1",
+            magickspace_id="ms-1",
             message="Hello",
             enduser_id="u-1",
             config=ConfigSchema(
@@ -160,7 +160,7 @@ class TestChatSend:
         with pytest.raises(ProblemDetailsException) as exc_info:
             await client.chat.send(
                 api_key="sk-test",
-                mindspace_id="ms-1",
+                magickspace_id="ms-1",
                 message="Hello",
                 enduser_id="u-1",
                 fast_model_id="gpt-4",
@@ -195,7 +195,7 @@ class TestChatSend:
         with pytest.raises(RateLimitError):
             await client.chat.send(
                 api_key="sk-test",
-                mindspace_id="ms-1",
+                magickspace_id="ms-1",
                 message="Hello",
                 enduser_id="u-1",
                 fast_model_id="gpt-4",

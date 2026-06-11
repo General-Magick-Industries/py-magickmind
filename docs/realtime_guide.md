@@ -4,7 +4,7 @@ This guide explains how to use the Realtime features of the Magick Mind SDK effe
 
 > [!CAUTION]
 > **Message Deduplication is Essential!**  
-> If you subscribe to multiple users in the same group/mindspace, you will receive duplicate messages. You MUST implement deduplication to avoid processing the same message multiple times. See [Message Deduplication](#message-deduplication--critical) for details.
+> If you subscribe to multiple users in the same group/magickspace, you will receive duplicate messages. You MUST implement deduplication to avoid processing the same message multiple times. See [Message Deduplication](#message-deduplication--critical) for details.
 
 ## Architecture
 
@@ -62,7 +62,7 @@ await client.realtime.subscribe_many([
 
 ```python
 # ❌ BAD: One channel for all users  
-await client.realtime.subscribe("room_mindspace_123")
+await client.realtime.subscribe("room_magickspace_123")
 # Problem: ALL 500 users receive ALL messages
 # Then you must filter client-side → security nightmare
 ```
@@ -102,7 +102,7 @@ await client.realtime.subscribe("root:*")
 
 A: No! The realtime infrastructure is designed for this exact use case. Each subscription is lightweight metadata (~1KB). The server can handle **millions** of concurrent subscriptions. The SDK's `subscribe_many()` makes this fast via parallel RPCs.
 
-**Q: "Why not put everyone in one 'mindspace' channel?"**
+**Q: "Why not put everyone in one 'magickspace' channel?"**
 
 A: **Privacy and security.** Room channels mean ALL users receive ALL messages, then you'd need client-side filtering. This is:
 - Insecure (users can inspect network traffic)
@@ -180,22 +180,22 @@ Handle connection errors by listening to the `error` event in your `ClientEventH
 
 ## Message Deduplication ⚠️ CRITICAL
 
-**Problem:** When subscribing to multiple users who are in the same group/mindspace, your backend will receive **duplicate messages**.
+**Problem:** When subscribing to multiple users who are in the same group/magickspace, your backend will receive **duplicate messages**.
 
 ### Why Duplicates Happen
 
 Scenario:
 - You subscribe to `user_A`, `user_B`, and `user_C`
-- All three users are in `mindspace_123`
-- AI generates a response for `mindspace_123`
-- The message is sent to ALL users in that mindspace
+- All three users are in `magickspace_123`
+- AI generates a response for `magickspace_123`
+- The message is sent to ALL users in that magickspace
 - **Your backend receives the same message 3 times** (once per subscription)
 
 ```python
 # Backend subscribes to 3 users
 await client.realtime.subscribe_many(["user_A", "user_B", "user_C"])
 
-# AI sends message to mindspace_123
+# AI sends message to magickspace_123
 # → Message delivered to user_A's channel
 # → Message delivered to user_B's channel  
 # → Message delivered to user_C's channel
@@ -359,7 +359,7 @@ def get_duplicate_rate():
     return metrics["duplicates"] / metrics["total_received"]
 
 # Log periodically
-# Duplicate rate: 0.67 (67% duplicates = 3 subscriptions to same mindspace)
+# Duplicate rate: 0.67 (67% duplicates = 3 subscriptions to same magickspace)
 ```
 
 ---

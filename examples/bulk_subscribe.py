@@ -9,7 +9,7 @@ This demonstrates:
 
 Real-World Scenario:
 - You subscribe to user_1, user_2, user_3
-- All 3 users are in the same mindspace/group
+- All 3 users are in the same magickspace/group
 - AI sends message to the group
 - You receive the SAME message 3 times (once per user)
 - Without deduplication, you process it 3 times!
@@ -140,7 +140,7 @@ async def main():
 
             logger.info(f"Subscribing to {len(user_ids)} users concurrently...")
             logger.info(
-                "Note: If these users are in the same group/mindspace, "
+                "Note: If these users are in the same group/magickspace, "
                 "we'll receive duplicate messages!"
             )
             await client.realtime.subscribe_many(user_ids)

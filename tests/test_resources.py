@@ -18,10 +18,10 @@ from magick_mind.exceptions import ProblemDetailsException, RateLimitError
 from magick_mind.models.v1.chat import ConfigSchema
 from magick_mind.models.v1.end_user import EndUser
 from magick_mind.models.v1.history import HistoryResponse
-from magick_mind.models.v1.mindspace import (
-    GetMindSpaceListResponse,
-    MindSpace,
-    MindspaceMessagesResponse,
+from magick_mind.models.v1.magickspace import (
+    GetMagickSpaceListResponse,
+    MagickSpace,
+    MagickSpaceMessagesResponse,
 )
 from magick_mind.models.v1.project import Project
 from magick_mind.models.v1.trait import Trait
@@ -71,7 +71,7 @@ HISTORY_PAYLOAD = {
     "data": [
         {
             "id": "msg-1",
-            "mindspace_id": "ms-1",
+            "magickspace_id": "ms-1",
             "content": "Hello",
             "sent_by_user_id": "user-1",
             "create_at": "2024-01-01T00:00:00Z",
@@ -152,7 +152,7 @@ class TestChatSend:
 
         await client.chat.send(
             api_key="sk-test",
-            mindspace_id="ms-1",
+            magickspace_id="ms-1",
             message="Hello",
             enduser_id="u-1",
             fast_model_id="gpt-4",
@@ -166,7 +166,7 @@ class TestChatSend:
 
         body = json.loads(request.content)
         assert body["api_key"] == "sk-test"
-        assert body["mindspace_id"] == "ms-1"
+        assert body["magickspace_id"] == "ms-1"
         assert body["message"] == "Hello"
         assert body["enduser_id"] == "u-1"
         assert body["config"]["fast_model_id"] == "gpt-4"
@@ -185,7 +185,7 @@ class TestChatSend:
 
         await client.chat.send(
             api_key="sk-test",
-            mindspace_id="ms-1",
+            magickspace_id="ms-1",
             message="Reply",
             enduser_id="u-1",
             fast_model_id="gpt-4",
@@ -216,7 +216,7 @@ class TestChatSend:
 
         result = await client.chat.send(
             api_key="sk-test",
-            mindspace_id="ms-1",
+            magickspace_id="ms-1",
             message="Hello",
             enduser_id="u-1",
             fast_model_id="gpt-4",
@@ -243,7 +243,7 @@ class TestChatSend:
 
         await client.chat.send(
             api_key="sk-test",
-            mindspace_id="ms-1",
+            magickspace_id="ms-1",
             message="Hello",
             enduser_id="u-1",
             config=ConfigSchema(
@@ -272,7 +272,7 @@ class TestChatSend:
         with pytest.raises(ProblemDetailsException) as exc_info:
             await client.chat.send(
                 api_key="sk-test",
-                mindspace_id="ms-1",
+                magickspace_id="ms-1",
                 message="Hello",
                 enduser_id="u-1",
                 fast_model_id="gpt-4",
@@ -307,7 +307,7 @@ class TestChatSend:
         with pytest.raises(RateLimitError):
             await client.chat.send(
                 api_key="sk-test",
-                mindspace_id="ms-1",
+                magickspace_id="ms-1",
                 message="Hello",
                 enduser_id="u-1",
                 fast_model_id="gpt-4",
@@ -316,11 +316,11 @@ class TestChatSend:
 
 
 # ---------------------------------------------------------------------------
-# TestMindspace
+# TestMagickSpace
 # ---------------------------------------------------------------------------
 
 
-class TestMindspace:
+class TestMagickSpace:
     async def test_create_sends_correct_request(
         self,
         client: MagickMind,
@@ -349,7 +349,7 @@ class TestMindspace:
         assert body["description"] == "test"
         assert body["project_id"] == "proj-1"
 
-    async def test_create_returns_mindspace(
+    async def test_create_returns_magickspace(
         self,
         client: MagickMind,
         mock_auth: HTTPXMock,
@@ -362,13 +362,13 @@ class TestMindspace:
 
         result = await client.magickspaces.create(name="Test Space", type="PRIVATE")
 
-        assert isinstance(result, MindSpace)
+        assert isinstance(result, MagickSpace)
         assert result.id == "ms-123"
         assert result.name == "Test Space"
         assert result.type == "PRIVATE"
         assert result.project_id == "proj-1"
 
-    async def test_get_returns_mindspace(
+    async def test_get_returns_magickspace(
         self,
         client: MagickMind,
         mock_auth: HTTPXMock,
@@ -381,7 +381,7 @@ class TestMindspace:
 
         result = await client.magickspaces.get("ms-123")
 
-        assert isinstance(result, MindSpace)
+        assert isinstance(result, MagickSpace)
         assert result.id == "ms-123"
 
         request = mock_auth.get_requests()[-1]
@@ -404,7 +404,7 @@ class TestMindspace:
 
         result = await client.magickspaces.list(participant_id="user-1")
 
-        assert isinstance(result, GetMindSpaceListResponse)
+        assert isinstance(result, GetMagickSpaceListResponse)
         assert len(result.data) == 1
         assert result.data[0].id == "ms-123"
 
@@ -426,11 +426,11 @@ class TestMindspace:
         )
 
         result = await client.magickspaces.update(
-            mindspace_id="ms-123",
+            magickspace_id="ms-123",
             name="Updated Space",
         )
 
-        assert isinstance(result, MindSpace)
+        assert isinstance(result, MagickSpace)
         assert result.name == "Updated Space"
 
         request = mock_auth.get_requests()[-1]
@@ -470,7 +470,7 @@ class TestMindspace:
 
         result = await client.magickspaces.get_messages("ms-1", limit=20)
 
-        assert isinstance(result, MindspaceMessagesResponse)
+        assert isinstance(result, MagickSpaceMessagesResponse)
         assert len(result.data) == 1
         assert result.data[0].id == "msg-1"
         assert result.data[0].content == "Hello"

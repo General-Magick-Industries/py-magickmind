@@ -1,7 +1,7 @@
 """
 Example: Setup Resources for SDK Examples
 
-This script creates the necessary resources (EndUser, Project, Mindspace)
+This script creates the necessary resources (EndUser, Project, MagickSpace)
 and updates your .env file with the IDs.
 
 Demonstrates:
@@ -145,53 +145,53 @@ async def _setup(client: MagickMind):
             logger.error("Rate limited! Please wait and try again.")
             return
 
-    # 4. Setup Mindspace
-    logger.info("\n--- 3. Mindspace ---")
-    mindspace_id = os.getenv("MINDSPACE_ID")
+    # 4. Setup MagickSpace
+    logger.info("\n--- 3. MagickSpace ---")
+    magickspace_id = os.getenv("MINDSPACE_ID")
     # Don't use the dummy default from some example .env files if it's invalid
-    if mindspace_id == "mind-test-123":
-        mindspace_id = None
+    if magickspace_id == "mind-test-123":
+        magickspace_id = None
 
-    if mindspace_id:
-        logger.info(f"Using existing MINDSPACE_ID: {mindspace_id}")
+    if magickspace_id:
+        logger.info(f"Using existing MINDSPACE_ID: {magickspace_id}")
     else:
         logger.info("MINDSPACE_ID not set (or is dummy). Searching/Creating...")
         try:
-            # Test mindspace.list() with the new pagination format
-            logger.info(f"Listing mindspaces for user: {user_id}")
-            mindspace_list = await client.v1.magickspaces.list(participant_id=user_id)
+            # Test magickspace.list() with the new pagination format
+            logger.info(f"Listing magickspaces for user: {user_id}")
+            magickspace_list = await client.v1.magickspaces.list(participant_id=user_id)
 
             # Test new data+paging structure
-            logger.info(f"  Found {len(mindspace_list.data)} mindspace(s)")
-            if mindspace_list.paging:
-                logger.info(f"  has_more: {mindspace_list.paging.has_more}")
+            logger.info(f"  Found {len(magickspace_list.data)} magickspace(s)")
+            if magickspace_list.paging:
+                logger.info(f"  has_more: {magickspace_list.paging.has_more}")
 
-            # Use existing mindspace if found, otherwise create one
-            if mindspace_list.data:
-                mindspace = mindspace_list.data[0]
-                mindspace_id = mindspace.id
-                logger.info(f"  Using existing: {mindspace.name} ({mindspace_id})")
-                updates["MINDSPACE_ID"] = mindspace_id
+            # Use existing magickspace if found, otherwise create one
+            if magickspace_list.data:
+                magickspace = magickspace_list.data[0]
+                magickspace_id = magickspace.id
+                logger.info(f"  Using existing: {magickspace.name} ({magickspace_id})")
+                updates["MINDSPACE_ID"] = magickspace_id
             else:
-                # create() returns MindSpace directly (not wrapped)
-                mindspace = await client.v1.magickspaces.create(
-                    name="Test Mindspace",
+                # create() returns MagickSpace directly (not wrapped)
+                magickspace = await client.v1.magickspaces.create(
+                    name="Test MagickSpace",
                     type="PRIVATE",
-                    description="Realtime Test Mindspace",
+                    description="Realtime Test MagickSpace",
                     project_id=project_id,
                     participant_ids=[user_id],
                 )
-                mindspace_id = mindspace.id
-                logger.info(f"Created new Mindspace: {mindspace_id}")
-                updates["MINDSPACE_ID"] = mindspace_id
+                magickspace_id = magickspace.id
+                logger.info(f"Created new MagickSpace: {magickspace_id}")
+                updates["MINDSPACE_ID"] = magickspace_id
 
         except ValidationError as e:
-            logger.error(f"Mindspace validation error: {e.title}")
+            logger.error(f"MagickSpace validation error: {e.title}")
             for field, messages in e.get_field_errors().items():
                 logger.error(f"  - {field}: {', '.join(messages)}")
             return
         except ProblemDetailsException as e:
-            logger.error(f"Failed to setup Mindspace: [{e.status}] {e.detail}")
+            logger.error(f"Failed to setup MagickSpace: [{e.status}] {e.detail}")
             if e.request_id:
                 logger.error(f"  Request ID: {e.request_id}")
             return

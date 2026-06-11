@@ -42,12 +42,12 @@ from magick_mind.models.v1.end_user import (
     CreateEndUserRequest,
     UpdateEndUserRequest,
 )
-from magick_mind.models.v1.mindspace import (
-    MindSpace,
-    GetMindSpaceListResponse,
-    CreateMindSpaceRequest,
-    UpdateMindSpaceRequest,
-    AddMindSpaceUsersRequest,
+from magick_mind.models.v1.magickspace import (
+    MagickSpace,
+    GetMagickSpaceListResponse,
+    CreateMagickSpaceRequest,
+    UpdateMagickSpaceRequest,
+    AddMagickSpaceUsersRequest,
 )
 from magick_mind.models.v1.persona import Persona, UpdatePersonaRequest
 from magick_mind.models.v1.history import HistoryResponse
@@ -123,13 +123,13 @@ class UpdateEndUserRequestFactory(ModelFactory):
     external_id = "ext-456"
 
 
-class CreateMindSpaceRequestFactory(ModelFactory):
-    __model__ = CreateMindSpaceRequest
+class CreateMagickSpaceRequestFactory(ModelFactory):
+    __model__ = CreateMagickSpaceRequest
     type = "PRIVATE"  # Constrained Literal field
 
 
-class UpdateMindSpaceRequestFactory(ModelFactory):
-    __model__ = UpdateMindSpaceRequest
+class UpdateMagickSpaceRequestFactory(ModelFactory):
+    __model__ = UpdateMagickSpaceRequest
 
 
 class CreateApiKeyRequestFactory(ModelFactory):
@@ -186,8 +186,8 @@ class PatchTraitRequestFactory(ModelFactory):
     __model__ = PatchTraitRequest
 
 
-class AddMindSpaceUsersRequestFactory(ModelFactory):
-    __model__ = AddMindSpaceUsersRequest
+class AddMagickSpaceUsersRequestFactory(ModelFactory):
+    __model__ = AddMagickSpaceUsersRequest
     participant_ids = ["user-1"]
 
 
@@ -240,23 +240,23 @@ RESPONSES = [
     ContractDef("UpdateEndUserResponse", EndUser),
     # Note: QueryEndUserResponse doesn't exist in Apidog spec (uses GetEndUserListResponse)
     # History
-    ContractDef("MindspaceMessagesResponse", HistoryResponse),
-    # MindSpace - Temporarily skipped (WIP - model validation issues)
+    ContractDef("MagickSpaceMessagesResponse", HistoryResponse),
+    # MagickSpace - Temporarily skipped (WIP - model validation issues)
     ContractDef(
-        "CreateMindspaceResponse",
-        MindSpace,
+        "CreateMagickSpaceResponse",
+        MagickSpace,
         status=SchemaStatus.SKIPPED,
         reason="WIP - Model validation mismatch",
     ),
     ContractDef(
-        "GetMindSpaceListResponse",
-        GetMindSpaceListResponse,
+        "GetMagickSpaceListResponse",
+        GetMagickSpaceListResponse,
         status=SchemaStatus.SKIPPED,
-        reason="OpenAPI spec outdated - uses BaseSchema+mindspaces, SDK uses data+paging (API reality)",
+        reason="OpenAPI spec outdated - uses BaseSchema+magickspaces, SDK uses data+paging (API reality)",
     ),
     ContractDef(
-        "UpdateMindSpaceResponse",
-        MindSpace,
+        "UpdateMagickSpaceResponse",
+        MagickSpace,
         status=SchemaStatus.SKIPPED,
         reason="WIP - Model validation mismatch",
     ),
@@ -302,9 +302,9 @@ RESPONSES = [
     # Persona
     ContractDef("GetPersonaByIdRes", Persona),
     ContractDef("UpdatePersonaRes", Persona),
-    # MindSpace
+    # MagickSpace
     ContractDef(
-        "AddMindSpaceUsersResponse",
+        "AddMagickSpaceUsersResponse",
         status=SchemaStatus.SKIPPED,
         reason="No SDK model",
     ),
@@ -374,18 +374,18 @@ REQUESTS = [
         UpdateEndUserRequest,
         factory=UpdateEndUserRequestFactory.build,
     ),
-    # MindSpace - Skipped: Apidog spec requires "user_ids" but API was
-    # refactored to "participant_ids". SDK model is correct per mindspace.api.
+    # MagickSpace - Skipped: Apidog spec requires "user_ids" but API was
+    # refactored to "participant_ids". SDK model is correct per magickspace.api.
     ContractDef(
-        "CreateMindspaceRequest",
-        CreateMindSpaceRequest,
+        "CreateMagickSpaceRequest",
+        CreateMagickSpaceRequest,
         status=SchemaStatus.SKIPPED,
         reason="Apidog spec outdated - requires user_ids, API uses participant_ids",
     ),
     ContractDef(
-        "UpdateMindSpaceRequest",
-        UpdateMindSpaceRequest,
-        factory=UpdateMindSpaceRequestFactory.build,
+        "UpdateMagickSpaceRequest",
+        UpdateMagickSpaceRequest,
+        factory=UpdateMagickSpaceRequestFactory.build,
     ),
     # API Keys
     ContractDef(
@@ -467,13 +467,13 @@ REQUESTS = [
         "DeleteEndUserReq", status=SchemaStatus.SKIPPED, reason="Path Param Only"
     ),
     ContractDef(
-        "GetMindSpaceByIdReq", status=SchemaStatus.SKIPPED, reason="Path Param Only"
+        "GetMagickSpaceByIdReq", status=SchemaStatus.SKIPPED, reason="Path Param Only"
     ),
     ContractDef(
-        "GetMindSpaceListReq", status=SchemaStatus.SKIPPED, reason="Path Param Only"
+        "GetMagickSpaceListReq", status=SchemaStatus.SKIPPED, reason="Path Param Only"
     ),
     ContractDef(
-        "DeleteMindSpaceReq", status=SchemaStatus.SKIPPED, reason="Path Param Only"
+        "DeleteMagickSpaceReq", status=SchemaStatus.SKIPPED, reason="Path Param Only"
     ),
     ContractDef(
         "GetProjectByIdReq", status=SchemaStatus.SKIPPED, reason="Path Param Only"
@@ -488,16 +488,16 @@ REQUESTS = [
         "GetApiKeyListReq", status=SchemaStatus.SKIPPED, reason="Path Param Only"
     ),
     ContractDef(
-        "MindspaceMessagesReq", status=SchemaStatus.SKIPPED, reason="Path Param Only"
+        "MagickSpaceMessagesReq", status=SchemaStatus.SKIPPED, reason="Path Param Only"
     ),
     ContractDef(
         "QueryEndUserReq", status=SchemaStatus.SKIPPED, reason="Path Param Only"
     ),
-    # MindSpace
+    # MagickSpace
     ContractDef(
-        "AddMindSpaceUsersRequest",
-        AddMindSpaceUsersRequest,
-        factory=AddMindSpaceUsersRequestFactory.build,
+        "AddMagickSpaceUsersRequest",
+        AddMagickSpaceUsersRequest,
+        factory=AddMagickSpaceUsersRequestFactory.build,
     ),
     # Persona
     ContractDef(
@@ -521,8 +521,8 @@ SHARED_MODELS = [
     ContractDef("ApiKeySchema", status=SchemaStatus.SKIPPED, reason="Component"),
     ContractDef("CorpusSchema", status=SchemaStatus.SKIPPED, reason="Component"),
     ContractDef("EndUserSchema", status=SchemaStatus.SKIPPED, reason="Component"),
-    ContractDef("MindspaceSchema", status=SchemaStatus.SKIPPED, reason="Component"),
-    ContractDef("Mindspace", status=SchemaStatus.SKIPPED, reason="Component"),
+    ContractDef("MagickSpaceSchema", status=SchemaStatus.SKIPPED, reason="Component"),
+    ContractDef("MagickSpace", status=SchemaStatus.SKIPPED, reason="Component"),
     ContractDef("PersonaSchema", status=SchemaStatus.SKIPPED, reason="Component"),
     ContractDef("ProjectSchema", status=SchemaStatus.SKIPPED, reason="Component"),
     ContractDef("ContainerRef", status=SchemaStatus.SKIPPED, reason="Component"),
@@ -548,7 +548,7 @@ SHARED_MODELS = [
     ContractDef("BaseSchema", status=SchemaStatus.SKIPPED, reason="Component"),
     ContractDef("ConfigSchema", status=SchemaStatus.SKIPPED, reason="Component"),
     ContractDef("EndUser", status=SchemaStatus.SKIPPED, reason="Component"),
-    ContractDef("MindspaceType", status=SchemaStatus.SKIPPED, reason="Component"),
+    ContractDef("MagickSpaceType", status=SchemaStatus.SKIPPED, reason="Component"),
     ContractDef("TokenSchema", status=SchemaStatus.SKIPPED, reason="Component"),
     # Pagination (internal components)
     ContractDef("PaginationSchema", status=SchemaStatus.SKIPPED, reason="Component"),

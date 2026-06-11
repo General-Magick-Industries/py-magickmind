@@ -99,7 +99,7 @@ async def main():
         # Subscribe to a user's updates
         # Pattern: Service account monitors updates for end users
         target_user = os.environ.get("USER_ID", "user-test-456")
-        mindspace_id = os.environ.get("MINDSPACE_ID", "mind-test-123")
+        magickspace_id = os.environ.get("MINDSPACE_ID", "mind-test-123")
 
         # Show which service account we're connecting as
         service_user_id = await client.get_user_id()
@@ -117,7 +117,7 @@ async def main():
         try:
             response = await client.v1.chat.send(
                 api_key=os.getenv("OPENROUTER_API_KEY", "sk-test"),
-                mindspace_id=mindspace_id,
+                magickspace_id=magickspace_id,
                 message="Hello from Realtime Example! Tell me a one-liner joke.",
                 enduser_id=target_user,
                 config=ConfigSchema(
@@ -180,7 +180,7 @@ if __name__ == "__main__":
         MAGICKMIND_BASE_URL    - Magick Mind API URL (optional)
         MAGICKMIND_WS_ENDPOINT - WebSocket endpoint (required)
         USER_ID                - End user ID (optional, default: user-test-456)
-        MINDSPACE_ID           - Mindspace ID (optional, default: mind-test-123)
+        MINDSPACE_ID           - MagickSpace ID (optional, default: mind-test-123)
         OPENROUTER_API_KEY     - API key for LLM (optional)
     
     Example:

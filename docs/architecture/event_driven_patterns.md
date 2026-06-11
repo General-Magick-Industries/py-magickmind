@@ -52,7 +52,7 @@ The pattern you choose affects **how** you do step #1 (receive from the Magick M
 
 ### Important: Personal Channel Subscription Pattern
 
-**Your backend subscribes to personal channels for each end user**, not to shared "rooms" or "mindspaces":
+**Your backend subscribes to personal channels for each end user**, not to shared "rooms" or "magickspaces":
 
 ```python
 # ✅ CORRECT: Subscribe to personal channel for specific end user
@@ -64,9 +64,9 @@ await client.realtime.subscribe(
 ```
 
 ```python
-# ❌ INCORRECT: Don't subscribe to mindspace/room directly
+# ❌ INCORRECT: Don't subscribe to magickspace/room directly
 await client.realtime.subscribe(
-    target_user_id="mindspace-123",  # This is a room, not a user!
+    target_user_id="magickspace-123",  # This is a room, not a user!
     on_publication=handle_event
 )
 ```
@@ -78,7 +78,7 @@ await client.realtime.subscribe(
 
 **Pattern**: When you subscribe with `target_user_id="user-456"`, the SDK internally constructs the channel name as `personal:<user-456>#<service-user-id>` and subscribes to it.
 
-**Note**: You might still use `mindspace_id` for **history fetching** via HTTP, but realtime subscriptions are per end user.
+**Note**: You might still use `magickspace_id` for **history fetching** via HTTP, but realtime subscriptions are per end user.
 
 ### Self-Service Pattern (Robotics/IoT)
 
@@ -116,7 +116,7 @@ async def handle(event: ChatMessageEvent, ctx: EventContext):
 
 **Pattern Still Works:**
 - ✅ Channel: `personal:robot-001#robot-001` (valid!)
-- ✅ History: Fetch with `mindspace_id` and filter by `sender_id="robot-001"`
+- ✅ History: Fetch with `magickspace_id` and filter by `sender_id="robot-001"`
 - ✅ Correlation: Use `reply_to_message_id` as normal
 
 
@@ -547,7 +547,7 @@ class ProductionChatBackend:
         
         print(f"✓ Stored and relayed")
     
-    async def periodic_sync(self, mindspace_id: str):
+    async def periodic_sync(self, magickspace_id: str):
         """
         RELIABLE PATH: Periodic sync to catch any missed events.
         
@@ -561,7 +561,7 @@ class ProductionChatBackend:
             try:
                 # Fetch history from the Magick Mind API
                 resp = await self.sdk_client.v1.magickspaces.get_messages(
-                    mindspace_id,
+                    magickspace_id,
                     cursor=self.last_sync_cursor,
                     limit=100,
                 )
@@ -618,13 +618,13 @@ class ProductionChatBackend:
             except:
                 self.your_frontend_websockets.remove(ws)
     
-    async def start(self, end_user_id: str, mindspace_id: str):
+    async def start(self, end_user_id: str, magickspace_id: str):
         """
         Start hybrid backend service for a specific end user.
         
         Args:
             end_user_id: End user to subscribe to (personal channel)
-            mindspace_id: Mindspace context for history sync
+            magickspace_id: MagickSpace context for history sync
         
         Sets up both fast (events) and reliable (sync) paths.
         """
@@ -644,7 +644,7 @@ class ProductionChatBackend:
         print(f"  ✓ Realtime connected for user {end_user_id}")
         
         # 2. Start periodic sync (reliability)
-        asyncio.create_task(self.periodic_sync(mindspace_id))
+        asyncio.create_task(self.periodic_sync(magickspace_id))
         print("  ✓ Periodic sync started (safety net)")
         
         print("✓ Hybrid backend running!")
@@ -666,7 +666,7 @@ async def main():
     # Start it - subscribe to specific end user's personal channel
     await backend.start(
         end_user_id="end-user-456",  # The actual end user
-        mindspace_id="mind-123"  # Mindspace context
+        magickspace_id="mind-123"  # MagickSpace context
     )
     
     # Keep running

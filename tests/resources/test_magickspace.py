@@ -1,4 +1,4 @@
-"""Network-level Mindspace resource tests using pytest-httpx."""
+"""Network-level MagickSpace resource tests using pytest-httpx."""
 
 from __future__ import annotations
 
@@ -7,10 +7,10 @@ import json
 from pytest_httpx import HTTPXMock
 
 from magick_mind import MagickMind
-from magick_mind.models.v1.mindspace import (
-    GetMindSpaceListResponse,
-    MindSpace,
-    MindspaceMessagesResponse,
+from magick_mind.models.v1.magickspace import (
+    GetMagickSpaceListResponse,
+    MagickSpace,
+    MagickSpaceMessagesResponse,
 )
 
 import pytest
@@ -27,7 +27,7 @@ from tests.resources._payloads import (
 )
 
 
-class TestMindspace:
+class TestMagickSpace:
     async def test_create_sends_correct_request(
         self,
         client: MagickMind,
@@ -56,7 +56,7 @@ class TestMindspace:
         assert body["description"] == "test"
         assert body["project_id"] == "proj-1"
 
-    async def test_create_returns_mindspace(
+    async def test_create_returns_magickspace(
         self,
         client: MagickMind,
         mock_auth: HTTPXMock,
@@ -69,13 +69,13 @@ class TestMindspace:
 
         result = await client.magickspaces.create(name="Test Space", type="PRIVATE")
 
-        assert isinstance(result, MindSpace)
+        assert isinstance(result, MagickSpace)
         assert result.id == "ms-123"
         assert result.name == "Test Space"
         assert result.type == "PRIVATE"
         assert result.project_id == "proj-1"
 
-    async def test_get_returns_mindspace(
+    async def test_get_returns_magickspace(
         self,
         client: MagickMind,
         mock_auth: HTTPXMock,
@@ -88,7 +88,7 @@ class TestMindspace:
 
         result = await client.magickspaces.get("ms-123")
 
-        assert isinstance(result, MindSpace)
+        assert isinstance(result, MagickSpace)
         assert result.id == "ms-123"
 
         request = mock_auth.get_requests()[-1]
@@ -111,7 +111,7 @@ class TestMindspace:
 
         result = await client.magickspaces.list(participant_id="user-1")
 
-        assert isinstance(result, GetMindSpaceListResponse)
+        assert isinstance(result, GetMagickSpaceListResponse)
         assert len(result.data) == 1
         assert result.data[0].id == "ms-123"
 
@@ -133,11 +133,11 @@ class TestMindspace:
         )
 
         result = await client.magickspaces.update(
-            mindspace_id="ms-123",
+            magickspace_id="ms-123",
             name="Updated Space",
         )
 
-        assert isinstance(result, MindSpace)
+        assert isinstance(result, MagickSpace)
         assert result.name == "Updated Space"
 
         request = mock_auth.get_requests()[-1]
@@ -177,7 +177,7 @@ class TestMindspace:
 
         result = await client.magickspaces.get_messages("ms-1", limit=20)
 
-        assert isinstance(result, MindspaceMessagesResponse)
+        assert isinstance(result, MagickSpaceMessagesResponse)
         assert len(result.data) == 1
         assert result.data[0].id == "msg-1"
         assert result.data[0].content == "Hello"

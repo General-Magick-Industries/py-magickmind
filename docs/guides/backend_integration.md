@@ -108,7 +108,7 @@ class ChatBackendService:
     
     async def sync_history(
         self, 
-        mindspace_id: str,
+        magickspace_id: str,
         since_message_id: Optional[str] = None
     ):
         """
@@ -119,11 +119,11 @@ class ChatBackendService:
         - After reconnect: Fill gaps
         - Periodic: Verify consistency
         
-        Note: Requires mindspaces.get_messages() to be implemented
+        Note: Requires magickspaces.get_messages() to be implemented
               in the SDK (coming soon!)
         """
         resp = await self.client.v1.magickspaces.get_messages(
-            mindspace_id,
+            magickspace_id,
             cursor=since_message_id,
             limit=100,
         )
@@ -149,18 +149,18 @@ class ChatBackendService:
         if messages:
             self.last_sync_cursor = messages[-1]["id"]
     
-    async def periodic_sync(self, mindspace_id: str, interval: int = 300):
+    async def periodic_sync(self, magickspace_id: str, interval: int = 300):
         """
         Run periodic sync to catch any missed events.
         
         Args:
-            mindspace_id: Mindspace to sync
+            magickspace_id: MagickSpace to sync
             interval: Seconds between syncs (default 5 minutes)
         """
         while True:
             try:
                 await self.sync_history(
-                    mindspace_id=mindspace_id,
+                    magickspace_id=magickspace_id,
                     since_message_id=self.last_sync_cursor
                 )
             except Exception as e:
@@ -168,7 +168,7 @@ class ChatBackendService:
             
             await asyncio.sleep(interval)
     
-    async def start(self, mindspace_id: str, user_id: str):
+    async def start(self, magickspace_id: str, user_id: str):
         """
         Start the backend service.
         
@@ -181,7 +181,7 @@ class ChatBackendService:
 
         # 2. Initial history sync on startup
         logger.info("Syncing initial history...")
-        await self.sync_history(mindspace_id=mindspace_id)
+        await self.sync_history(magickspace_id=magickspace_id)
         
         # 3. Connect to realtime
         logger.info("Connecting to realtime...")
@@ -191,7 +191,7 @@ class ChatBackendService:
         await self.client.realtime.subscribe(target_user_id=user_id)
         
         # 5. Start periodic sync in background
-        asyncio.create_task(self.periodic_sync(mindspace_id))
+        asyncio.create_task(self.periodic_sync(magickspace_id))
         
         logger.info("Backend service running!")
 ```
@@ -217,7 +217,7 @@ async def main():
     
     # Start it
     await service.start(
-        mindspace_id="mind-123",
+        magickspace_id="mind-123",
         user_id="service-user-456"
     )
     
@@ -374,7 +374,7 @@ http_client = httpx.AsyncClient(
 ### Batch Processing
 ```python
 # If syncing large history:
-async def sync_history_batched(mindspace_id: str):
+async def sync_history_batched(magickspace_id: str):
     cursor = None
     while True:
         messages = await get_messages(cursor=cursor, limit=100)

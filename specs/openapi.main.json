@@ -14,7 +14,7 @@
       "name": "Projects"
     },
     {
-      "name": "Mindspaces"
+      "name": "MagickSpaces"
     },
     {
       "name": "Keys"
@@ -783,7 +783,7 @@
     },
     "/v1/magickspaces": {
       "post": {
-        "summary": "Create Mindspace",
+        "summary": "Create MagickSpace",
         "deprecated": false,
         "description": "",
         "tags": [],
@@ -792,7 +792,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateMindspaceRequest"
+                "$ref": "#/components/schemas/CreateMagickSpaceRequest"
               },
               "example": {
                 "name": "Recycled Concrete Tuna",
@@ -811,12 +811,12 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CreateMindspaceResponse"
+                  "$ref": "#/components/schemas/CreateMagickSpaceResponse"
                 },
                 "example": {
                   "success": false,
                   "message": "Nam harum sodalitas testimonium timidus delibero caritas volup comburo thermae. Reiciendis cena usus cauda stella adfectus. Ipsum tabgo victus derideo abundans.",
-                  "mindspace": {
+                  "magickspace": {
                     "id": "43",
                     "name": "Eva Borer",
                     "description": "Mollitia curriculum voluptatibus conduco cumque cubicularis supplanto vulticulus creptio sufficio. Virga ver amo. Delego sub magni barba admoneo cinis tabella architecto. Cohaero conscendo dolorem thymum cito accedo corrupti sui accendo. Magnam explicabo tenetur cruciamentum demens cura teneo thymum. Blanditiis torrens altus villa pecto thorax quas casso. Tempora totidem absens ventito peior succedo cernuus dapifer. Supellex carus teneo.",
@@ -846,11 +846,11 @@
         ]
       },
       "get": {
-        "summary": "Get Mindspace List",
+        "summary": "Get MagickSpace List",
         "deprecated": false,
-        "description": "Retrieve list of mindspaces for a user",
+        "description": "Retrieve list of magickspaces for a user",
         "tags": [
-          "Mindspaces"
+          "MagickSpaces"
         ],
         "parameters": [
           {
@@ -869,7 +869,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GetMindSpaceListResponse"
+                  "$ref": "#/components/schemas/GetMagickSpaceListResponse"
                 }
               }
             },
@@ -885,11 +885,11 @@
     },
     "/v1/workspaces/{id}": {
       "put": {
-        "summary": "Update Mindspace",
+        "summary": "Update MagickSpace",
         "deprecated": false,
         "description": "",
         "tags": [
-          "Mindspaces"
+          "MagickSpaces"
         ],
         "parameters": [
           {
@@ -907,7 +907,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateMindSpaceRequest"
+                "$ref": "#/components/schemas/UpdateMagickSpaceRequest"
               },
               "example": {
                 "name": "Test Workspace",
@@ -923,7 +923,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UpdateMindSpaceResponse"
+                  "$ref": "#/components/schemas/UpdateMagickSpaceResponse"
                 },
                 "example": {
                   "success": true,
@@ -949,7 +949,7 @@
         ]
       },
       "delete": {
-        "summary": "Delete Mindspace",
+        "summary": "Delete MagickSpace",
         "deprecated": false,
         "description": "",
         "tags": [],
@@ -1002,7 +1002,7 @@
     },
     "/v1/magickspaces/{id}": {
       "get": {
-        "summary": "Get Mindspace by ID",
+        "summary": "Get MagickSpace by ID",
         "deprecated": false,
         "description": "",
         "tags": [],
@@ -1039,11 +1039,11 @@
         ]
       },
       "delete": {
-        "summary": "Delete Mindspace",
+        "summary": "Delete MagickSpace",
         "deprecated": false,
-        "description": "Delete a mindspace by ID",
+        "description": "Delete a magickspace by ID",
         "tags": [
-          "Mindspaces"
+          "MagickSpaces"
         ],
         "parameters": [
           {
@@ -1077,15 +1077,15 @@
     },
     "/v1/magickspaces/messages": {
       "get": {
-        "summary": "Get Mindspace Messages",
+        "summary": "Get MagickSpace Messages",
         "deprecated": false,
-        "description": "Retrieve chat messages for a mindspace with pagination",
+        "description": "Retrieve chat messages for a magickspace with pagination",
         "tags": [
-          "Mindspaces"
+          "MagickSpaces"
         ],
         "parameters": [
           {
-            "name": "mindspace_id",
+            "name": "magickspace_id",
             "in": "query",
             "description": "",
             "required": false,
@@ -1142,7 +1142,7 @@
     },
     "/v1/magickspaces/{id}/users": {
       "post": {
-        "summary": "Add Mindspace Users by ID",
+        "summary": "Add MagickSpace Users by ID",
         "deprecated": false,
         "description": "",
         "tags": [],
@@ -1162,7 +1162,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/AddMindSpaceUsersRequest"
+                "$ref": "#/components/schemas/AddMagickSpaceUsersRequest"
               },
               "example": {
                 "user_ids": [
@@ -1210,7 +1210,7 @@
                       }
                     },
                     "type": {
-                      "$ref": "#/components/schemas/MindspaceType"
+                      "$ref": "#/components/schemas/MagickSpaceType"
                     },
                     "created_by": {
                       "type": "string"
@@ -1266,7 +1266,7 @@
               },
               "example": {
                 "api_key": "sk2-fdaD92BIjiq",
-                "mindspace_id": "28",
+                "magickspace_id": "28",
                 "message": "Adstringo traho cena tempore. Commodi deduco animus. Viridis comes ubi acerbitas tergiversatio tyrannus agnitio.",
                 "reply_to_message_id": "73",
                 "enduser_id": "78",
@@ -2363,15 +2363,15 @@
           "password"
         ]
       },
-      "MindspaceType": {
+      "MagickSpaceType": {
         "type": "string",
         "enum": [
           "PRIVATE",
           "GROUP"
         ]
       },
-      "AddMindSpaceUsersRequest": {
-        "title": "AddMindSpaceUsersRequest",
+      "AddMagickSpaceUsersRequest": {
+        "title": "AddMagickSpaceUsersRequest",
         "type": "object",
         "additionalProperties": false,
         "properties": {
@@ -2381,14 +2381,14 @@
             "items": {
               "type": "string"
             },
-            "description": "Users to add to the mindspace"
+            "description": "Users to add to the magickspace"
           }
         },
         "required": [
           "user_ids"
         ]
       },
-      "AddMindSpaceUsersResponse": {
+      "AddMagickSpaceUsersResponse": {
         "type": "object",
         "properties": {
           "id": {
@@ -2419,7 +2419,7 @@
             }
           },
           "type": {
-            "$ref": "#/components/schemas/MindspaceType"
+            "$ref": "#/components/schemas/MagickSpaceType"
           },
           "created_by": {
             "type": "string"
@@ -2448,7 +2448,7 @@
           "updated_at"
         ]
       },
-      "MindspaceSchema": {
+      "MagickSpaceSchema": {
         "type": "object",
         "properties": {
           "id": {
@@ -2479,7 +2479,7 @@
             }
           },
           "type": {
-            "$ref": "#/components/schemas/MindspaceType"
+            "$ref": "#/components/schemas/MagickSpaceType"
           },
           "created_by": {
             "type": "string"
@@ -2508,7 +2508,7 @@
           "project_id"
         ]
       },
-      "CreateMindspaceRequest": {
+      "CreateMagickSpaceRequest": {
         "type": "object",
         "properties": {
           "name": {
@@ -2533,7 +2533,7 @@
             }
           },
           "type": {
-            "$ref": "#/components/schemas/MindspaceType"
+            "$ref": "#/components/schemas/MagickSpaceType"
           }
         },
         "required": [
@@ -2544,7 +2544,7 @@
           "project_id"
         ]
       },
-      "CreateMindspaceResponse": {
+      "CreateMagickSpaceResponse": {
         "allOf": [
           {
             "$ref": "#/components/schemas/BaseSchema"
@@ -2552,17 +2552,17 @@
           {
             "type": "object",
             "properties": {
-              "mindspace": {
-                "$ref": "#/components/schemas/MindspaceSchema"
+              "magickspace": {
+                "$ref": "#/components/schemas/MagickSpaceSchema"
               }
             },
             "required": [
-              "mindspace"
+              "magickspace"
             ]
           }
         ]
       },
-      "UpdateMindSpaceRequest": {
+      "UpdateMagickSpaceRequest": {
         "type": "object",
         "properties": {
           "name": {
@@ -2593,7 +2593,7 @@
           }
         }
       },
-      "UpdateMindSpaceResponse": {
+      "UpdateMagickSpaceResponse": {
         "allOf": [
           {
             "$ref": "#/components/schemas/BaseSchema"
@@ -2601,17 +2601,17 @@
           {
             "type": "object",
             "properties": {
-              "mindspace": {
-                "$ref": "#/components/schemas/MindspaceSchema"
+              "magickspace": {
+                "$ref": "#/components/schemas/MagickSpaceSchema"
               }
             },
             "required": [
-              "mindspace"
+              "magickspace"
             ]
           }
         ]
       },
-      "GetMindSpaceListResponse": {
+      "GetMagickSpaceListResponse": {
         "allOf": [
           {
             "$ref": "#/components/schemas/BaseSchema"
@@ -2619,17 +2619,17 @@
           {
             "type": "object",
             "properties": {
-              "mindspaces": {
+              "magickspaces": {
                 "type": "array",
                 "items": {
-                  "$ref": "#/components/schemas/MindspaceSchema"
+                  "$ref": "#/components/schemas/MagickSpaceSchema"
                 }
               }
             }
           }
         ]
       },
-      "MindspaceMessagesResponse": {
+      "MagickSpaceMessagesResponse": {
         "type": "object",
         "properties": {
           "chat_histories": {
@@ -3047,7 +3047,7 @@
           "api_key": {
             "type": "string"
           },
-          "mindspace_id": {
+          "magickspace_id": {
             "type": "string"
           },
           "message": {
@@ -3080,7 +3080,7 @@
         },
         "required": [
           "api_key",
-          "mindspace_id",
+          "magickspace_id",
           "message",
           "enduser_id",
           "config"
@@ -3217,7 +3217,7 @@
           "id": {
             "type": "string"
           },
-          "mindspace_id": {
+          "magickspace_id": {
             "type": "string"
           },
           "sent_by_user_id": {
@@ -3507,10 +3507,10 @@
           }
         }
       },
-      "Mindspace": {
+      "MagickSpace": {
         "type": "object",
         "properties": {
-          "mindspace_id": {
+          "magickspace_id": {
             "type": "string"
           },
           "user_id": {
@@ -3530,8 +3530,8 @@
               "$ref": "#/components/schemas/Message"
             }
           },
-          "mindspace": {
-            "$ref": "#/components/schemas/Mindspace"
+          "magickspace": {
+            "$ref": "#/components/schemas/MagickSpace"
           },
           "tools": {
             "type": "array",

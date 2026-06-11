@@ -12,10 +12,10 @@ A comprehensive guide to using the Corpus resource in the Magick Mind SDK for ma
 - **Contextual AI** - AI agents that reference your specific data
 - **Multi-tenant systems** - Isolated knowledge per customer/team
 
-**Relationship to Mindspaces:**
-- Corpus are **attached to mindspaces** to provide context
-- Multiple mindspaces can share the same corpus
-- Private mindspaces can access group corpus (asymmetric access)
+**Relationship to MagickSpaces:**
+- Corpus are **attached to magickspaces** to provide context
+- Multiple magickspaces can share the same corpus
+- Private magickspaces can access group corpus (asymmetric access)
 
 ## Quick Start
 
@@ -38,8 +38,8 @@ kb = client.v1.corpus.create(
 
 corpus_id = kb.corpus.id
 
-# Attach to a mindspace for RAG
-mindspace = client.v1.magickspaces.create(
+# Attach to a magickspace for RAG
+magickspace = client.v1.magickspaces.create(
     name="Engineering Team Chat",
     type="group",
     corpus_ids=[corpus_id],  # AI can now reference this knowledge
@@ -311,9 +311,9 @@ corpus_id = build_knowledge_base(
 )
 ```
 
-### Sharing Knowledge Across Mindspaces
+### Sharing Knowledge Across MagickSpaces
 
-One corpus can serve multiple mindspaces:
+One corpus can serve multiple magickspaces:
 
 ```python
 # Create shared knowledge base
@@ -343,7 +343,7 @@ sales_space = client.v1.magickspaces.create(
 
 ### Multi-Corpus Strategy
 
-Attach multiple specialized corpus to a mindspace:
+Attach multiple specialized corpus to a magickspace:
 
 ```python
 # Create domain-specific corpus
@@ -365,8 +365,8 @@ product_kb = client.v1.corpus.create(
     artifact_ids=product_docs
 )
 
-# Combine in a mindspace
-mindspace = client.v1.magickspaces.create(
+# Combine in a magickspace
+magickspace = client.v1.magickspaces.create(
     name="Product Engineering Team",
     type="group",
     corpus_ids=[
@@ -424,7 +424,7 @@ add_document_to_corpus("corp-123", "new-policy.pdf")
 **Don't use corpus for:**
 - ❌ Real-time data that changes rapidly
 - ❌ Transactional data (use APIs instead)
-- ❌ User-generated content in conversations (stored in mindspace automatically)
+- ❌ User-generated content in conversations (stored in magickspace automatically)
 
 ### Corpus Organization Strategies
 
@@ -476,8 +476,8 @@ team_corpus = client.v1.corpus.create(
     description="Technical content"
 )
 
-# Combine in mindspace
-mindspace = client.v1.magickspaces.create(
+# Combine in magickspace
+magickspace = client.v1.magickspaces.create(
     name="Engineering Chat",
     type="group",
     corpus_ids=[company_corpus.corpus.id, team_corpus.corpus.id]
@@ -536,8 +536,8 @@ for s in statuses:
 
 ### 4. Consider Access Patterns
 
-- **Public knowledge** - Same corpus for all mindspaces
-- **Team knowledge** - One corpus per team, shared in team mindspaces
+- **Public knowledge** - Same corpus for all magickspaces
+- **Team knowledge** - One corpus per team, shared in team magickspaces
 - **Customer knowledge** - One corpus per customer (multi-tenant isolation)
 
 ### 5. Error Handling
@@ -698,4 +698,4 @@ Query a corpus using semantic search (RAG).
 ## Related Resources
 
 - [Artifact Resource Guide](./artifact.md) - Uploading and managing files
-- [Mindspace Resource Guide](./mindspace.md) - Attaching corpus to conversations
+- [MagickSpace Resource Guide](./magickspace.md) - Attaching corpus to conversations

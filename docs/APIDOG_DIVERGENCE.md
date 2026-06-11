@@ -28,10 +28,10 @@ Apidog was manually documented without contract tests. Documentation drifted fro
 | `POST /v1/projects` | `{success, message, project: {...}}` | **FLAT** `ProjectSchema` | ❌ BREAKING |
 | `GET /v1/projects/{id}` | `{success, message, project: {...}}` | **FLAT** `ProjectSchema` | ❌ BREAKING |
 | `PUT /v1/projects/{id}` | `{success, message, project: {...}}` | **FLAT** `ProjectSchema` | ❌ BREAKING |
-| `POST /v1/magickspaces` | `{success, message, mindspace: {...}}` | **FLAT** `MindSpaceSchema` | ❌ BREAKING |
-| `GET /v1/magickspaces/{id}` | `{success, message, mindspace: {...}}` | **FLAT** `MindSpaceSchema` | ❌ BREAKING |
-| `PUT /v1/magickspaces/{id}` | `{success, message, mindspace: {...}}` | **FLAT** `MindSpaceSchema` | ❌ BREAKING |
-| `POST /v1/magickspaces/{id}/users` | `{success, message, mindspace: {...}}` | **FLAT** `MindSpaceSchema` | ❌ BREAKING |
+| `POST /v1/magickspaces` | `{success, message, magickspace: {...}}` | **FLAT** `MagickSpaceSchema` | ❌ BREAKING |
+| `GET /v1/magickspaces/{id}` | `{success, message, magickspace: {...}}` | **FLAT** `MagickSpaceSchema` | ❌ BREAKING |
+| `PUT /v1/magickspaces/{id}` | `{success, message, magickspace: {...}}` | **FLAT** `MagickSpaceSchema` | ❌ BREAKING |
+| `POST /v1/magickspaces/{id}/users` | `{success, message, magickspace: {...}}` | **FLAT** `MagickSpaceSchema` | ❌ BREAKING |
 | `POST /v1/corpus` | `{success, message, corpus: {...}}` | **FLAT** `CorpusSchema` | ❌ BREAKING |
 | `GET /v1/corpus/{id}` | `{success, message, corpus: {...}}` | **FLAT** `CorpusSchema` | ❌ BREAKING |
 | `PUT /v1/corpus/{id}` | `{success, message, corpus: {...}}` | **FLAT** `CorpusSchema` | ❌ BREAKING |
@@ -46,7 +46,7 @@ Apidog was manually documented without contract tests. Documentation drifted fro
 | Endpoint | Apidog Documented | API Reality | Status |
 |----------|-------------------|-----------------|--------|
 | `GET /v1/projects` | `{success, message, projects: [...]}` | `{data: [...], paging: {}}` | ❌ BREAKING |
-| `GET /v1/magickspaces` | `{success, message, mindspaces: [...]}` | `{data: [...], paging: {}}` | ❌ BREAKING |
+| `GET /v1/magickspaces` | `{success, message, magickspaces: [...]}` | `{data: [...], paging: {}}` | ❌ BREAKING |
 | `GET /v1/corpus` | `{success, message, corpus: [...]}` | `{data: [...], paging: {}}` | ❌ BREAKING |
 | `GET /v1/end-users` | `{data: [...], paging: {}}` | `{data: [...], paging: {}}` | ✅ CORRECT |
 | `GET /v1/magickspaces/{id}/messages` | `{chat_histories: [...], last_id, ...}` | `{data: [...], paging: {}}` | ✅ FIXED |
@@ -115,9 +115,9 @@ All response models updated to match the Magick Mind API reality:
 
 | Model | Before | After |
 |-------|--------|-------|
-| `CreateMindSpaceResponse` | `BaseResponse + {mindspace}` | Type alias for `MindSpace` (flat) |
-| `UpdateMindSpaceResponse` | `BaseResponse + {mindspace}` | Type alias for `MindSpace` (flat) |
-| `GetMindSpaceListResponse` | `BaseResponse + {mindspaces: []}` | `{data: [], paging: PageInfo}` |
+| `CreateMagickSpaceResponse` | `BaseResponse + {magickspace}` | Type alias for `MagickSpace` (flat) |
+| `UpdateMagickSpaceResponse` | `BaseResponse + {magickspace}` | Type alias for `MagickSpace` (flat) |
+| `GetMagickSpaceListResponse` | `BaseResponse + {magickspaces: []}` | `{data: [], paging: PageInfo}` |
 | `CreateProjectResponse` | `{project: ...}` | Type alias for `Project` (flat) |
 | `GetProjectResponse` | `{project: ...}` | Type alias for `Project` (flat) |
 | `UpdateProjectResponse` | `{project: ...}` | Type alias for `Project` (flat) |
@@ -126,7 +126,7 @@ All response models updated to match the Magick Mind API reality:
 | `UpdateCorpusResponse` | `BaseResponse + {corpus}` | Type alias for `Corpus` (flat) |
 | `ListCorpusResponse` | `BaseResponse + {corpus: []}` | `{data: [], paging: PageInfo}` |
 | `ChatSendResponse` | `BaseResponse + {content}` | `{content: ChatPayload}` (no wrapper) |
-| `MindspaceMessagesResponse` | Custom cursors | `{data: [], paging: PageInfo}` |
+| `MagickSpaceMessagesResponse` | Custom cursors | `{data: [], paging: PageInfo}` |
 
 ### Request Model Fixes
 

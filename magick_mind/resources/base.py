@@ -11,7 +11,7 @@ class BaseResource:
     Base class for all resource clients.
 
     Resource clients encapsulate API endpoints for specific domains
-    (e.g., chat, history, users, mindspaces).
+    (e.g., chat, history, users, magickspaces).
 
     For a complete implementation example, see docs/contributing/resource_implementation_guide/
 

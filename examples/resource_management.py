@@ -4,11 +4,11 @@ Example: Resource Management
 Demonstrates CRUD operations for core resources using the Magick Mind SDK:
 - End Users: User identity management in multi-tenant architecture
 - Projects: Organize corpus and resources for agentic SaaS backends
-- Mindspaces: Central organizing concept for conversations and collaboration
+- MagickSpaces: Central organizing concept for conversations and collaboration
 - Corpus: Knowledge base and artifact management for RAG workflows
 
 This example consolidates patterns from end_user_example.py, project_example.py,
-and mindspace_example.py into a single comprehensive resource management guide.
+and magickspace_example.py into a single comprehensive resource management guide.
 """
 
 import asyncio
@@ -150,25 +150,25 @@ async def main():
         # PART 3: MINDSPACE MANAGEMENT
         # ========================================================================
         print("\n" + "=" * 60)
-        print("PART 3: Mindspace Management")
+        print("PART 3: MagickSpace Management")
         print("=" * 60)
 
-        # 1. Create a private mindspace
-        print("\n1. Creating a private mindspace...")
+        # 1. Create a private magickspace
+        print("\n1. Creating a private magickspace...")
         private_space = await client.v1.magickspaces.create(
             name="My Personal Workspace",
             type="PRIVATE",
             description="Private workspace for personal projects",
             corpus_ids=["corpus-123"],
         )
-        print(f"✓ Created mindspace: {private_space.id}")
+        print(f"✓ Created magickspace: {private_space.id}")
         print(f"  Name: {private_space.name}")
         print(f"  Type: {private_space.type}")
         print(f"  Corpus: {private_space.corpus_ids}")
-        mindspace_id = private_space.id
+        magickspace_id = private_space.id
 
-        # 2. Create a group mindspace
-        print("\n2. Creating a group mindspace...")
+        # 2. Create a group magickspace
+        print("\n2. Creating a group magickspace...")
         group_space = await client.v1.magickspaces.create(
             name="Engineering Team",
             type="GROUP",
@@ -176,43 +176,43 @@ async def main():
             corpus_ids=["corpus-1", "corpus-2"],
             participant_ids=["user-1", "user-2", "user-3"],
         )
-        print(f"✓ Created group mindspace: {group_space.id}")
+        print(f"✓ Created group magickspace: {group_space.id}")
         print(f"  Members: {len(group_space.participant_ids)} users")
 
-        # 3. List all mindspaces
-        print("\n3. Listing all mindspaces...")
-        mindspaces = await client.v1.magickspaces.list()
-        print(f"✓ Found {len(mindspaces.data)} mindspace(s):")
-        for ms in mindspaces.data[:3]:  # Show first 3
+        # 3. List all magickspaces
+        print("\n3. Listing all magickspaces...")
+        magickspaces = await client.v1.magickspaces.list()
+        print(f"✓ Found {len(magickspaces.data)} magickspace(s):")
+        for ms in magickspaces.data[:3]:  # Show first 3
             print(f"  - {ms.name} ({ms.type}) - {ms.id}")
 
-        # 4. List mindspaces filtered by user
-        print("\n4. Listing mindspaces for specific user...")
-        user_mindspaces = await client.v1.magickspaces.list(participant_id="user-1")
-        print(f"✓ Found {len(user_mindspaces.data)} mindspace(s) for user-1")
+        # 4. List magickspaces filtered by user
+        print("\n4. Listing magickspaces for specific user...")
+        user_magickspaces = await client.v1.magickspaces.list(participant_id="user-1")
+        print(f"✓ Found {len(user_magickspaces.data)} magickspace(s) for user-1")
 
-        # 5. Get a specific mindspace
-        print(f"\n5. Getting mindspace by ID {mindspace_id}...")
-        mindspace = await client.v1.magickspaces.get(mindspace_id)
-        print(f"✓ Retrieved mindspace: {mindspace.name}")
-        print(f"  Description: {mindspace.description}")
-        print(f"  Project ID: {mindspace.project_id}")
+        # 5. Get a specific magickspace
+        print(f"\n5. Getting magickspace by ID {magickspace_id}...")
+        magickspace = await client.v1.magickspaces.get(magickspace_id)
+        print(f"✓ Retrieved magickspace: {magickspace.name}")
+        print(f"  Description: {magickspace.description}")
+        print(f"  Project ID: {magickspace.project_id}")
 
-        # 6. Update mindspace
-        print(f"\n6. Updating mindspace {mindspace_id}...")
-        updated_mindspace = await client.v1.magickspaces.update(
-            mindspace_id=mindspace_id,
+        # 6. Update magickspace
+        print(f"\n6. Updating magickspace {magickspace_id}...")
+        updated_magickspace = await client.v1.magickspaces.update(
+            magickspace_id=magickspace_id,
             name="My Updated Workspace",
             description="Updated description with more details",
             corpus_ids=["corpus-123", "corpus-456"],  # Add another corpus
         )
-        print(f"✓ Updated mindspace: {updated_mindspace.name}")
-        print(f"  New corpus count: {len(updated_mindspace.corpus_ids)}")
-        print(f"  Corpus: {updated_mindspace.corpus_ids}")
+        print(f"✓ Updated magickspace: {updated_magickspace.name}")
+        print(f"  New corpus count: {len(updated_magickspace.corpus_ids)}")
+        print(f"  Corpus: {updated_magickspace.corpus_ids}")
 
-        # 7. Get messages from mindspace (latest)
-        print(f"\n7. Getting latest messages from mindspace {mindspace_id}...")
-        messages = await client.v1.magickspaces.get_messages(mindspace_id, limit=10)
+        # 7. Get messages from magickspace (latest)
+        print(f"\n7. Getting latest messages from magickspace {magickspace_id}...")
+        messages = await client.v1.magickspaces.get_messages(magickspace_id, limit=10)
 
         print(f"✓ Retrieved {len(messages.chat_histories)} message(s)")
         if messages.chat_histories:
@@ -226,7 +226,7 @@ async def main():
             if messages.has_more and messages.next_after_id:
                 print("\n8. Getting newer messages (forward pagination)...")
                 newer = await client.v1.magickspaces.get_messages(
-                    mindspace_id,
+                    magickspace_id,
                     cursor=messages.next_after_id,
                     limit=10,
                 )
@@ -236,13 +236,13 @@ async def main():
             if messages.has_older and messages.next_before_id:
                 print("\n9. Getting older messages (backward pagination)...")
                 older = await client.v1.magickspaces.get_messages(
-                    mindspace_id,
+                    magickspace_id,
                     cursor=messages.next_before_id,
                     limit=10,
                 )
                 print(f"✓ Retrieved {len(older.chat_histories)} older message(s)")
         else:
-            print("  (No messages in this mindspace yet)")
+            print("  (No messages in this magickspace yet)")
 
         # ========================================================================
         # PART 4: CORPUS & ARTIFACT MANAGEMENT
@@ -356,13 +356,13 @@ async def main():
         except Exception as e:
             print(f"✗ Failed to delete corpus: {e}")
 
-        # Delete mindspace
-        print(f"\n1. Deleting mindspace {mindspace_id}...")
+        # Delete magickspace
+        print(f"\n1. Deleting magickspace {magickspace_id}...")
         try:
-            await client.v1.magickspaces.delete(mindspace_id)
-            print(f"✓ Deleted mindspace: {mindspace_id}")
+            await client.v1.magickspaces.delete(magickspace_id)
+            print(f"✓ Deleted magickspace: {magickspace_id}")
         except Exception as e:
-            print(f"✗ Failed to delete mindspace: {e}")
+            print(f"✗ Failed to delete magickspace: {e}")
 
         # Delete project
         print(f"\n2. Deleting project {project.id}...")
