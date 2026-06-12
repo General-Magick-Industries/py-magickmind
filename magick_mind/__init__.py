@@ -13,6 +13,26 @@ from magick_mind.exceptions import (
     TokenExpiredError,
     ValidationError,
 )
+from magick_mind.models.v2.reason import (
+    AlgorithmConfig,
+    ChatMessage,
+    LLM,
+    MCTS,
+    ModelConfig,
+    ModelLike,
+    NodeConfig,
+    ReasonResponse,
+    RLM,
+    Singular,
+)
+from magick_mind.resources.v2.events import (
+    ReasonCompleteEvent,
+    ReasonEvent,
+    ReasonFailedEvent,
+    ReasonThinkingEvent,
+    ReasonTokenEvent,
+)
+from magick_mind.resources.v2.reason import Client, ReasonResourceV2, ReasonStream
 from magick_mind.models.v1 import (
     ChatAck,
     ChatSendRequest,
@@ -34,13 +54,31 @@ from magick_mind.realtime.events import (
 __version__ = "0.4.1"
 
 __all__ = [
+    "Client",
     "MagickMind",
+    "LLM",
+    "MCTS",
+    "RLM",
+    "Singular",
+    "AlgorithmConfig",
+    "ModelLike",
+    "ModelConfig",
+    "NodeConfig",
+    "ReasonResponse",
+    "ReasonResourceV2",
+    "ReasonStream",
+    "ReasonEvent",
+    "ReasonTokenEvent",
+    "ReasonThinkingEvent",
+    "ReasonCompleteEvent",
+    "ReasonFailedEvent",
     "AuthenticationError",
     "MagickMindError",
     "ProblemDetailsException",
     "RateLimitError",
     "TokenExpiredError",
     "ValidationError",
+    "ChatMessage",
     "ChatSendRequest",
     "ChatAck",
     "ChatMessagePayload",

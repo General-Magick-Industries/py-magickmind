@@ -15,6 +15,7 @@ from magick_mind.realtime import RealtimeClient
 from magick_mind.resources.v1.chat import ChatResourceV1
 from magick_mind.resources.v1.magickspaces import MagickspacesResourceV1
 from magick_mind.resources.v1.mindspace import MindspaceResourceV1
+from magick_mind.resources.v2.reason import ReasonResourceV2
 
 
 class MagickMind:
@@ -102,14 +103,16 @@ class MagickMind:
         self._realtime = RealtimeClient(auth=self.auth, ws_url=ws_endpoint)
 
         # Initialize typed resources
-        from magick_mind.resources import V1Resources
+        from magick_mind.resources import V1Resources, V2Resources
 
         self.v1: V1Resources = V1Resources(self._http)
+        self.v2: V2Resources = V2Resources(self._http)
 
         # Convenience alias for default version
         self.chat: ChatResourceV1 = self.v1.chat
         self.magickspaces: MagickspacesResourceV1 = self.v1.magickspaces
         self.mindspace: MindspaceResourceV1 = self.v1.mindspace
+        self.reason: ReasonResourceV2 = self.v2.reason
 
     @property
     def http(self) -> HTTPClient:

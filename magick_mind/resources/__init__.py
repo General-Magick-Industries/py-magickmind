@@ -21,6 +21,7 @@ if TYPE_CHECKING:
     from magick_mind.resources.v1.project import ProjectResourceV1
     from magick_mind.resources.v1.runtime import RuntimeResourceV1
     from magick_mind.resources.v1.trait import TraitResourceV1
+    from magick_mind.resources.v2.reason import ReasonResourceV2
 
 
 class V1Resources:
@@ -75,4 +76,21 @@ class V1Resources:
         self.trait = TraitResourceV1(http_client)
 
 
-__all__ = ["BaseResource", "V1Resources"]
+class V2Resources:
+    """Container for all v2 API resources."""
+
+    reason: ReasonResourceV2
+
+    def __init__(self, http_client: HTTPClient) -> None:
+        """
+        Initialize V2 resources.
+
+        Args:
+            http_client: HTTP client for making API requests
+        """
+        from magick_mind.resources.v2.reason import ReasonResourceV2
+
+        self.reason = ReasonResourceV2(http_client)
+
+
+__all__ = ["BaseResource", "V1Resources", "V2Resources"]
