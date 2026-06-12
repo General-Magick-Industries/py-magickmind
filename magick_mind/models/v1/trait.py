@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import ClassVar, Literal, Optional
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from magick_mind.models.common import PageInfo
 
@@ -125,3 +125,8 @@ class ListTraitsResponse(BaseModel):
 
     data: list[Trait] = Field(default_factory=list)
     paging: PageInfo
+
+    @field_validator("data", mode="before")
+    @classmethod
+    def _coerce_null_list(cls, v: object) -> object:
+        return v if v is not None else []

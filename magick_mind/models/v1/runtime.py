@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from magick_mind.models.v1.personality import LockType, TraitValue
 
@@ -35,3 +35,8 @@ class EffectivePersonality(BaseModel):
     traits: list[EffectiveTrait] = Field(default_factory=list)
     computed_at: str
     ttl_seconds: int
+
+    @field_validator("traits", mode="before")
+    @classmethod
+    def _coerce_null_list(cls, v: object) -> object:
+        return v if v is not None else []

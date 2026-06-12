@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Literal, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 # --- Enums ---
@@ -23,6 +23,11 @@ class TraitValue(BaseModel):
     string_value: Optional[str] = None
     string_list_value: list[str] = Field(default_factory=list)
 
+    @field_validator("string_list_value", mode="before")
+    @classmethod
+    def _coerce_null_list(cls, v: object) -> object:
+        return v if v is not None else []
+
 
 class Constraint(BaseModel):
     """Bounds and rules for a trait constraint."""
@@ -32,6 +37,11 @@ class Constraint(BaseModel):
     max_bound: Optional[float] = None
     allowed_values: list[str] = Field(default_factory=list)
     learning_rate: Optional[float] = None
+
+    @field_validator("allowed_values", mode="before")
+    @classmethod
+    def _coerce_null_list(cls, v: object) -> object:
+        return v if v is not None else []
 
 
 class TraitConstraint(BaseModel):
@@ -61,6 +71,11 @@ class GrowthTrigger(BaseModel):
     rate_multiplier: float
     direction: TriggerDirection
 
+    @field_validator("affected_traits", mode="before")
+    @classmethod
+    def _coerce_null_list(cls, v: object) -> object:
+        return v if v is not None else []
+
 
 class GoalState(BaseModel):
     """Target personality state with attraction dynamics."""
@@ -80,6 +95,11 @@ class Boundary(BaseModel):
     excluded_values: list[str] = Field(default_factory=list)
     reason: str
 
+    @field_validator("excluded_values", mode="before")
+    @classmethod
+    def _coerce_null_list(cls, v: object) -> object:
+        return v if v is not None else []
+
 
 class GrowthConfig(BaseModel):
     """Configuration for personality growth/evolution."""
@@ -89,6 +109,11 @@ class GrowthConfig(BaseModel):
     triggers: list[GrowthTrigger] = Field(default_factory=list)
     goal_states: list[GoalState] = Field(default_factory=list)
     boundaries: list[Boundary] = Field(default_factory=list)
+
+    @field_validator("triggers", "goal_states", "boundaries", mode="before")
+    @classmethod
+    def _coerce_null_list(cls, v: object) -> object:
+        return v if v is not None else []
 
 
 class DyadicConfig(BaseModel):
@@ -100,6 +125,11 @@ class DyadicConfig(BaseModel):
     initial_weight: float = 0.0
     max_weight: float = 0.0
     confidence_threshold: int = 0
+
+    @field_validator("learnable_traits", mode="before")
+    @classmethod
+    def _coerce_null_list(cls, v: object) -> object:
+        return v if v is not None else []
 
 
 # --- Blueprint-specific ---
