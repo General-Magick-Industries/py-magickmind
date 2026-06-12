@@ -170,14 +170,18 @@ from magick_mind import Singular, RLM
 response = await client.reason(
     algorithm=Singular(
         node=RLM(
-            decomposer_model="openrouter/anthropic/claude-sonnet-4",
-            leaf_model="openrouter/openai/gpt-4o-mini",
-            max_depth=2,
+            main_model_config="openrouter/anthropic/claude-sonnet-4",
+            sub_model_config="openrouter/openai/gpt-4o-mini",
+            max_iterations=2,
         )
     ),
     message="Plan a three-day itinerary for Kyoto with a food focus.",
 )
 ```
+
+Each model slot accepts a model-id string or a `ModelConfig`. `sub_model_config`,
+`image_model_config`, and `max_iterations` are optional; set `image_model_config` to
+use the image-generation RLM path. `max_iterations` is clamped server-side to `[1, 50]`.
 
 ### Per-model tuning with `ModelConfig`
 
@@ -194,6 +198,16 @@ node = LLM(model=ModelConfig(
     reasoning_effort="medium",
 ))
 response = await client.reason(algorithm=Singular(node=node), message="...")
+```
+
+For image-generation models, set the output size with `image_size`. It is ignored unless
+the model is an image-generation model:
+
+```python
+from magick_mind import ModelConfig, ImageSize
+
+ModelConfig(model="openrouter/openai/gpt-image-1", image_size=ImageSize.SIZE_1024)
+# ImageSize options: SIZE_1024, SIZE_1536, SIZE_2048
 ```
 
 ## Response
@@ -370,15 +384,22 @@ A `<NODE>` is one of:
 ```json
 {
   "rlm": {
-    "main_model_config": { "model": "<id>" },
-    "sub_model_config":  { "model": "<id>" },
+    "main_model_config":  { "model": "<id>" },
+    "sub_model_config":   { "model": "<id>" },
+    "image_model_config": { "model": "<id>" },
     "max_iterations": 2
   }
 }
 ```
 
+Only `main_model_config` is required on an RLM node; `sub_model_config`,
+`image_model_config`, and `max_iterations` are optional. Set `image_model_config` for the
+image-generation RLM path.
+
 A `model_config` requires `model` and optionally carries `temperature`, `max_tokens`,
-`top_p`, `reasoning_effort` (omitted when null).
+`top_p`, `reasoning_effort`, and `image_config` (omitted when null). `image_config` is
+`{ "size": "IMAGE_SIZE_1024X1024" | "IMAGE_SIZE_1536X1536" | "IMAGE_SIZE_2048X2048" }`
+and is ignored unless the model is an image-generation model.
 
 ### Non-streaming response
 
@@ -493,10 +514,9 @@ status. Status codes `408, 409, 425, 429, 500, 502, 503, 504` are retryable.
 | `mcts.iterations` > 10 | Hard fail (cost cap) |
 | MCTS mixed output types | Hard fail (all text or all image) |
 | LLM node `model` empty | Hard fail |
-| RLM decomposer/leaf model empty | Hard fail |
-| `max_depth` outside [1, 4] | Clamped silently |
-| `fanout` outside [2, 5] | Clamped silently |
-| `fanout` = 1 | Hard fail |
+| RLM `main_model_config` model empty | Hard fail |
+| RLM `sub_model_config` / `image_model_config` model empty (when provided) | Hard fail |
+| RLM `max_iterations` outside [1, 50] | Clamped silently |
 
 ### Direct HTTP examples (no SDK)
 
