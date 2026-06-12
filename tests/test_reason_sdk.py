@@ -10,6 +10,7 @@ from magickmind import (
     AlgorithmConfig,
     Client,
     ImageSize,
+    Lambda,
     LLM,
     MCTS,
     ModelConfig,
@@ -450,6 +451,66 @@ def test_rlm_builder_omits_unset_optional_fields() -> None:
     assert body == {
         "rlm": {"main_model_config": {"model": "openrouter/openai/gpt-4o"}}
     }
+
+
+def test_lambda_builder_matches_current_v2_wire_format() -> None:
+    body = Lambda(
+        main_model_config="openrouter/openai/gpt-4o",
+        sub_model_config="openrouter/openai/gpt-4o-mini",
+        context_window_chars=50000,
+        accuracy_target=0.9,
+    ).to_dict()
+
+    assert body == {
+        "lambda": {
+            "main_model_config": {"model": "openrouter/openai/gpt-4o"},
+            "sub_model_config": {"model": "openrouter/openai/gpt-4o-mini"},
+            "context_window_chars": 50000,
+            "accuracy_target": 0.9,
+        }
+    }
+
+
+def test_lambda_builder_omits_unset_optional_fields() -> None:
+    body = Lambda(main_model_config="openrouter/openai/gpt-4o").to_dict()
+
+    assert body == {
+        "lambda": {"main_model_config": {"model": "openrouter/openai/gpt-4o"}}
+    }
+
+
+def test_lambda_builder_accepts_model_config_slots() -> None:
+    body = Lambda(
+        main_model_config=ModelConfig(model="openrouter/openai/gpt-4o", temperature=0.2),
+    ).to_dict()
+
+    assert body["lambda"]["main_model_config"] == {
+        "model": "openrouter/openai/gpt-4o",
+        "temperature": 0.2,
+    }
+
+
+def test_lambda_node_in_singular_algorithm() -> None:
+    body = Singular(Lambda(main_model_config="provider/model")).to_dict()
+
+    assert body == {
+        "singular": {
+            "node": {"lambda": {"main_model_config": {"model": "provider/model"}}}
+        }
+    }
+
+
+def test_lambda_node_as_mcts_candidate() -> None:
+    body = MCTS(
+        nodes=[LLM("provider/model-a"), Lambda(main_model_config="provider/model-b")],
+        rating_model="provider/rating-model",
+        aggregator_model="provider/aggregator-model",
+    ).to_dict()
+
+    assert body["mcts"]["nodes"] == [
+        {"llm": {"model_config": {"model": "provider/model-a"}}},
+        {"lambda": {"main_model_config": {"model": "provider/model-b"}}},
+    ]
 
 
 def test_rlm_builder_supports_image_model_config() -> None:

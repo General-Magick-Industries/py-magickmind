@@ -17,6 +17,8 @@ Set (same variables as examples/, see examples/README.md):
     export MAGICKMIND_REASON_MODEL_B="provider/model-b"       # mcts
     export MAGICKMIND_RLM_MAIN_MODEL="provider/main-model"    # *rlm*
     export MAGICKMIND_RLM_SUB_MODEL="provider/sub-model"      # *rlm*
+    export MAGICKMIND_LAMBDA_MAIN_MODEL="provider/main-model" # singular-lambda
+    export MAGICKMIND_LAMBDA_SUB_MODEL="provider/sub-model"   # singular-lambda
     export MAGICKMIND_RATING_MODEL="provider/rating-model"    # mcts*
     export MAGICKMIND_AGGREGATOR_MODEL="provider/agg-model"   # mcts*
 
@@ -44,13 +46,14 @@ from magickmind import (
     MCTS,
     RLM,
     Client,
+    Lambda,
     MagickMindError,
     RateLimitError,
     ReasonFailedEvent,
     Singular,
 )
 
-SCENARIOS = ("singular-llm", "singular-rlm", "mcts", "mcts-mixed")
+SCENARIOS = ("singular-llm", "singular-rlm", "singular-lambda", "mcts", "mcts-mixed")
 
 DEFAULT_PROMPT = "Reply with the single word: ok."
 
@@ -96,6 +99,13 @@ def build_algorithm(scenario: str, max_tokens: int) -> Singular | MCTS:
             RLM(
                 main_model_config=_require_env("MAGICKMIND_RLM_MAIN_MODEL"),
                 sub_model_config=_require_env("MAGICKMIND_RLM_SUB_MODEL"),
+            )
+        )
+    if scenario == "singular-lambda":
+        return Singular(
+            Lambda(
+                main_model_config=_require_env("MAGICKMIND_LAMBDA_MAIN_MODEL"),
+                sub_model_config=_require_env("MAGICKMIND_LAMBDA_SUB_MODEL"),
             )
         )
     if scenario == "mcts":

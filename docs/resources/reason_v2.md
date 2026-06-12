@@ -22,6 +22,9 @@ as a stream of typed progress events.
 - **LLM** — a single language-model call.
 - **RLM** — a recursive language model that decomposes a problem, solves the parts, and
   recombines them.
+- **Lambda** — a map-reduce RLM variant for long inputs: detects the task type, plans a
+  chunking strategy, solves chunks with a sub model, and composes the answer with a main
+  model. Text output only.
 
 **Two response modes:**
 - **Non-streaming** (`stream=False`) — returns a single `ReasonResponse`.
@@ -182,6 +185,42 @@ response = await client.reason(
 Each model slot accepts a model-id string or a `ModelConfig`. `sub_model_config`,
 `image_model_config`, and `max_iterations` are optional; set `image_model_config` to
 use the image-generation RLM path. `max_iterations` is clamped server-side to `[1, 50]`.
+
+### Lambda node
+
+A map-reduce RLM variant for long inputs (the wire key is `lambda`; the SDK class is
+named `Lambda` because `lambda` is a Python keyword). Cortex detects the task type,
+plans a chunking strategy against the configured context window, solves chunks with the
+sub model, and composes the final answer with the main model. Use it anywhere a node is
+accepted:
+
+```python
+from magick_mind import Singular, Lambda
+
+response = await client.reason(
+    algorithm=Singular(
+        node=Lambda(
+            main_model_config="openrouter/anthropic/claude-sonnet-4",
+            sub_model_config="openrouter/openai/gpt-4o-mini",
+        )
+    ),
+    message="Summarize the key obligations in this contract: ...",
+)
+```
+
+- `main_model_config` (required) — reduce/compose calls that need cross-chunk reasoning.
+- `sub_model_config` (optional) — leaf calls over individual chunks; falls back to
+  `main_model_config` when unset.
+- `context_window_chars` (optional, default 100000) — the model context window in
+  characters, used for chunk planning; must be positive.
+- `accuracy_target` (optional, default 0.80) — minimum accuracy target for planning;
+  must be in `(0, 1]`.
+
+Lambda nodes produce text output only.
+
+> **Availability:** lambda nodes are not yet accepted by the API edge — requests using
+> them currently fail validation there. The shapes below document the contract for when
+> edge support lands.
 
 ### Per-model tuning with `ModelConfig`
 
@@ -392,9 +431,26 @@ A `<NODE>` is one of:
 }
 ```
 
+```json
+{
+  "lambda": {
+    "main_model_config": { "model": "<id>" },
+    "sub_model_config":  { "model": "<id>" },
+    "context_window_chars": 100000,
+    "accuracy_target": 0.8
+  }
+}
+```
+
 Only `main_model_config` is required on an RLM node; `sub_model_config`,
 `image_model_config`, and `max_iterations` are optional. Set `image_model_config` for the
 image-generation RLM path.
+
+Only `main_model_config` is required on a lambda node; `sub_model_config` (leaf calls,
+falls back to the main config), `context_window_chars` (default 100000), and
+`accuracy_target` (default 0.8) are optional. Lambda nodes are text-only and are **not
+yet accepted by the API edge** (see the validation table below for the rules that apply
+once they are).
 
 A `model_config` requires `model` and optionally carries `temperature`, `max_tokens`,
 `top_p`, `reasoning_effort`, and `image_config` (omitted when null). `image_config` is
@@ -473,6 +529,12 @@ data: [DONE]
 | `reason.rlm.sub_completed` | `rlm_sub_completed` | progress |
 | `reason.rlm.repl_step` | `rlm_repl_step` | progress |
 
+Lambda nodes additionally emit six progress events (payload keys
+`lambda_task_detected`, `lambda_plan`, `lambda_sub_started`, `lambda_sub_completed`,
+`lambda_reduce_started`, `lambda_reduce_completed`). Their `event:` names are not final
+until the edge accepts lambda nodes; clients should treat unknown `reason.*` event names
+as progress events and ignore them rather than fail.
+
 Key payloads:
 
 ```jsonc
@@ -517,6 +579,9 @@ status. Status codes `408, 409, 425, 429, 500, 502, 503, 504` are retryable.
 | RLM `main_model_config` model empty | Hard fail |
 | RLM `sub_model_config` / `image_model_config` model empty (when provided) | Hard fail |
 | RLM `max_iterations` outside [1, 50] | Clamped silently |
+| Lambda `main_model_config` model empty | Hard fail |
+| Lambda `context_window_chars` ≤ 0 (when provided) | Hard fail |
+| Lambda `accuracy_target` outside (0, 1] (when provided) | Hard fail |
 
 ### Direct HTTP examples (no SDK)
 

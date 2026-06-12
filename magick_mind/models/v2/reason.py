@@ -150,6 +150,38 @@ class RLM:
 
 
 @dataclass(frozen=True)
+class Lambda:
+    """Lambda RLM node.
+
+    Field names mirror the Reason API wire format (the wire key is ``lambda``;
+    this class is named ``Lambda`` because ``lambda`` is a Python keyword).
+    Each model slot accepts a model-id string or a :class:`ModelConfig`.
+    ``main_model_config`` drives reduce/compose calls; ``sub_model_config``
+    drives leaf calls and falls back to ``main_model_config`` if unset.
+    ``context_window_chars`` (default 100000) must be positive and
+    ``accuracy_target`` (default 0.80) must be in (0, 1]; both are validated
+    server-side.
+    """
+
+    main_model_config: ModelLike
+    sub_model_config: ModelLike | None = None
+    context_window_chars: int | None = None
+    accuracy_target: float | None = None
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "lambda": _compact(
+                {
+                    "main_model_config": _model_slot(self.main_model_config),
+                    "sub_model_config": _model_slot(self.sub_model_config),
+                    "context_window_chars": self.context_window_chars,
+                    "accuracy_target": self.accuracy_target,
+                }
+            )
+        }
+
+
+@dataclass(frozen=True)
 class Singular:
     """Singular Reason algorithm."""
 

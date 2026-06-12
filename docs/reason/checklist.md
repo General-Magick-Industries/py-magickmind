@@ -91,6 +91,12 @@ Pass criteria:
 Save each run's `--json` output alongside the launch checklist as the load
 testing report.
 
+The harness also supports a `singular-lambda` scenario for the Lambda RLM node
+(`MAGICKMIND_LAMBDA_MAIN_MODEL` / `MAGICKMIND_LAMBDA_SUB_MODEL`). Add it to the
+sign-off matrix with its own SLO row once the API edge accepts lambda nodes —
+at the time of writing the edge rejects them, so the scenario cannot run end to
+end yet.
+
 ## Per-api_key Rate Limits
 
 v2 identity is the `api_key` alone, so limits are keyed and enforced
@@ -109,12 +115,11 @@ Notes:
   flat request count under-prices heavy algorithms. The concurrency cap is the
   launch-time guard; algorithm- or token-weighted limits are a post-launch
   refinement once real traffic shows the distribution.
-- Over-limit requests receive **429** with the standard error body
-  (`{"error": {"detail": ..., "title": ...}}`) and a `Retry-After` header where
-  the limiter can compute one.
-- SDK behavior on 429: raises `RateLimitError`; with default settings the SDK
-  retries with exponential backoff (429 is in the retryable set). For
-  streaming, a retry happens only if no events have been emitted yet.
+- Over-limit requests receive **429** with the standard error body and a
+  `Retry-After` header where the limiter can compute one. The error body shape,
+  the SDK's retry/backoff behavior, and the streaming retry rule are documented
+  in [../resources/reason_v2.md](../resources/reason_v2.md) — that reference is
+  the source of truth for wire-level details.
 - Verify limits with the rate-limit run above before launch: 429s must appear
   at the configured threshold and disappear when the rate drops back under it.
 
