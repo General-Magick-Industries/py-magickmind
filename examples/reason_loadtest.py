@@ -93,7 +93,9 @@ def _require_env(name: str) -> str:
 def build_algorithm(scenario: str, max_tokens: int) -> Singular | MCTS:
     """Build the algorithm config for a scenario from environment variables."""
     if scenario == "singular-llm":
-        return Singular(LLM(_require_env("MAGICKMIND_REASON_MODEL"), max_tokens=max_tokens))
+        return Singular(
+            LLM(_require_env("MAGICKMIND_REASON_MODEL"), max_tokens=max_tokens)
+        )
     if scenario == "singular-rlm":
         return Singular(
             RLM(
@@ -160,7 +162,9 @@ async def run_one(
                     ttfe_s=ttfe,
                     error=f"reason_failed: {failed_event.error_code or failed_event.message}",
                 )
-            return RequestResult(ok=True, latency_s=time.monotonic() - start, ttfe_s=ttfe)
+            return RequestResult(
+                ok=True, latency_s=time.monotonic() - start, ttfe_s=ttfe
+            )
 
         response = await client.reason(
             algorithm=algorithm,
@@ -177,7 +181,10 @@ async def run_one(
         return RequestResult(ok=True, latency_s=time.monotonic() - start, cost_usd=cost)
     except RateLimitError as exc:
         return RequestResult(
-            ok=False, latency_s=time.monotonic() - start, status_code=429, error=str(exc)
+            ok=False,
+            latency_s=time.monotonic() - start,
+            status_code=429,
+            error=str(exc),
         )
     except MagickMindError as exc:
         return RequestResult(
@@ -188,7 +195,9 @@ async def run_one(
         )
     except Exception as exc:  # noqa: BLE001 - load test must survive any failure
         return RequestResult(
-            ok=False, latency_s=time.monotonic() - start, error=f"{type(exc).__name__}: {exc}"
+            ok=False,
+            latency_s=time.monotonic() - start,
+            error=f"{type(exc).__name__}: {exc}",
         )
 
 
@@ -268,7 +277,9 @@ def summarize(args: argparse.Namespace, stats: RunStats) -> dict[str, Any]:
         "shed_at_max_in_flight": stats.shed,
         "completed": len(completed),
         "achieved_rps": round(len(completed) / wall, 2) if wall else None,
-        "error_rate": round(len(failed) / len(stats.results), 4) if stats.results else None,
+        "error_rate": round(len(failed) / len(stats.results), 4)
+        if stats.results
+        else None,
         "errors": {
             "rate_limited_429": rate_limited,
             "server_5xx": server_errors,
@@ -297,19 +308,29 @@ def print_report(report: dict[str, Any]) -> None:
         return f"{value:.3f}" if value is not None else "-"
 
     lat = report["latency_s"]
-    print(f"\n=== Reason v2 load test — {report['scenario']}"
-          f"{' (streaming)' if report['stream'] else ''} ===")
-    print(f"target {report['target_rps']} rps for {report['duration_s']}s"
-          f" | attempted {report['attempted']} | completed {report['completed']}"
-          f" | achieved {report['achieved_rps']} rps")
-    print(f"error rate: {report['error_rate']} | errors: {report['errors']}"
-          f" | shed: {report['shed_at_max_in_flight']}")
-    print(f"latency  p50={fmt(lat['p50'])}  p95={fmt(lat['p95'])}"
-          f"  p99={fmt(lat['p99'])}  max={fmt(lat['max'])}  (seconds)")
+    print(
+        f"\n=== Reason v2 load test — {report['scenario']}"
+        f"{' (streaming)' if report['stream'] else ''} ==="
+    )
+    print(
+        f"target {report['target_rps']} rps for {report['duration_s']}s"
+        f" | attempted {report['attempted']} | completed {report['completed']}"
+        f" | achieved {report['achieved_rps']} rps"
+    )
+    print(
+        f"error rate: {report['error_rate']} | errors: {report['errors']}"
+        f" | shed: {report['shed_at_max_in_flight']}"
+    )
+    print(
+        f"latency  p50={fmt(lat['p50'])}  p95={fmt(lat['p95'])}"
+        f"  p99={fmt(lat['p99'])}  max={fmt(lat['max'])}  (seconds)"
+    )
     if report["ttfe_s"]:
         ttfe = report["ttfe_s"]
-        print(f"ttfe     p50={fmt(ttfe['p50'])}  p95={fmt(ttfe['p95'])}"
-              f"  p99={fmt(ttfe['p99'])}  (seconds)")
+        print(
+            f"ttfe     p50={fmt(ttfe['p50'])}  p95={fmt(ttfe['p95'])}"
+            f"  p99={fmt(ttfe['p99'])}  (seconds)"
+        )
     if report["total_cost_usd"] is not None:
         print(f"total LLM cost: ${report['total_cost_usd']}")
     for err in report["sample_errors"]:
@@ -320,14 +341,28 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--scenario", choices=SCENARIOS, default="singular-llm")
     parser.add_argument("--rps", type=float, default=1.0, help="target request rate")
-    parser.add_argument("--duration", type=float, default=60.0, help="run length in seconds")
-    parser.add_argument("--stream", action="store_true", help="use SSE streaming requests")
+    parser.add_argument(
+        "--duration", type=float, default=60.0, help="run length in seconds"
+    )
+    parser.add_argument(
+        "--stream", action="store_true", help="use SSE streaming requests"
+    )
     parser.add_argument("--prompt", default=DEFAULT_PROMPT)
-    parser.add_argument("--max-tokens", type=int, default=32,
-                        help="max_tokens applied to plain LLM nodes to bound cost")
-    parser.add_argument("--timeout", type=float, default=120.0, help="per-request timeout")
-    parser.add_argument("--max-in-flight", type=int, default=256,
-                        help="safety cap on concurrent requests; excess arrivals are shed")
+    parser.add_argument(
+        "--max-tokens",
+        type=int,
+        default=32,
+        help="max_tokens applied to plain LLM nodes to bound cost",
+    )
+    parser.add_argument(
+        "--timeout", type=float, default=120.0, help="per-request timeout"
+    )
+    parser.add_argument(
+        "--max-in-flight",
+        type=int,
+        default=256,
+        help="safety cap on concurrent requests; excess arrivals are shed",
+    )
     parser.add_argument("--json", action="store_true", help="emit the report as JSON")
     return parser.parse_args()
 

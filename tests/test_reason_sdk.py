@@ -448,9 +448,7 @@ def test_builder_type_aliases_are_usable_for_annotations() -> None:
 def test_rlm_builder_omits_unset_optional_fields() -> None:
     body = RLM(main_model_config="openrouter/openai/gpt-4o").to_dict()
 
-    assert body == {
-        "rlm": {"main_model_config": {"model": "openrouter/openai/gpt-4o"}}
-    }
+    assert body == {"rlm": {"main_model_config": {"model": "openrouter/openai/gpt-4o"}}}
 
 
 def test_lambda_builder_matches_current_v2_wire_format() -> None:
@@ -481,7 +479,9 @@ def test_lambda_builder_omits_unset_optional_fields() -> None:
 
 def test_lambda_builder_accepts_model_config_slots() -> None:
     body = Lambda(
-        main_model_config=ModelConfig(model="openrouter/openai/gpt-4o", temperature=0.2),
+        main_model_config=ModelConfig(
+            model="openrouter/openai/gpt-4o", temperature=0.2
+        ),
     ).to_dict()
 
     assert body["lambda"]["main_model_config"] == {
