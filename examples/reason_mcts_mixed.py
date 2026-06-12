@@ -4,8 +4,8 @@ Set:
     export MAGICKMIND_API_KEY="sk-..."
     export MAGICKMIND_BASE_URL="https://api.magickmind.ai"  # optional
     export MAGICKMIND_REASON_MODEL="provider/model"
-    export MAGICKMIND_RLM_DECOMPOSER_MODEL="provider/decomposer-model"
-    export MAGICKMIND_RLM_LEAF_MODEL="provider/leaf-model"
+    export MAGICKMIND_RLM_MAIN_MODEL="provider/main-model"
+    export MAGICKMIND_RLM_SUB_MODEL="provider/sub-model"
     export MAGICKMIND_RATING_MODEL="provider/rating-model"
     export MAGICKMIND_AGGREGATOR_MODEL="provider/aggregator-model"
 """
@@ -25,8 +25,8 @@ async def main() -> None:
     api_key = os.environ["MAGICKMIND_API_KEY"]
     base_url = os.environ.get("MAGICKMIND_BASE_URL", "https://api.magickmind.ai")
     llm_model = os.environ["MAGICKMIND_REASON_MODEL"]
-    decomposer_model = os.environ["MAGICKMIND_RLM_DECOMPOSER_MODEL"]
-    leaf_model = os.environ["MAGICKMIND_RLM_LEAF_MODEL"]
+    main_model = os.environ["MAGICKMIND_RLM_MAIN_MODEL"]
+    sub_model = os.environ["MAGICKMIND_RLM_SUB_MODEL"]
     rating_model = os.environ["MAGICKMIND_RATING_MODEL"]
     aggregator_model = os.environ["MAGICKMIND_AGGREGATOR_MODEL"]
 
@@ -36,9 +36,9 @@ async def main() -> None:
                 nodes=[
                     LLM(llm_model),
                     RLM(
-                        decomposer_model=decomposer_model,
-                        leaf_model=leaf_model,
-                        max_depth=2,
+                        main_model_config=main_model,
+                        sub_model_config=sub_model,
+                        max_iterations=2,
                     ),
                 ],
                 rating_model=rating_model,

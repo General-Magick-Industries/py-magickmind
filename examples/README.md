@@ -26,8 +26,8 @@ MAGICKMIND_API_KEY="sk-your-litellm-virtual-key"
 MAGICKMIND_REASON_MODEL="provider/model"
 MAGICKMIND_REASON_MODEL_A="provider/model-a"
 MAGICKMIND_REASON_MODEL_B="provider/model-b"
-MAGICKMIND_RLM_DECOMPOSER_MODEL="provider/decomposer-model"
-MAGICKMIND_RLM_LEAF_MODEL="provider/leaf-model"
+MAGICKMIND_RLM_MAIN_MODEL="provider/main-model"
+MAGICKMIND_RLM_SUB_MODEL="provider/sub-model"
 MAGICKMIND_RATING_MODEL="provider/rating-model"
 MAGICKMIND_AGGREGATOR_MODEL="provider/aggregator-model"
 
@@ -70,8 +70,8 @@ uv run python examples/authentication.py
 | `MAGICKMIND_REASON_MODEL` | reason_basic, reason_singular_llm, reason_streaming, reason_mcts_mixed | Model ID for Singular LLM and mixed MCTS examples |
 | `MAGICKMIND_REASON_MODEL_A` | reason_mcts | First MCTS LLM candidate model |
 | `MAGICKMIND_REASON_MODEL_B` | reason_mcts | Second MCTS LLM candidate model |
-| `MAGICKMIND_RLM_DECOMPOSER_MODEL` | reason_singular_rlm, reason_mcts_mixed | RLM decomposer/main model |
-| `MAGICKMIND_RLM_LEAF_MODEL` | reason_singular_rlm, reason_mcts_mixed | RLM leaf/sub model |
+| `MAGICKMIND_RLM_MAIN_MODEL` | reason_singular_rlm, reason_mcts_mixed | RLM main model |
+| `MAGICKMIND_RLM_SUB_MODEL` | reason_singular_rlm, reason_mcts_mixed | RLM sub model |
 | `MAGICKMIND_RATING_MODEL` | reason_mcts, reason_mcts_mixed | MCTS rating model |
 | `MAGICKMIND_AGGREGATOR_MODEL` | reason_mcts, reason_mcts_mixed | MCTS aggregator model |
 | `MAGICKMIND_WS_ENDPOINT` | chat_workflow, bulk_subscribe, backend_service | Centrifugo WebSocket URL |

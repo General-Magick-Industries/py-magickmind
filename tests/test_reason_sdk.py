@@ -9,6 +9,7 @@ from pytest_httpx import HTTPXMock, IteratorStream
 from magickmind import (
     AlgorithmConfig,
     Client,
+    ImageSize,
     LLM,
     MCTS,
     ModelConfig,
@@ -411,9 +412,9 @@ def test_mcts_builder_defaults_iterations_to_four() -> None:
 
 def test_rlm_builder_matches_current_v2_wire_format() -> None:
     body = RLM(
-        decomposer_model="openrouter/openai/gpt-4o",
-        leaf_model="openrouter/openai/gpt-4o-mini",
-        max_depth=2,
+        main_model_config="openrouter/openai/gpt-4o",
+        sub_model_config="openrouter/openai/gpt-4o-mini",
+        max_iterations=2,
     ).to_dict()
 
     assert body == {
@@ -443,14 +444,60 @@ def test_builder_type_aliases_are_usable_for_annotations() -> None:
     }
 
 
-def test_rlm_builder_rejects_unsupported_draft_fields() -> None:
-    with pytest.raises(ValueError, match="synthesizer_model, fanout"):
-        RLM(
-            decomposer_model="openrouter/openai/gpt-4o",
-            leaf_model="openrouter/openai/gpt-4o-mini",
-            synthesizer_model="openrouter/openai/gpt-4o",
-            fanout=3,
-        )
+def test_rlm_builder_omits_unset_optional_fields() -> None:
+    body = RLM(main_model_config="openrouter/openai/gpt-4o").to_dict()
+
+    assert body == {
+        "rlm": {"main_model_config": {"model": "openrouter/openai/gpt-4o"}}
+    }
+
+
+def test_rlm_builder_supports_image_model_config() -> None:
+    body = RLM(
+        main_model_config="openrouter/openai/gpt-4o",
+        image_model_config="openrouter/openai/gpt-image-1",
+        max_iterations=3,
+    ).to_dict()
+
+    assert body == {
+        "rlm": {
+            "main_model_config": {"model": "openrouter/openai/gpt-4o"},
+            "image_model_config": {"model": "openrouter/openai/gpt-image-1"},
+            "max_iterations": 3,
+        }
+    }
+
+
+def test_model_config_omits_image_config_when_unset() -> None:
+    assert ModelConfig(model="provider/model", temperature=0.3).to_dict() == {
+        "model": "provider/model",
+        "temperature": 0.3,
+    }
+
+
+def test_model_config_serializes_image_size() -> None:
+    assert ModelConfig(
+        model="openrouter/openai/gpt-image-1",
+        image_size=ImageSize.SIZE_1024,
+    ).to_dict() == {
+        "model": "openrouter/openai/gpt-image-1",
+        "image_config": {"size": "IMAGE_SIZE_1024X1024"},
+    }
+
+
+def test_image_model_config_with_size_in_rlm() -> None:
+    body = RLM(
+        main_model_config="openrouter/openai/gpt-4o",
+        image_model_config=ModelConfig(
+            model="openrouter/openai/gpt-image-1",
+            image_size=ImageSize.SIZE_2048,
+        ),
+    ).to_dict()
+
+    assert body["rlm"]["image_model_config"] == {
+        "model": "openrouter/openai/gpt-image-1",
+        "image_config": {"size": "IMAGE_SIZE_2048X2048"},
+    }
 
 
 async def test_reason_raises_api_errors(httpx_mock: HTTPXMock) -> None:
