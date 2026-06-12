@@ -16,6 +16,7 @@ from magick_mind.exceptions import (
 from magick_mind.models.v2.reason import (
     AlgorithmConfig,
     ChatMessage,
+    ImageSize,
     LLM,
     MCTS,
     ModelConfig,
@@ -63,6 +64,7 @@ __all__ = [
     "AlgorithmConfig",
     "ModelLike",
     "ModelConfig",
+    "ImageSize",
     "NodeConfig",
     "ReasonResponse",
     "ReasonResourceV2",

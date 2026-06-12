@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from enum import Enum
 from typing import Any, Literal, Mapping, Protocol, TypeAlias
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -26,15 +27,30 @@ def _serialize(value: Any) -> Any:
     return value
 
 
+class ImageSize(str, Enum):
+    """Output size for image-generation models.
+
+    Values are the Reason API wire names accepted by Cortex.
+    """
+
+    SIZE_1024 = "IMAGE_SIZE_1024X1024"
+    SIZE_1536 = "IMAGE_SIZE_1536X1536"
+    SIZE_2048 = "IMAGE_SIZE_2048X2048"
+
+
 @dataclass(frozen=True)
 class ModelConfig:
-    """Model configuration sent to Cortex."""
+    """Model configuration sent to Cortex.
+
+    ``image_size`` is ignored unless the model is an image-generation model.
+    """
 
     model: str
     temperature: float | None = None
     max_tokens: int | None = None
     top_p: float | None = None
     reasoning_effort: str | None = None
+    image_size: ImageSize | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return _compact(
@@ -44,6 +60,11 @@ class ModelConfig:
                 "max_tokens": self.max_tokens,
                 "top_p": self.top_p,
                 "reasoning_effort": self.reasoning_effort,
+                "image_config": (
+                    {"size": self.image_size.value}
+                    if self.image_size is not None
+                    else None
+                ),
             }
         )
 
@@ -51,6 +72,15 @@ class ModelConfig:
 ModelLike: TypeAlias = str | ModelConfig
 NodeConfig: TypeAlias = WireSerializable | Mapping[str, Any]
 AlgorithmConfig: TypeAlias = WireSerializable | Mapping[str, Any]
+
+
+def _model_slot(value: ModelLike | None) -> dict[str, Any] | None:
+    """Serialize a model slot (string id or ``ModelConfig``) to a wire dict."""
+    if value is None:
+        return None
+    if isinstance(value, ModelConfig):
+        return value.to_dict()
+    return {"model": value}
 
 
 @dataclass(frozen=True)
@@ -95,53 +125,25 @@ class LLM:
 class RLM:
     """Recursive language model node.
 
-    ``max_depth`` is sent to Cortex as the ``max_iterations`` wire field; the
-    SDK keeps the ``max_depth`` name without changing the Bifrost or proto
-    contracts.
+    Field names mirror the Reason API wire format. Each model slot accepts a
+    model-id string or a :class:`ModelConfig`. ``image_model_config`` enables the
+    image-generation RLM path; ``max_iterations`` is clamped server-side to
+    ``[1, 50]``.
     """
 
-    decomposer_model: ModelLike
-    leaf_model: ModelLike | None = None
-    synthesizer_model: ModelLike | None = None
-    max_depth: int | None = None
-    fanout: int | None = None
-
-    def __post_init__(self) -> None:
-        unsupported = []
-        if self.synthesizer_model is not None:
-            unsupported.append("synthesizer_model")
-        if self.fanout is not None:
-            unsupported.append("fanout")
-        if unsupported:
-            names = ", ".join(unsupported)
-            raise ValueError(
-                f"RLM {names} not supported by the current Reason API wire format. "
-                "Supported RLM fields are decomposer_model, leaf_model, and max_depth."
-            )
+    main_model_config: ModelLike
+    sub_model_config: ModelLike | None = None
+    image_model_config: ModelLike | None = None
+    max_iterations: int | None = None
 
     def to_dict(self) -> dict[str, Any]:
-        main_config = (
-            self.decomposer_model.to_dict()
-            if isinstance(self.decomposer_model, ModelConfig)
-            else {"model": self.decomposer_model}
-        )
-        sub_config = None
-        if self.leaf_model is not None:
-            sub_config = (
-                self.leaf_model.to_dict()
-                if isinstance(self.leaf_model, ModelConfig)
-                else {"model": self.leaf_model}
-            )
-
-        # Cortex currently exposes max_iterations for RLM. Phase 5's draft
-        # max_depth name maps to the existing wire field without changing
-        # Bifrost or proto contracts.
         return {
             "rlm": _compact(
                 {
-                    "main_model_config": main_config,
-                    "sub_model_config": sub_config,
-                    "max_iterations": self.max_depth,
+                    "main_model_config": _model_slot(self.main_model_config),
+                    "sub_model_config": _model_slot(self.sub_model_config),
+                    "image_model_config": _model_slot(self.image_model_config),
+                    "max_iterations": self.max_iterations,
                 }
             )
         }
