@@ -18,7 +18,9 @@ from magickmind import Client, LLM, Singular
 def render_thinking_event(event_type: str, payload: dict) -> None:
     """Render reason.* progress events for a simple terminal thinking UI."""
     if event_type == "reason.started":
-        print(f"\nthinking: started {payload.get('algorithm', 'reasoning')}", flush=True)
+        print(
+            f"\nthinking: started {payload.get('algorithm', 'reasoning')}", flush=True
+        )
         return
     if event_type.startswith("reason.mcts."):
         print(f"\nthinking: mcts {event_type.removeprefix('reason.mcts.')}", flush=True)
