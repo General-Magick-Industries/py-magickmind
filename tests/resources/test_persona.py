@@ -135,8 +135,8 @@ class TestPersonaResource:
             json=version.model_dump(mode="json"),
         )
         mock_auth.add_response(
-            url=f"{BASE_URL}/v1/persona/p-2/version/active",
-            method="PUT",
+            url=f"{BASE_URL}/v1/persona/p-2/version/2.0/activate",
+            method="POST",
             json=persona.model_dump(mode="json"),
         )
 
@@ -157,8 +157,9 @@ class TestPersonaResource:
         set_active = await client.v1.persona.set_active_version("p-2", "2.0")
         assert set_active.id == "p-2"
         assert set_active.active_version == "pv-2"
-        body = json.loads(mock_auth.get_requests()[-1].content)
-        assert body == {"version": "2.0"}
+        last_request = mock_auth.get_requests()[-1]
+        assert last_request.method == "POST"
+        assert last_request.url.path == "/v1/persona/p-2/version/2.0/activate"
 
     async def test_get_500_raises_problem_details(
         self, client: MagickMind, mock_auth: HTTPXMock
