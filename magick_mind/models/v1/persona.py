@@ -99,12 +99,6 @@ class CreatePersonaVersionRequest(BaseModel):
     dyadic: Optional[DyadicConfig] = None
 
 
-class SetActiveVersionRequest(BaseModel):
-    """Request to set the active version."""
-
-    version: str
-
-
 class PersonaWithVersion(BaseModel):
     """Response containing both persona and its initial version."""
 

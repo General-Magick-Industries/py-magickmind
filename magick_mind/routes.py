@@ -136,6 +136,11 @@ class Routes:
         """Get path for persona active version."""
         return f"/v1/persona/{persona_id}/version/active"
 
+    @staticmethod
+    def persona_activate_version(persona_id: str, version: str) -> str:
+        """Get path for activating a specific persona version."""
+        return f"/v1/persona/{persona_id}/version/{version}/activate"
+
     # Project endpoints
     PROJECTS = "/v1/projects"
 

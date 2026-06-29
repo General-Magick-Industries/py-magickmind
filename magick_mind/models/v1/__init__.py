@@ -94,7 +94,6 @@ from magick_mind.models.v1.persona import (
     PersonaWithVersion,
     PreparePersonaRequest,
     PreparePersonaResponse,
-    SetActiveVersionRequest,
     UpdatePersonaRequest,
 )
 from magick_mind.models.v1.personality import (
@@ -247,7 +246,6 @@ __all__ = [
     "CreatePersonaFromBlueprintRequest",
     "PersonaVersion",
     "CreatePersonaVersionRequest",
-    "SetActiveVersionRequest",
     "PersonaWithVersion",
     "PreparePersonaRequest",
     "PreparePersonaResponse",

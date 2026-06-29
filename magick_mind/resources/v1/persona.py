@@ -14,7 +14,6 @@ from magick_mind.models.v1.persona import (
     PersonaWithVersion,
     PreparePersonaRequest,
     PreparePersonaResponse,
-    SetActiveVersionRequest,
     UpdatePersonaRequest,
 )
 from magick_mind.models.v1.personality import (
@@ -334,9 +333,7 @@ class PersonaResourceV1(BaseResource):
         Returns:
             Persona with updated active_version
         """
-        request = SetActiveVersionRequest(version=version)
-        response = await self._http.put(
-            Routes.persona_active_version(persona_id),
-            json=request.model_dump(),
+        response = await self._http.post(
+            Routes.persona_activate_version(persona_id, version),
         )
         return Persona.model_validate(response)
