@@ -1,0 +1,53 @@
+# pydoc-markdown.yml — MM-298: SDK Reference generator
+# ---------------------------------------------------------------------------
+# Reads Google-style docstrings from the `magick_mind` package and renders
+# Markdown for the Fumadocs docs site's "SDK Reference" tab.
+#
+# Install (choose one, isolated from system Python):
+#   pipx install pydoc-markdown          # recommended
+#   # or: python -m venv .venv && . .venv/bin/activate && pip install pydoc-markdown
+#
+# Generate (run from this repo root):
+#   pydoc-markdown
+#
+# Output is a single RAW combined Markdown file at ./build/sdk-reference.md.
+# It is NOT the final docs — it is deliberately written OUTSIDE the docs repo's
+# content dir so a stray run can't break the docs build. The docs repo's
+# scripts/generate-sdk.py reads this raw file, splits it into per-area MDX
+# pages, sanitizes them, and adds frontmatter. Run that, not this, to publish.
+# ---------------------------------------------------------------------------
+
+loaders:
+  - type: python
+    # `magick_mind` lives at the repo root, so the repo root is the search path.
+    search_path: ["."]
+    packages: ["magick_mind"]
+
+processors:
+  # Drop undocumented / private members so the reference stays signal-heavy.
+  - type: filter
+    documented_only: true
+    exclude_private: true
+    skip_empty_modules: true
+  # The SDK uses Google-style docstrings (Args:/Returns:/Raises:).
+  - type: google
+  # Turn `SomeClass`/`method()` references into cross-links.
+  - type: crossref
+
+renderer:
+  type: markdown
+  # Raw combined output, OUTSIDE the docs content dir on purpose. The docs repo's
+  # scripts/generate-sdk.py consumes this and produces the final split MDX pages.
+  filename: "build/sdk-reference.md"
+  render_toc: true
+  render_toc_title: "On this page"
+  render_module_header: true
+  descriptive_class_title: false
+  add_method_class_prefix: true
+  # Push generated headings down one level so a wrapper can add an H1/title.
+  header_level_by_type:
+    Module: 2
+    Class: 3
+    Method: 4
+    Function: 3
+    Variable: 4
