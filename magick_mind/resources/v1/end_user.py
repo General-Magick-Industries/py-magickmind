@@ -9,9 +9,12 @@ from __future__ import annotations
 from typing import Optional
 
 
+from magick_mind.exceptions import MagickMindError, reraise_with_hint
 from magick_mind.models.v1.end_user import (
     CreateEndUserRequest,
     EndUser,
+    MintEndUserTokenRequest,
+    MintEndUserTokenResponse,
     QueryEndUserResponse,
     UpdateEndUserRequest,
 )
@@ -172,3 +175,47 @@ class EndUserResourceV1(BaseResource):
             print("End user deleted successfully")
         """
         await self._http.delete(Routes.end_user(end_user_id))
+
+    async def mint_token(
+        self,
+        subject_id: str,
+        *,
+        ttl_seconds: Optional[int] = None,
+    ) -> MintEndUserTokenResponse:
+        """
+        Mint a scoped JWT for an end user.
+
+        Called with service-user credentials. The returned token has the end user
+        as its subject and can be handed to an agent acting on that user's behalf --
+        e.g. to call the id-less persona prepare route
+        (``client.v1.persona.prepare_own_persona()``).
+
+        The subject must be an end user belonging to the calling service user;
+        otherwise the server responds 404 (unknown) or 403 (wrong tenant). Minting
+        must also be enabled server-side, or the call returns 503.
+
+        Args:
+            subject_id: End user ID the token represents
+            ttl_seconds: Optional token lifetime; server default applies if omitted
+
+        Returns:
+            MintEndUserTokenResponse with the token, its expiry, and token type
+        """
+        request = MintEndUserTokenRequest(
+            subject_id=subject_id,
+            ttl_seconds=ttl_seconds,
+        )
+        try:
+            response = await self._http.post(
+                Routes.END_USER_TOKENS,
+                json=request.model_dump(exclude_none=True),
+            )
+        except MagickMindError as exc:
+            if exc.status_code in (403, 404):
+                reraise_with_hint(
+                    exc,
+                    f"hint: subject_id must be an end user owned by the calling "
+                    f"service user; {subject_id!r} is unknown or in another tenant",
+                )
+            raise
+        return MintEndUserTokenResponse.model_validate(response)

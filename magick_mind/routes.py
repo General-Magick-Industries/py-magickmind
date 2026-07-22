@@ -109,6 +109,7 @@ class Routes:
 
     # Persona endpoints
     PERSONAS = "/v1/persona"
+    PERSONA_PREPARE_OWN = "/v1/end-user/persona/prepare"
     PERSONA_FROM_BLUEPRINT = "/v1/persona/from-blueprint"
 
     @staticmethod
@@ -128,7 +129,11 @@ class Routes:
 
     @staticmethod
     def persona_prepare(persona_id: str) -> str:
-        """Get path for preparing a persona's system prompt."""
+        """Get path for preparing a persona's system prompt (legacy path).
+
+        Keyed by persona ID. See :meth:`end_user_persona_prepare` for the
+        agent-keyed path, which returns richer resolution metadata.
+        """
         return f"/v1/persona/{persona_id}/prepare"
 
     @staticmethod
@@ -151,11 +156,21 @@ class Routes:
 
     # End User endpoints
     END_USERS = "/v1/end-users"
+    END_USER_TOKENS = "/v1/end-users/tokens"
 
     @staticmethod
     def end_user(end_user_id: str) -> str:
         """Get path for a specific end user."""
         return f"/v1/end-users/{end_user_id}"
+
+    @staticmethod
+    def end_user_persona_prepare(agent_id: str) -> str:
+        """Get path for preparing an agent's persona system prompt.
+
+        Keyed by agent ID, not persona ID. Called with service-user credentials.
+        See :attr:`PERSONA_PREPARE_OWN` for the end-user-JWT path.
+        """
+        return f"/v1/end-users/{agent_id}/persona/prepare"
 
     # Trait endpoints
     TRAITS = "/v1/traits"

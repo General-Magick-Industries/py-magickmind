@@ -52,6 +52,8 @@ from magick_mind.models.v1.corpus import (
 from magick_mind.models.v1.end_user import (
     CreateEndUserRequest,
     EndUser,
+    MintEndUserTokenRequest,
+    MintEndUserTokenResponse,
     QueryEndUserResponse,
     UpdateEndUserRequest,
 )
@@ -93,6 +95,7 @@ from magick_mind.models.v1.persona import (
     PersonaVersion,
     PersonaWithVersion,
     PreparePersonaRequest,
+    PrepareAgentPersonaResponse,
     PreparePersonaResponse,
     UpdatePersonaRequest,
 )
@@ -154,6 +157,8 @@ __all__ = [
     # End user
     "EndUser",
     "CreateEndUserRequest",
+    "MintEndUserTokenRequest",
+    "MintEndUserTokenResponse",
     "QueryEndUserResponse",
     "UpdateEndUserRequest",
     # Artifact
@@ -248,6 +253,7 @@ __all__ = [
     "CreatePersonaVersionRequest",
     "PersonaWithVersion",
     "PreparePersonaRequest",
+    "PrepareAgentPersonaResponse",
     "PreparePersonaResponse",
     "ListPersonaVersionsResponse",
     # Runtime

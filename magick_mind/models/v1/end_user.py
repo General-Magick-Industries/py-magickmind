@@ -70,3 +70,23 @@ class UpdateEndUserRequest(BaseModel):
         default=None,
         description="External ID for mapping to external systems (optional)",
     )
+
+
+class MintEndUserTokenRequest(BaseModel):
+    """Request schema for minting a scoped end-user JWT."""
+
+    subject_id: str = Field(
+        ..., description="End user ID the token is minted for (the token subject)"
+    )
+    ttl_seconds: Optional[int] = Field(
+        default=None,
+        description="Token lifetime in seconds; server default applies if omitted",
+    )
+
+
+class MintEndUserTokenResponse(BaseModel):
+    """Response containing a minted end-user JWT."""
+
+    token: str = Field(..., description="The signed end-user JWT")
+    expires_at: str = Field(..., description="Expiry timestamp (RFC3339)")
+    token_type: str = Field(default="Bearer", description="Token type, e.g. 'Bearer'")

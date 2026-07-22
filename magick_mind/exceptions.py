@@ -19,6 +19,23 @@ class MagickMindError(Exception):
         super().__init__(self.message)
 
 
+def reraise_with_hint(exc: MagickMindError, hint: str) -> None:
+    """Re-raise ``exc`` with ``hint`` appended, preserving its type.
+
+    For a :class:`ProblemDetailsException` the hint is appended to the problem's
+    ``detail`` so the exception type and its rich fields (``status``, ``title``,
+    ``request_id``, ``validation_errors``) survive -- a caller catching
+    ``ProblemDetailsException`` still matches. For a bare
+    :class:`MagickMindError` there is nothing richer to preserve, so a new
+    ``MagickMindError`` carrying the hint is raised.
+    """
+    if isinstance(exc, ProblemDetailsException):
+        exc.detail = f"{exc.detail} ({hint})"
+        exc.problem.detail = exc.detail
+        raise exc
+    raise MagickMindError(f"{exc} ({hint})", status_code=exc.status_code) from exc
+
+
 class AuthenticationError(MagickMindError):
     """Raised when authentication fails."""
 
