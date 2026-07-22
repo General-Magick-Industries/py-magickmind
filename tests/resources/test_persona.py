@@ -145,6 +145,26 @@ class TestPersonaResource:
         assert exc.status == 404
         assert exc.request_id == "req-abc123"  # rich fields preserved
 
+    async def test_prepare_for_agent_400_hints_malformed_id(
+        self, client: MagickMind, mock_auth: HTTPXMock
+    ):
+        """A malformed id returns 400 on dev, not 404 -- the likeliest misuse."""
+        mock_auth.add_response(
+            url=f"{BASE_URL}/v1/end-users/not-an-id/persona/prepare",
+            method="POST",
+            status_code=400,
+            json=_error_envelope(400, "Bad Request", "Invalid agent ID"),
+        )
+
+        with pytest.raises(ProblemDetailsException) as exc_info:
+            await client.v1.persona.prepare_for_agent("not-an-id")
+
+        exc = exc_info.value
+        assert "not a well-formed agent id" in str(exc)
+        assert "'not-an-id'" in str(exc)
+        assert "Invalid agent ID" in str(exc)
+        assert exc.status == 400
+
     async def test_prepare_for_agent_403_hints_token_subject(
         self, client: MagickMind, mock_auth: HTTPXMock
     ):

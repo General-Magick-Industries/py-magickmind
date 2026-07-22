@@ -223,6 +223,10 @@ class PersonaResourceV1(BaseResource):
             )
         except MagickMindError as exc:
             hints = {
+                400: (
+                    f"hint: {agent_id!r} is not a well-formed agent id; this route "
+                    f"is keyed by agent, not persona"
+                ),
                 404: (
                     f"hint: is {agent_id!r} an agent id? this route is keyed by "
                     f"agent, not persona"
