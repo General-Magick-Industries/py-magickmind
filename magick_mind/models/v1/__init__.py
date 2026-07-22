@@ -57,6 +57,11 @@ from magick_mind.models.v1.end_user import (
     QueryEndUserResponse,
     UpdateEndUserRequest,
 )
+from magick_mind.models.v1.episode import (
+    EndUserProcessEpisodeRequest,
+    ProcessEpisodeRequest,
+    ProcessEpisodeResponse,
+)
 from magick_mind.models.v1.history import ChatHistoryMessage, HistoryResponse
 from magick_mind.models.v1.api_keys import (
     ApiKey,
@@ -156,6 +161,9 @@ __all__ = [
     "GetProjectListResponse",
     # End user
     "EndUser",
+    "EndUserProcessEpisodeRequest",
+    "ProcessEpisodeRequest",
+    "ProcessEpisodeResponse",
     "CreateEndUserRequest",
     "MintEndUserTokenRequest",
     "MintEndUserTokenResponse",

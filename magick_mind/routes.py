@@ -146,6 +146,10 @@ class Routes:
         """Get path for activating a specific persona version."""
         return f"/v1/persona/{persona_id}/version/{version}/activate"
 
+    # Episode endpoints
+    EPISODES_PROCESS = "/v1/episodes/process"
+    EPISODES_PROCESS_OWN = "/v1/end-user/episodes/process"
+
     # Project endpoints
     PROJECTS = "/v1/projects"
 
