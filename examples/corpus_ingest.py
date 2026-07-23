@@ -180,7 +180,7 @@ async def main() -> None:
                     print(f"   Ingestion complete ({elapsed:.0f}s)\n")
                     break
                 if status.status.upper() == "FAILED":
-                    print(f"   Ingestion FAILED: {status.content_summary}")
+                    print(f"   Ingestion FAILED: {status.error or status.content_summary}")
                     return
                 if elapsed > MAX_POLL_TIME:
                     print(f"   Timed out after {MAX_POLL_TIME}s")
