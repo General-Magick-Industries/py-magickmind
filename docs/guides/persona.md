@@ -132,7 +132,7 @@ sent:
 
 ```python
 # The agent holds its own end-user token; the server resolves it from the credential.
-prepared = await client.v1.persona.prepare_own_persona(user_id="user-abc-123")
+prepared = await client.v1.persona.prepare_for_own_agent(user_id="user-abc-123")
 ```
 
 Both return the same `PrepareAgentPersonaResponse`. Picking the wrong one still
@@ -140,11 +140,25 @@ fails — the two routes verify differently signed tokens, so the call returns 4
 either way — but the SDK attaches a hint naming the method you wanted. The error
 is diagnosed, not prevented.
 
+The agent's client is built from the token rather than from credentials:
+
+```python
+# On your backend, holding service-user credentials:
+minted = await client.v1.end_user.mint_token(agent_id, ttl_seconds=3600)
+
+# In the agent process, holding only that token:
+agent = MagickMind.from_token(BASE_URL, minted.token)
+prepared = await agent.v1.persona.prepare_for_own_agent()
+```
+
+`from_token()` does not inspect or refresh the token — only the server judges
+it, so an expired or wrong-kind token surfaces as a 401 on the first call.
+
 To mint the end-user JWT an agent needs, use `client.v1.end_user.mint_token()`:
 
 ```python
 minted = await client.v1.end_user.mint_token("eu-123", ttl_seconds=3600)
-# Hand minted.token to the agent process; it then calls prepare_own_persona().
+# Hand minted.token to the agent process; it then calls prepare_for_own_agent().
 ```
 
 ### Using it with chat
@@ -451,7 +465,7 @@ async def handle_chat_request(
 
 > **Caching tip:** `prepare()` is a network call. In high-throughput scenarios, cache `system_prompt` per `(persona_id, user_id)` pair and invalidate when the active version changes or when you explicitly call `client.v1.runtime.invalidate_cache(persona_id)`.
 >
-> This key is correct **only for `prepare()`**, which is genuinely keyed by persona. Results from `prepare_for_agent()` / `prepare_own_persona()` must be keyed by `agent_id` instead — two agents can share a persona, so a persona-keyed entry would serve one agent's prompt to another.
+> This key is correct **only for `prepare()`**, which is genuinely keyed by persona. Results from `prepare_for_agent()` / `prepare_for_own_agent()` must be keyed by `agent_id` instead — two agents can share a persona, so a persona-keyed entry would serve one agent's prompt to another.
 
 ## API Reference
 
@@ -503,7 +517,7 @@ Resolve an **agent's** persona into a ready-to-use system prompt.
 
 ---
 
-### `prepare_own_persona()`
+### `prepare_for_own_agent()`
 
 Resolve the **calling agent's own** persona, for a client holding an end-user JWT.
 The agent is the token subject, so no ID is sent. Use `prepare_for_agent()` instead

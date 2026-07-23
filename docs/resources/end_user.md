@@ -151,7 +151,7 @@ print("End user deleted successfully")
 Mint a scoped JWT for an end user. Called with service-user credentials.
 
 The returned token has the end user as its subject, and is what an agent process
-presents to the end-user API surface — `persona.prepare_own_persona()` and
+presents to the end-user API surface — `persona.prepare_for_own_agent()` and
 `episode.process_own()`, where the caller is identified by the token rather than
 by an ID in the request.
 
@@ -169,9 +169,17 @@ minted = await client.v1.end_user.mint_token("eu-123", ttl_seconds=3600)
 print(minted.token, minted.expires_at)
 ```
 
-> **Note:** the SDK client is constructed from email/password. Using a minted
-> token requires supplying it as the credential for a separate client instance;
-> see the [persona guide](../guides/persona.md) for where these tokens are used.
+Hand the token to the agent process, which builds its own client from it:
+
+```python
+from magick_mind import MagickMind
+
+agent = MagickMind.from_token("https://api.example.com", minted.token)
+prepared = await agent.v1.persona.prepare_for_own_agent()
+```
+
+See the [persona guide](../guides/persona.md) for the end-user API surface these
+tokens unlock.
 
 ## Data Models
 

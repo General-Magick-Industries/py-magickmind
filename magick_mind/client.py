@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Optional
 if TYPE_CHECKING:
     from openai import AsyncOpenAI
 
-from magick_mind.auth import AuthProvider, EmailPasswordAuth
+from magick_mind.auth import AuthProvider, EmailPasswordAuth, StaticTokenAuth
 from magick_mind.config import SDKConfig
 from magick_mind.exceptions import MagickMindError
 from magick_mind.http import HTTPClient
@@ -83,18 +83,26 @@ class MagickMind:
         if not email or not password:
             raise ValueError("Email and password are required for authentication")
 
-        # Create configuration
-        self.config: SDKConfig = SDKConfig(
+        config = SDKConfig(
             base_url=base_url,
             timeout=timeout,
             verify_ssl=verify_ssl,
             ws_endpoint=ws_endpoint,
         )
-
-        # Create authentication provider (email/password with JWT)
-        self.auth: AuthProvider = EmailPasswordAuth(
+        auth = EmailPasswordAuth(
             email=email, password=password, base_url=base_url, timeout=timeout
         )
+        self._wire(config, auth, ws_endpoint)
+
+    def _wire(
+        self,
+        config: SDKConfig,
+        auth: AuthProvider,
+        ws_endpoint: Optional[str],
+    ) -> None:
+        """Build the HTTP, realtime, and resource graph around an auth provider."""
+        self.config: SDKConfig = config
+        self.auth: AuthProvider = auth
 
         # Create HTTP client (private, accessed via property)
         self._http = HTTPClient(config=self.config, auth=self.auth)
@@ -113,6 +121,57 @@ class MagickMind:
         self.magickspaces: MagickspacesResourceV1 = self.v1.magickspaces
         self.mindspace: MindspaceResourceV1 = self.v1.mindspace
         self.reason: ReasonResourceV2 = self.v2.reason
+
+    @classmethod
+    def from_token(
+        cls,
+        base_url: str,
+        token: str,
+        timeout: float = 30.0,
+        verify_ssl: bool = True,
+        ws_endpoint: Optional[str] = None,
+    ) -> MagickMind:
+        """
+        Build a client that authenticates with a pre-issued bearer token.
+
+        This is how an agent process uses an end-user JWT minted for it by a
+        service user (``client.v1.end_user.mint_token()``). Such a token is the
+        credential for the end-user API surface, where the caller is identified
+        by the token subject rather than by an ID in the request --
+        ``v1.persona.prepare_for_own_agent()`` and ``v1.episode.process_own()``.
+
+        The token is used as given: it is never refreshed, and it is not
+        inspected or validated here. Only the server decides whether it is
+        acceptable, so a wrong-kind, expired, or revoked token surfaces as a
+        401 on the first call rather than at construction.
+
+        Args:
+            base_url: Base URL of the Magick Mind API
+            token: Bearer token to present on every request
+            timeout: Request timeout in seconds
+            verify_ssl: Whether to verify SSL certificates
+            ws_endpoint: WebSocket URL (required for ``.realtime`` usage)
+
+        Returns:
+            A MagickMind client bound to the token
+
+        Raises:
+            ValueError: If the token is empty
+
+        Example:
+            minted = await client.v1.end_user.mint_token(agent_id)
+            agent = MagickMind.from_token(BASE_URL, minted.token)
+            prepared = await agent.v1.persona.prepare_for_own_agent()
+        """
+        self = cls.__new__(cls)
+        config = SDKConfig(
+            base_url=base_url,
+            timeout=timeout,
+            verify_ssl=verify_ssl,
+            ws_endpoint=ws_endpoint,
+        )
+        self._wire(config, StaticTokenAuth(token), ws_endpoint)
+        return self
 
     @property
     def http(self) -> HTTPClient:

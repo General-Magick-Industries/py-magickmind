@@ -74,7 +74,12 @@ print(result.message_processed)
 
 Ingest a message into the **calling agent's** episodic memory, using that agent's end-user JWT. No `agent_id` is sent — the server resolves the owner from the token subject.
 
-Mint the token with [`end_user.mint_token()`](end_user.md).
+Mint the token with [`end_user.mint_token()`](end_user.md), then build the
+agent's client from it:
+
+```python
+agent_client = MagickMind.from_token("https://api.example.com", minted.token)
+```
 
 **Parameters:** as `process()`, minus `agent_id`.
 

@@ -185,7 +185,7 @@ class TestPersonaResource:
 
         exc = exc_info.value
         assert "needs service-user credentials" in str(exc)
-        assert "prepare_own_persona()" in str(exc)
+        assert "prepare_for_own_agent()" in str(exc)
         assert exc.status == 401
 
     async def test_prepare_for_agent_403_hints_token_subject(
@@ -203,10 +203,10 @@ class TestPersonaResource:
 
         exc = exc_info.value
         assert "does not match the token subject" in str(exc)
-        assert "prepare_own_persona()" in str(exc)
+        assert "prepare_for_own_agent()" in str(exc)
         assert exc.status == 403
 
-    async def test_prepare_own_persona_uses_idless_route(
+    async def test_prepare_for_own_agent_uses_idless_route(
         self, client: MagickMind, mock_auth: HTTPXMock
     ):
         prepared = PrepareAgentPersonaResponseFactory.build(
@@ -221,7 +221,7 @@ class TestPersonaResource:
             json=prepared.model_dump(mode="json"),
         )
 
-        prep = await client.v1.persona.prepare_own_persona()
+        prep = await client.v1.persona.prepare_for_own_agent()
 
         assert prep.system_prompt == "You are Aria."
         assert prep.agent_id == "a-self"
@@ -230,7 +230,7 @@ class TestPersonaResource:
         assert "/end-users/" not in str(request.url)
         assert json.loads(request.content) == {}
 
-    async def test_prepare_own_persona_401_hints_wrong_credential(
+    async def test_prepare_for_own_agent_401_hints_wrong_credential(
         self, client: MagickMind, mock_auth: HTTPXMock
     ):
         mock_auth.add_response(
@@ -241,7 +241,7 @@ class TestPersonaResource:
         )
 
         with pytest.raises(ProblemDetailsException) as exc_info:
-            await client.v1.persona.prepare_own_persona()
+            await client.v1.persona.prepare_for_own_agent()
 
         exc = exc_info.value
         assert "unrevoked end-user JWT" in str(exc)

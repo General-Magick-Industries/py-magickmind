@@ -199,7 +199,7 @@ class PersonaResourceV1(BaseResource):
 
         This is the service-user path: it identifies the agent by path parameter
         and is called with service-user credentials. An agent holding its own
-        end-user JWT should call :meth:`prepare_own_persona` instead, where the
+        end-user JWT should call :meth:`prepare_for_own_agent` instead, where the
         agent is the token subject and no ID is sent.
 
         Note:
@@ -239,12 +239,12 @@ class PersonaResourceV1(BaseResource):
                 403: (
                     "hint: agent id does not match the token subject or is not "
                     "visible to these credentials; with an end-user JWT use "
-                    "prepare_own_persona()"
+                    "prepare_for_own_agent()"
                 ),
                 401: (
                     "hint: this route needs service-user credentials; an end-user "
                     "JWT is signed differently and fails verification here -- use "
-                    "prepare_own_persona() with that token"
+                    "prepare_for_own_agent() with that token"
                 ),
             }
             if exc.status_code is not None and exc.status_code in hints:
@@ -252,7 +252,7 @@ class PersonaResourceV1(BaseResource):
             raise
         return PrepareAgentPersonaResponse.model_validate(response)
 
-    async def prepare_own_persona(
+    async def prepare_for_own_agent(
         self,
         *,
         user_id: Optional[str] = None,

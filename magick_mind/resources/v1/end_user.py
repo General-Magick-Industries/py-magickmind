@@ -188,7 +188,7 @@ class EndUserResourceV1(BaseResource):
         Called with service-user credentials. The returned token has the end user
         as its subject and can be handed to an agent acting on that user's behalf --
         e.g. to call the id-less persona prepare route
-        (``client.v1.persona.prepare_own_persona()``).
+        (``client.v1.persona.prepare_for_own_agent()``).
 
         The subject must be an end user belonging to the calling service user;
         otherwise the server responds 404 (unknown) or 403 (wrong tenant). Minting
