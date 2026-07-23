@@ -90,8 +90,9 @@ class EpisodeResourceV1(BaseResource):
         except MagickMindError as exc:
             hints = {
                 403: (
-                    "hint: agent_id is not visible to these credentials; holding "
-                    "an end-user JWT, use process_own()"
+                    "hint: the sender must be a participant of this magickspace, "
+                    "and agent_id must be visible to these credentials; holding an "
+                    "end-user JWT, use process_own()"
                 ),
             }
             if exc.status_code is not None and exc.status_code in hints:

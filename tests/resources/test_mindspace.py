@@ -14,6 +14,7 @@ from magick_mind.models.v1.mindspace import (
 )
 
 import pytest
+from pydantic import ValidationError as PydanticValidationError
 
 from magick_mind.exceptions import ProblemDetailsException
 
@@ -220,3 +221,57 @@ class TestMindspace:
             await client.magickspaces.create(name="Broken Space", type="PRIVATE")
 
         assert exc.value.status == 500
+
+
+class TestMindspaceTypeNormalization:
+    """The API returns proto enum names; the prefix changed with the
+    mindspace -> magickspace rename, which broke list() against dev."""
+
+    @pytest.mark.parametrize(
+        "wire_value,expected",
+        [
+            # what the API sends today
+            ("MAGICKSPACE_TYPE_PRIVATE", "PRIVATE"),
+            ("MAGICKSPACE_TYPE_GROUP", "GROUP"),
+            # legacy prefix, must keep working
+            ("MINDSPACE_TYPE_PRIVATE", "PRIVATE"),
+            ("MINDSPACE_TYPE_GROUP", "GROUP"),
+            # already short form
+            ("PRIVATE", "PRIVATE"),
+            ("GROUP", "GROUP"),
+        ],
+    )
+    def test_normalizes_proto_enum_names(self, wire_value: str, expected: str):
+        space = MindSpace.model_validate({**MINDSPACE_PAYLOAD, "type": wire_value})
+        assert space.type == expected
+
+    def test_unknown_value_still_rejected(self):
+        """Normalization must not turn a genuinely bad value into a silent pass."""
+        with pytest.raises(PydanticValidationError):
+            MindSpace.model_validate({**MINDSPACE_PAYLOAD, "type": "NOT_A_TYPE"})
+
+    async def test_list_parses_current_api_enum(
+        self,
+        client: MagickMind,
+        mock_auth: HTTPXMock,
+    ):
+        """Regression: every row failed validation against dev before this fix."""
+        mock_auth.add_response(
+            url=f"{BASE_URL}/v1/magickspaces",
+            method="GET",
+            json={
+                "data": [
+                    {**MINDSPACE_PAYLOAD, "type": "MAGICKSPACE_TYPE_GROUP"},
+                    {
+                        **MINDSPACE_PAYLOAD,
+                        "id": "ms-2",
+                        "type": "MAGICKSPACE_TYPE_PRIVATE",
+                    },
+                ],
+                "paging": PAGING_EMPTY,
+            },
+        )
+
+        result = await client.magickspaces.list()
+
+        assert [s.type for s in result.data] == ["GROUP", "PRIVATE"]

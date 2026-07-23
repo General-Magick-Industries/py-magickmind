@@ -111,6 +111,7 @@ class TestEpisodeResource:
             )
 
         exc = exc_info.value
+        assert "participant of this magickspace" in str(exc)
         assert "process_own()" in str(exc)
         assert exc.status == 403
         assert exc.request_id == "req-abc123"  # rich fields preserved
