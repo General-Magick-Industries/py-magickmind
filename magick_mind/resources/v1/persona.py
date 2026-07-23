@@ -236,6 +236,11 @@ class PersonaResourceV1(BaseResource):
                     "visible to these credentials; with an end-user JWT use "
                     "prepare_own_persona()"
                 ),
+                401: (
+                    "hint: this route needs service-user credentials; an end-user "
+                    "JWT is signed differently and fails verification here -- use "
+                    "prepare_own_persona() with that token"
+                ),
             }
             if exc.status_code is not None and exc.status_code in hints:
                 reraise_with_hint(exc, hints[exc.status_code])

@@ -94,6 +94,11 @@ class EpisodeResourceV1(BaseResource):
                     "and agent_id must be visible to these credentials; holding an "
                     "end-user JWT, use process_own()"
                 ),
+                401: (
+                    "hint: this route needs service-user credentials; an end-user "
+                    "JWT is signed differently and fails verification here -- use "
+                    "process_own() with that token"
+                ),
             }
             if exc.status_code is not None and exc.status_code in hints:
                 reraise_with_hint(exc, hints[exc.status_code])

@@ -116,6 +116,34 @@ class TestEpisodeResource:
         assert exc.status == 403
         assert exc.request_id == "req-abc123"  # rich fields preserved
 
+    async def test_process_401_hints_wrong_credential(
+        self, client: MagickMind, mock_auth: HTTPXMock
+    ):
+        """Mirror of the process_own 401: an end-user JWT fails verification
+        on the service-user route."""
+        mock_auth.add_response(
+            url=f"{BASE_URL}/v1/episodes/process",
+            method="POST",
+            status_code=401,
+            json=_error_envelope(
+                401, "Unauthorized", "token is unverifiable: unexpected signing method"
+            ),
+        )
+
+        with pytest.raises(ProblemDetailsException) as exc_info:
+            await client.v1.episode.process(
+                magickspace_id="ms-1",
+                sender_id="eu-1",
+                message="hello",
+                message_id="msg-1",
+                agent_id="agent-1",
+            )
+
+        exc = exc_info.value
+        assert "needs service-user credentials" in str(exc)
+        assert "process_own()" in str(exc)
+        assert exc.status == 401
+
     async def test_process_own_401_hints_wrong_credential(
         self, client: MagickMind, mock_auth: HTTPXMock
     ):
