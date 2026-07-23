@@ -16,13 +16,18 @@ class ProcessEpisodeRequest(BaseModel):
     """
 
     agent_id: Optional[str] = Field(
-        default=None, description="Memory owner; omit to use the token subject"
+        default=None,
+        description=(
+            "Memory owner. Required for a write on the service-user route: the "
+            "server rejects both an absent and an empty agent_id (an empty one "
+            "is the neutral read lens, never a write owner)."
+        ),
     )
     magickspace_id: str
     sender_id: str
     message: str
     message_id: str
-    display_name: str = ""
+    display_name: Optional[str] = None
     is_group: bool = False
     skip_persona: bool = False
 
@@ -38,7 +43,7 @@ class EndUserProcessEpisodeRequest(BaseModel):
     sender_id: str
     message: str
     message_id: str
-    display_name: str = ""
+    display_name: Optional[str] = None
     is_group: bool = False
     skip_persona: bool = False
 
@@ -46,4 +51,4 @@ class EndUserProcessEpisodeRequest(BaseModel):
 class ProcessEpisodeResponse(BaseModel):
     """Response from an episode ingest."""
 
-    message_processed: bool = False
+    message_processed: bool

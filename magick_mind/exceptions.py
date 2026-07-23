@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Optional
+from typing import Any, NoReturn, Optional
 
 from magick_mind.models.errors import ProblemDetails, ValidationErrorField
 
@@ -16,24 +16,37 @@ class MagickMindError(Exception):
     def __init__(self, message: str, status_code: int | None = None):
         self.message = message
         self.status_code = status_code
+        self.hint: Optional[str] = None
         super().__init__(self.message)
 
+    def _base_str(self) -> str:
+        """The message without any SDK hint. Subclasses override to add detail."""
+        return self.message
 
-def reraise_with_hint(exc: MagickMindError, hint: str) -> None:
-    """Re-raise ``exc`` with ``hint`` appended, preserving its type.
+    def __str__(self) -> str:
+        base = self._base_str()
+        return f"{base} ({self.hint})" if self.hint else base
 
-    For a :class:`ProblemDetailsException` the hint is appended to the problem's
-    ``detail`` so the exception type and its rich fields (``status``, ``title``,
-    ``request_id``, ``validation_errors``) survive -- a caller catching
-    ``ProblemDetailsException`` still matches. For a bare
-    :class:`MagickMindError` there is nothing richer to preserve, so a new
-    ``MagickMindError`` carrying the hint is raised.
+
+def reraise_with_hint(exc: MagickMindError, hint: str) -> NoReturn:
+    """Re-raise ``exc`` with an SDK ``hint`` attached, preserving its exact type.
+
+    The hint is stored on ``exc.hint`` and surfaced by ``__str__``. It is
+    deliberately kept out of ``detail``/``problem``, which hold the server's own
+    RFC 7807 payload -- overwriting those would make the SDK's guidance
+    indistinguishable from what the API actually said.
+
+    The exception object is re-raised as-is, so its type and every field
+    survive: a caller catching :class:`ProblemDetailsException`,
+    :class:`ValidationError`, or :class:`AuthenticationError` still matches.
+    Applying a hint twice replaces the first rather than stacking.
     """
-    if isinstance(exc, ProblemDetailsException):
-        exc.detail = f"{exc.detail} ({hint})"
-        exc.problem.detail = exc.detail
-        raise exc
-    raise MagickMindError(f"{exc} ({hint})", status_code=exc.status_code) from exc
+    exc.hint = hint
+    # Keep args/message in step so logging.exception, repr(), and traceback
+    # formatting -- none of which call __str__ -- show the hint too.
+    exc.message = str(exc)
+    exc.args = (exc.message,)
+    raise exc
 
 
 class AuthenticationError(MagickMindError):
@@ -84,7 +97,7 @@ class ProblemDetailsException(MagickMindError):
         super().__init__(self.detail, status_code=self.status)
         self.response_data: Optional[dict[str, Any]] = raw_response
 
-    def __str__(self) -> str:
+    def _base_str(self) -> str:
         msg = f"[{self.status}] {self.title}: {self.detail}"
         if self.request_id:
             msg += f" (request_id: {self.request_id})"

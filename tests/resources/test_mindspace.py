@@ -239,16 +239,28 @@ class TestMindspaceTypeNormalization:
             # already short form
             ("PRIVATE", "PRIVATE"),
             ("GROUP", "GROUP"),
+            # a future rename of the enum must keep parsing -- this is the
+            # property the magickspace rename broke, and pins the suffix rule
+            ("SPACE_TYPE_PRIVATE", "PRIVATE"),
+            ("WORKSPACE_TYPE_GROUP", "GROUP"),
         ],
     )
     def test_normalizes_proto_enum_names(self, wire_value: str, expected: str):
         space = MindSpace.model_validate({**MINDSPACE_PAYLOAD, "type": wire_value})
         assert space.type == expected
 
-    def test_unknown_value_still_rejected(self):
+    @pytest.mark.parametrize(
+        "wire_value",
+        [
+            "NOT_A_TYPE",
+            "MAGICKSPACE_TYPE_BROADCAST",  # known prefix, unknown suffix
+            "",
+        ],
+    )
+    def test_unknown_value_still_rejected(self, wire_value: str):
         """Normalization must not turn a genuinely bad value into a silent pass."""
         with pytest.raises(PydanticValidationError):
-            MindSpace.model_validate({**MINDSPACE_PAYLOAD, "type": "NOT_A_TYPE"})
+            MindSpace.model_validate({**MINDSPACE_PAYLOAD, "type": wire_value})
 
     async def test_list_parses_current_api_enum(
         self,

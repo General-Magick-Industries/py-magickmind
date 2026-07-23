@@ -224,12 +224,17 @@ class PersonaResourceV1(BaseResource):
         except MagickMindError as exc:
             hints = {
                 400: (
-                    f"hint: {agent_id!r} is not a well-formed agent id; this route "
-                    f"is keyed by agent, not persona"
+                    f"hint: {agent_id!r} is either not a well-formed id, or names "
+                    f"an end user that is not an agent; this route is keyed by "
+                    f"agent, not persona"
                 ),
                 404: (
                     f"hint: is {agent_id!r} an agent id? this route is keyed by "
                     f"agent, not persona"
+                ),
+                409: (
+                    "hint: the agent has no attached persona or no active persona "
+                    "version; attach one before preparing a prompt"
                 ),
                 403: (
                     "hint: agent id does not match the token subject or is not "
@@ -276,10 +281,16 @@ class PersonaResourceV1(BaseResource):
         except MagickMindError as exc:
             hints = {
                 401: (
-                    "hint: this route needs an end-user JWT; with service-user "
-                    "credentials use prepare_for_agent(agent_id)"
+                    "hint: this route needs a valid, unrevoked end-user JWT; with "
+                    "service-user credentials use prepare_for_agent(agent_id)"
                 ),
-                403: "hint: end-user token revoked or not permitted",
+                403: (
+                    "hint: the calling agent is not permitted to prepare this persona"
+                ),
+                409: (
+                    "hint: the agent has no attached persona or no active persona "
+                    "version; attach one before preparing a prompt"
+                ),
             }
             if exc.status_code is not None and exc.status_code in hints:
                 reraise_with_hint(exc, hints[exc.status_code])

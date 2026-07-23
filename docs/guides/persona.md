@@ -101,9 +101,11 @@ print(prepared.persona_id)      # which persona the agent resolved to
 
 > **The argument is an agent ID, not a persona ID.** The two paths take
 > same-shaped IDs in same-shaped URLs, so a persona ID passed here reaches the
-> server as an unknown agent and fails with 404. A 403 means the agent id does not
-> match the token subject, or is not visible to these credentials. The SDK appends
-> a hint to both.
+> server as an agent lookup and fails — **400** if the ID is malformed or names
+> an end user that is not an agent, **404** if it is well-formed but unknown. A
+> **403** means the agent ID does not match the token subject, or is not visible
+> to these credentials; a **409** means the agent has no attached persona or no
+> active version. The SDK appends a hint to each.
 
 Unlike `prepare()`, the response carries the resolution metadata:
 
@@ -133,9 +135,10 @@ sent:
 prepared = await client.v1.persona.prepare_own_persona(user_id="user-abc-123")
 ```
 
-Both return the same `PrepareAgentPersonaResponse`. Picking the wrong one is caught:
-calling `prepare_own_persona()` with service credentials returns 401 ("needs an
-end-user JWT"); the SDK's hint points you back to `prepare_for_agent()`.
+Both return the same `PrepareAgentPersonaResponse`. Picking the wrong one still
+fails — the two routes verify differently signed tokens, so the call returns 401
+either way — but the SDK attaches a hint naming the method you wanted. The error
+is diagnosed, not prevented.
 
 To mint the end-user JWT an agent needs, use `client.v1.end_user.mint_token()`:
 
@@ -447,6 +450,8 @@ async def handle_chat_request(
 ```
 
 > **Caching tip:** `prepare()` is a network call. In high-throughput scenarios, cache `system_prompt` per `(persona_id, user_id)` pair and invalidate when the active version changes or when you explicitly call `client.v1.runtime.invalidate_cache(persona_id)`.
+>
+> This key is correct **only for `prepare()`**, which is genuinely keyed by persona. Results from `prepare_for_agent()` / `prepare_own_persona()` must be keyed by `agent_id` instead — two agents can share a persona, so a persona-keyed entry would serve one agent's prompt to another.
 
 ## API Reference
 

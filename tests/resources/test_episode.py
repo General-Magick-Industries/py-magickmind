@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import inspect
 import json
 
 import pytest
@@ -9,6 +10,7 @@ from pytest_httpx import HTTPXMock
 
 from magick_mind import MagickMind
 from magick_mind.exceptions import ProblemDetailsException
+from magick_mind.resources.v1.episode import EpisodeResourceV1
 
 from tests.resources._payloads import BASE_URL, _error_envelope
 
@@ -48,9 +50,27 @@ class TestEpisodeResource:
             "skip_persona": False,
         }
 
-    async def test_process_omits_agent_id_when_unset(
+    def test_process_requires_keyword_only_agent_id(self):
+        """A write always needs an owner: the server rejects an absent or empty
+        agent_id with 400, so agent_id must be required rather than defaulted.
+
+        Everything is keyword-only too -- the call takes several same-typed
+        string ids, and a positional swap would be silent.
+        """
+        sig = inspect.signature(EpisodeResourceV1.process)
+        agent_id = sig.parameters["agent_id"]
+        assert agent_id.default is inspect.Parameter.empty, "agent_id must be required"
+        assert all(
+            p.kind is inspect.Parameter.KEYWORD_ONLY
+            for name, p in sig.parameters.items()
+            if name != "self"
+        ), "all parameters must be keyword-only"
+
+    async def test_process_omits_display_name_when_unset(
         self, client: MagickMind, mock_auth: HTTPXMock
     ):
+        """The server falls back to the end user's own name; sending "" would
+        override that with an empty string."""
         mock_auth.add_response(
             url=f"{BASE_URL}/v1/episodes/process",
             method="POST",
@@ -58,6 +78,7 @@ class TestEpisodeResource:
         )
 
         await client.v1.episode.process(
+            agent_id="agent-1",
             magickspace_id="ms-1",
             sender_id="eu-1",
             message="hello",
@@ -65,7 +86,8 @@ class TestEpisodeResource:
         )
 
         body = json.loads(mock_auth.get_requests()[-1].content)
-        assert "agent_id" not in body
+        assert "display_name" not in body
+        assert body["agent_id"] == "agent-1"
 
     async def test_process_own_uses_idless_route(
         self, client: MagickMind, mock_auth: HTTPXMock
@@ -163,6 +185,6 @@ class TestEpisodeResource:
             )
 
         exc = exc_info.value
-        assert "needs an end-user JWT" in str(exc)
+        assert "unrevoked end-user JWT" in str(exc)
         assert "process(agent_id=...)" in str(exc)
         assert exc.status == 401

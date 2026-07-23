@@ -211,11 +211,22 @@ class EndUserResourceV1(BaseResource):
                 json=request.model_dump(exclude_none=True),
             )
         except MagickMindError as exc:
-            if exc.status_code in (403, 404):
-                reraise_with_hint(
-                    exc,
+            hints = {
+                400: (
+                    "hint: ttl_seconds must be greater than zero and within the "
+                    "server's maximum"
+                ),
+                403: (
                     f"hint: subject_id must be an end user owned by the calling "
-                    f"service user; {subject_id!r} is unknown or in another tenant",
-                )
+                    f"service user; {subject_id!r} is in another tenant"
+                ),
+                404: (
+                    f"hint: subject_id must be an end user owned by the calling "
+                    f"service user; {subject_id!r} is unknown"
+                ),
+                503: "hint: end-user token minting is not configured on this server",
+            }
+            if exc.status_code is not None and exc.status_code in hints:
+                reraise_with_hint(exc, hints[exc.status_code])
             raise
         return MintEndUserTokenResponse.model_validate(response)

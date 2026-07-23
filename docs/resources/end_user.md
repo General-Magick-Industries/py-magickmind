@@ -144,6 +144,35 @@ client.v1.end_user.delete(end_user_id="user-123")
 print("End user deleted successfully")
 ```
 
+---
+
+### `mint_token(subject_id, *, ttl_seconds=None)`
+
+Mint a scoped JWT for an end user. Called with service-user credentials.
+
+The returned token has the end user as its subject, and is what an agent process
+presents to the end-user API surface — `persona.prepare_own_persona()` and
+`episode.process_own()`, where the caller is identified by the token rather than
+by an ID in the request.
+
+**Parameters:**
+- `subject_id` (str, required): End user the token represents. Must belong to the calling service user.
+- `ttl_seconds` (int, optional): Token lifetime. The server applies its own default when omitted, and rejects a value above its configured maximum.
+
+**Returns:** `MintEndUserTokenResponse` with `token`, `expires_at` (RFC3339), and `token_type`
+
+**Raises:** `MagickMindError` — `400` invalid `ttl_seconds`, `403` subject belongs to another tenant, `404` subject unknown, `503` minting not configured on the server.
+
+**Example:**
+```python
+minted = await client.v1.end_user.mint_token("eu-123", ttl_seconds=3600)
+print(minted.token, minted.expires_at)
+```
+
+> **Note:** the SDK client is constructed from email/password. Using a minted
+> token requires supplying it as the credential for a separate client instance;
+> see the [persona guide](../guides/persona.md) for where these tokens are used.
+
 ## Data Models
 
 ### EndUser

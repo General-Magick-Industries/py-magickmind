@@ -10,6 +10,7 @@ from magick_mind import MagickMind
 from magick_mind.models.v1.end_user import EndUser
 
 import pytest
+from pydantic import ValidationError as PydanticValidationError
 
 from tests.resources._payloads import (
     BASE_URL,
@@ -160,6 +161,22 @@ class TestEndUser:
 
         body = json.loads(mock_auth.get_requests()[-1].content)
         assert body == {"subject_id": "eu-123"}
+
+    async def test_mint_token_rejects_response_without_token(
+        self,
+        client: MagickMind,
+        mock_auth: HTTPXMock,
+    ):
+        """This method returns a credential: a malformed response must fail
+        loudly rather than yield an empty-string bearer."""
+        mock_auth.add_response(
+            url=f"{BASE_URL}/v1/end-users/tokens",
+            method="POST",
+            json={"expires_at": "2026-07-22T12:00:00Z", "token_type": "Bearer"},
+        )
+
+        with pytest.raises(PydanticValidationError):
+            await client.v1.end_user.mint_token("eu-123")
 
     @pytest.mark.parametrize("status", [403, 404])
     async def test_mint_token_hints_on_bad_subject(

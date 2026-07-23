@@ -16,36 +16,35 @@ from magick_mind.models.v1.history import HistoryResponse
 # Type alias for mindspace type enum (uppercase to match apidog)
 MindSpaceType = Literal["PRIVATE", "GROUP"]
 
-# The API returns proto enum .String() values with a type prefix, which has
-# changed with the mindspace -> magickspace rename. We normalize to short form
-# for SDK consumers, accepting either prefix.
-_TYPE_PREFIXES = ("MAGICKSPACE_TYPE_", "MINDSPACE_TYPE_")
+# The API returns proto enum .String() values prefixed with the owning enum's
+# name -- MINDSPACE_TYPE_GROUP, and MAGICKSPACE_TYPE_GROUP after the rename.
+# We normalize to the short form for SDK consumers.
+_TYPE_MARKER = "_TYPE_"
 
 _TYPE_NORMALIZE: dict[str, MindSpaceType] = {
     "PRIVATE": "PRIVATE",
     "GROUP": "GROUP",
-    "MINDSPACE_TYPE_PRIVATE": "PRIVATE",
-    "MINDSPACE_TYPE_GROUP": "GROUP",
-    "MAGICKSPACE_TYPE_PRIVATE": "PRIVATE",
-    "MAGICKSPACE_TYPE_GROUP": "GROUP",
 }
 
 
 def _normalize_space_type(v: object) -> object:
     """Normalize a proto enum type name to its short form.
 
-    Accepts the short form as-is, the known prefixed names, and any future
-    ``*_TYPE_`` prefix whose suffix is a valid short form -- so a rename like
-    mindspace -> magickspace degrades to a working value rather than failing
-    validation on every row.
+    Accepts the short form as-is and any ``<ENUM>_TYPE_<SHORT>`` spelling whose
+    suffix is a valid short form. Matching the suffix rather than a fixed list
+    of prefixes means the next rename of the enum keeps parsing instead of
+    failing validation on every row, as the mindspace -> magickspace rename did.
+
+    An unrecognized value is returned unchanged so it fails validation loudly
+    rather than being masked.
     """
     if not isinstance(v, str):
         return v
     if v in _TYPE_NORMALIZE:
         return _TYPE_NORMALIZE[v]
-    for prefix in _TYPE_PREFIXES:
-        if v.startswith(prefix):
-            return _TYPE_NORMALIZE.get(v[len(prefix) :], v)
+    marker = v.rfind(_TYPE_MARKER)
+    if marker != -1:
+        return _TYPE_NORMALIZE.get(v[marker + len(_TYPE_MARKER) :], v)
     return v
 
 

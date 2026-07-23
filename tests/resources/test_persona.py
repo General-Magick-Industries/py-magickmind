@@ -160,7 +160,8 @@ class TestPersonaResource:
             await client.v1.persona.prepare_for_agent("not-an-id")
 
         exc = exc_info.value
-        assert "not a well-formed agent id" in str(exc)
+        assert "not a well-formed id" in str(exc)
+        assert "not an agent" in str(exc)  # 400 has two distinct server causes
         assert "'not-an-id'" in str(exc)
         assert "Invalid agent ID" in str(exc)
         assert exc.status == 400
@@ -243,9 +244,16 @@ class TestPersonaResource:
             await client.v1.persona.prepare_own_persona()
 
         exc = exc_info.value
-        assert "needs an end-user JWT" in str(exc)
+        assert "unrevoked end-user JWT" in str(exc)
         assert "prepare_for_agent" in str(exc)
         assert exc.status == 401
+        # the hint must reach args/message too, not just __str__
+        assert "prepare_for_agent" in exc.args[0]
+        assert "prepare_for_agent" in exc.message
+        assert exc.hint is not None
+        # ...without corrupting the server's own payload
+        assert exc.detail == "missing end-user claims"
+        assert exc.problem.detail == "missing end-user claims"
 
     async def test_versioning_methods_happy_path(
         self, client: MagickMind, mock_auth: HTTPXMock
