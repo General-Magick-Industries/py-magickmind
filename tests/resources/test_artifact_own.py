@@ -56,9 +56,10 @@ class TestServiceUserScoped:
             json={"artifacts": [BIFROST_ARTIFACT], "next_page_token": "p3"},
         )
 
-        artifacts = await client.v1.artifact.list(status="ready", cursor="p2", limit=5)
+        page = await client.v1.artifact.list(status="ready", cursor="p2", limit=5)
 
-        assert [a.id for a in artifacts] == ["art-1"]
+        assert [a.id for a in page.data] == ["art-1"]
+        assert page.next_cursor == "p3"
 
     async def test_presign_upload_to_magickspace(
         self, client: MagickMind, mock_auth: HTTPXMock
@@ -123,11 +124,11 @@ class TestEndUserScoped:
             json={"artifacts": [BIFROST_ARTIFACT], "next_page_token": "p2"},
         )
 
-        page = await agent.v1.artifact.list_own("ms-1", status="ready", page_size=1)
+        page = await agent.v1.artifact.list_own("ms-1", status="ready", limit=1)
 
         assert page.data[0].id == "art-1"
         assert page.data[0].created_at == "2026-08-31T00:00:00Z"
-        assert page.next_page_token == "p2"
+        assert page.next_cursor == "p2"
         url = str(httpx_mock.get_requests()[-1].url)
         assert "/v1/end-user/magickspaces/ms-1/artifacts?" in url
         assert "status=ready" in url and "page_size=1" in url

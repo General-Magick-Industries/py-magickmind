@@ -418,7 +418,7 @@ As the agent (`MagickMind.from_token`), keyed by the space it participates in:
 |---|---|
 | `presign_own_upload(ms, content_type=, size_bytes=, file_name=)` | `POST /v1/end-user/magickspaces/{ms}/artifacts/presign` |
 | `finalize_own(ms, artifact_id=, bucket=, key=, version_id=)` | `POST .../artifacts/finalize` |
-| `list_own(ms, content_type=, status=, page_size=, page_token=)` | `GET .../artifacts` -> `ListArtifactsResponse` (`.data`, `.next_page_token`) |
+| `list_own(ms, content_type=, status=, cursor=, limit=)` | `GET .../artifacts` -> `ListArtifactsResponse` (`.data`, `.next_cursor`) |
 | `get_own(ms, artifact_id)` / `download_url_own(...)` / `delete_own(...)` | `GET` / `GET .../download` / `DELETE .../artifacts/{id}` |
 
 Owner operations, keyed by artifact alone, keep working after the agent
@@ -430,5 +430,5 @@ await agent.v1.artifact.download_url_uploaded("art-1")
 await agent.v1.artifact.delete_uploaded("art-1")
 ```
 
-Note that `list()` returns a plain `list[Artifact]` while `list_own()`
-returns the page envelope, because an agent needs `next_page_token`.
+Both `list()` and `list_own()` page the same way the server does (`limit` 1..100,
+`cursor` = the previous page's `next_cursor`) and return the page envelope.

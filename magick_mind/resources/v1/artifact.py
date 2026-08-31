@@ -184,27 +184,28 @@ class ArtifactResourceV1(BaseResource):
         status: Optional[str] = None,
         cursor: Optional[str] = None,
         limit: Optional[int] = None,
-    ) -> list[Artifact]:
+    ) -> ListArtifactsResponse:
         """
         List artifacts for the authenticated tenant with optional filters.
 
         Args:
             end_user_id: Filter by end user ID (optional)
-            status: Filter by status — uploaded, processing, ready, failed, deleted
-            cursor: Pagination cursor (opaque string from a previous response)
-            limit: Maximum number of results to return
+            status: Filter by status — uploaded, processing, ready, failed
+            cursor: ``next_cursor`` of the previous page
+            limit: Page size, 1..100 (server default 20)
 
         Returns:
-            List of Artifact objects
+            ListArtifactsResponse: the page (``data``) and ``next_cursor``
+            for the following one, ``None`` on the last page
 
         Example:
-            # Get all artifacts
-            artifacts = await client.v1.artifact.list()
-            for artifact in artifacts:
+            page = await client.v1.artifact.list(status="ready", limit=50)
+            for artifact in page.data:
                 print(f"- {artifact.id}: {artifact.status}")
-
-            # Get ready artifacts with pagination
-            ready = await client.v1.artifact.list(status="ready", limit=20)
+            while page.next_cursor:
+                page = await client.v1.artifact.list(
+                    status="ready", limit=50, cursor=page.next_cursor
+                )
         """
         params: dict[str, object] = {}
         if end_user_id is not None:
@@ -217,8 +218,7 @@ class ArtifactResourceV1(BaseResource):
             params["page_size"] = str(limit)
 
         response = await self._http.get(Routes.ARTIFACTS, params=params)
-        list_response = ListArtifactsResponse.model_validate(response)
-        return list_response.data
+        return ListArtifactsResponse.model_validate(response)
 
     async def delete(self, artifact_id: str) -> None:
         """
@@ -408,24 +408,25 @@ class ArtifactResourceV1(BaseResource):
         *,
         content_type: Optional[str] = None,
         status: Optional[str] = None,
-        page_size: Optional[int] = None,
-        page_token: Optional[str] = None,
+        cursor: Optional[str] = None,
+        limit: Optional[int] = None,
     ) -> ListArtifactsResponse:
         """
         List artifacts attached to messages in a magickspace the calling agent
         participates in (end-user JWT).
 
-        Returns the page plus ``next_page_token`` for the following one.
+        Same paging as :meth:`list`: ``limit`` is the page size (1..100),
+        ``cursor`` is the previous page's ``next_cursor``.
         """
         params: dict[str, object] = {}
         if content_type is not None:
             params["content_type"] = content_type
         if status is not None:
             params["status"] = status
-        if page_size is not None:
-            params["page_size"] = page_size
-        if page_token is not None:
-            params["page_token"] = page_token
+        if cursor is not None:
+            params["page_token"] = cursor
+        if limit is not None:
+            params["page_size"] = limit
         response = await self._http.get(
             Routes.end_user_magickspace_artifacts(magickspace_id), params=params
         )

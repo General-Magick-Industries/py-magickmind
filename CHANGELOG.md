@@ -95,6 +95,14 @@ Bifrost, without the SDK taking on any runtime of its own.
 - `docs/guides/agent_client.md` — how an agent process uses this surface.
 
 ### Breaking
+- **`artifact.list()` returns the page, not a bare list.** Bifrost pages
+  `GET /v1/artifacts` with `page_size`/`page_token` and answers
+  `{artifacts, next_page_token}`; the previous `list[Artifact]` return
+  discarded the token, so pagination was unreachable (and, see Fixed, the
+  request parameters it sent were ignored). It now returns
+  `ListArtifactsResponse`: iterate `page.data`, pass `page.next_cursor`
+  back as `cursor=`. `list_own()` takes the same `cursor=`/`limit=` names.
+  Migration: `for a in await artifact.list()` → `for a in (await artifact.list()).data`.
 - **`ChatHistoryItem.mindspace_id` is now a read-only property** over the
   new `magickspace_id` field. Construction by either keyword still works and
   reads are unchanged, but assignment raises, `model_dump()` emits

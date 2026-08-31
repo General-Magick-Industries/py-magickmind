@@ -127,8 +127,13 @@ class ListArtifactsResponse(BaseModel):
         description="List of artifacts",
     )
     next_page_token: Optional[str] = Field(
-        None, description="Opaque token for the next page, if any"
+        default=None, description="Opaque token for the next page, if any"
     )
+
+    @property
+    def next_cursor(self) -> Optional[str]:
+        """The value to pass as ``cursor=`` for the next page; None at the end."""
+        return self.next_page_token or None
 
 
 class ScopedPresignRequest(BaseModel):
