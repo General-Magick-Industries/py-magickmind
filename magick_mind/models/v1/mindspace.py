@@ -13,8 +13,11 @@ from magick_mind.models.common import PageInfo
 from magick_mind.models.v1.history import HistoryResponse
 
 
-# Type alias for mindspace type enum (uppercase to match apidog)
-MindSpaceType = Literal["PRIVATE", "GROUP"]
+from magick_mind.models.v1.space_type import (
+    MindSpaceType,
+    normalize_space_type as _normalize_space_type,
+    space_type_or_none,
+)
 
 # Vocabulary of the end-user send route. TOOL_* is tool-protocol traffic and
 # SIGNAL_* marks an agent's turn lifecycle; neither is speech, and receivers
@@ -38,46 +41,14 @@ CONTROL_MESSAGE_TYPES: frozenset[str] = frozenset(
 )
 
 
-def is_signal_message(message_type: str) -> bool:
+def is_signal_message(message_type: Optional[str]) -> bool:
     """True for turn-lifecycle indicators (never persisted, never speech)."""
-    return message_type in SIGNAL_MESSAGE_TYPES
+    return message_type is not None and message_type in SIGNAL_MESSAGE_TYPES
 
 
-def is_control_message(message_type: str) -> bool:
+def is_control_message(message_type: Optional[str]) -> bool:
     """True for tool-protocol traffic that should not be read as a turn."""
-    return message_type in CONTROL_MESSAGE_TYPES
-
-
-# The API returns proto enum .String() values prefixed with the owning enum's
-# name -- MINDSPACE_TYPE_GROUP, and MAGICKSPACE_TYPE_GROUP after the rename.
-# We normalize to the short form for SDK consumers.
-_TYPE_MARKER = "_TYPE_"
-
-_TYPE_NORMALIZE: dict[str, MindSpaceType] = {
-    "PRIVATE": "PRIVATE",
-    "GROUP": "GROUP",
-}
-
-
-def _normalize_space_type(v: object) -> object:
-    """Normalize a proto enum type name to its short form.
-
-    Accepts the short form as-is and any ``<ENUM>_TYPE_<SHORT>`` spelling whose
-    suffix is a valid short form. Matching the suffix rather than a fixed list
-    of prefixes means the next rename of the enum keeps parsing instead of
-    failing validation on every row, as the mindspace -> magickspace rename did.
-
-    An unrecognized value is returned unchanged so it fails validation loudly
-    rather than being masked.
-    """
-    if not isinstance(v, str):
-        return v
-    if v in _TYPE_NORMALIZE:
-        return _TYPE_NORMALIZE[v]
-    marker = v.rfind(_TYPE_MARKER)
-    if marker != -1:
-        return _TYPE_NORMALIZE.get(v[marker + len(_TYPE_MARKER) :], v)
-    return v
+    return message_type is not None and message_type in CONTROL_MESSAGE_TYPES
 
 
 class MindSpace(BaseModel):
@@ -289,7 +260,7 @@ class ChatHistoryItem(BaseModel):
     @field_validator("magickspace_type", mode="before")
     @classmethod
     def _normalize_type(cls, v: object) -> object:
-        return _normalize_space_type(v) if v else None
+        return space_type_or_none(v)
 
     @property
     def mindspace_id(self) -> str:
@@ -382,7 +353,7 @@ class ContextPrepareResponse(BaseModel):
     @field_validator("magickspace_type", mode="before")
     @classmethod
     def _normalize_type(cls, v: object) -> object:
-        return _normalize_space_type(v) if v else None
+        return space_type_or_none(v)
 
     @property
     def mindspace_id(self) -> str:

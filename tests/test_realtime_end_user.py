@@ -145,8 +145,10 @@ class TestEndUserConnection:
             MockClient.return_value = AsyncMock()
             await rt.connect()
 
-        _, kwargs = MockClient.call_args
+        args, kwargs = MockClient.call_args
+        assert args[0] == WS_URL
         assert kwargs["data"] == {"token": "jwt-agent"}
+        assert kwargs["use_protobuf"] is False
         assert "get_token" not in kwargs
 
     async def test_service_user_connect_is_unchanged(self):
@@ -198,15 +200,98 @@ class TestEndUserConnection:
         with pytest.raises(MagickMindError, match="nothing to subscribe"):
             await rt.subscribe("someone")
 
-    async def test_unauthorized_disconnect_is_terminal(self):
+    @pytest.mark.parametrize(
+        ("code", "terminal"), [(DISCONNECT_UNAUTHORIZED, True), (3000, False)]
+    )
+    async def test_only_4501_is_terminal(self, code: int, terminal: bool):
         rt = RealtimeClient(StaticTokenAuth("jwt-agent"), WS_URL, end_user=True)
 
-        await rt._router.on_disconnected(
-            DisconnectedContext(code=DISCONNECT_UNAUTHORIZED, reason="unauthorized")
-        )
+        await rt._router.on_disconnected(DisconnectedContext(code=code, reason="x"))
 
-        assert rt.terminally_disconnected
-        assert rt.last_disconnect is not None and rt.last_disconnect.code == 4501
+        assert rt.terminally_disconnected is terminal
+        assert rt.last_disconnect is not None and rt.last_disconnect.code == code
+
+    async def test_failed_connect_leaves_the_slot_empty(self):
+        """After a refusal, replace_token() + connect() must be a real attempt,
+        not the 'already connected' no-op."""
+        rt = RealtimeClient(StaticTokenAuth("jwt-agent"), WS_URL, end_user=True)
+
+        with patch("magick_mind.realtime.client.Client") as MockClient:
+            refused = AsyncMock()
+            refused.ready.side_effect = RuntimeError("disconnected")
+            MockClient.return_value = refused
+            with pytest.raises(MagickMindError, match="Realtime connect failed"):
+                await rt.connect()
+            refused.disconnect.assert_awaited_once()
+            assert rt.client is None
+
+            MockClient.return_value = AsyncMock()
+            await rt.connect()
+            assert rt.client is not None
+            assert MockClient.call_args.args[0] == WS_URL
+
+    async def test_disconnect_forgets_the_connect_token(self):
+        rt = RealtimeClient(StaticTokenAuth("jwt-agent"), WS_URL, end_user=True)
+        with patch("magick_mind.realtime.client.Client") as MockClient:
+            MockClient.return_value = AsyncMock()
+            await rt.connect()
+            connect_data = MockClient.call_args.kwargs["data"]
+            await rt.disconnect()
+        assert connect_data == {}
+
+
+class TestPublicationRobustness:
+    @pytest.mark.parametrize(
+        "data",
+        [
+            "not an object",
+            ["list"],
+            {"type": "chat_message", "payload": {"sent_by_user_id": None}},
+            {"type": "chat_message", "payload": {"mindspace_id": "ms-1"}},
+            {"type": "image_generation", "payload": {"mindspace_id": "x"}},
+        ],
+    )
+    async def test_malformed_publication_is_dropped_not_raised(self, data: object):
+        """On a server-side subscription an exception here kills centrifuge's
+        message loop while the socket stays open -- the agent goes deaf."""
+        router = EventRouter()
+        pub = MagicMock()
+        pub.data = data
+        pub.info = None
+
+        await router.on_publication(MagicMock(pub=pub, channel="user:a#a"))
+
+    def test_unknown_space_type_does_not_reject_the_fanout(self):
+        payload = {
+            **FANOUT["payload"],
+            "magickspace_type": "MAGICKSPACE_TYPE_UNSPECIFIED",
+        }
+        event = parse_ws_event({"type": "chat_message", "payload": payload})
+        assert isinstance(event, MagickspaceMessageEvent)
+        assert event.payload.magickspace_type == "MAGICKSPACE_TYPE_UNSPECIFIED"
+
+    def test_xavier_payload_with_renamed_space_id_parses(self):
+        payload = {**XAVIER["payload"]}
+        payload["magickspace_id"] = payload.pop("mindspace_id")
+        event = parse_ws_event({"type": "chat_message", "payload": payload})
+        assert isinstance(event, ChatMessageEvent)
+        assert event.payload.mindspace_id == "ms-1"
+        assert event.payload.magickspace_id == "ms-1"
+
+    async def test_publisher_identity_comes_from_centrifugo_info(self):
+        router = EventRouter()
+        seen: list[EventContext] = []
+
+        @router.on(MAGICKSPACE_MESSAGE)
+        async def on_turn(event: MagickspaceMessageEvent, ctx: EventContext) -> None:
+            seen.append(ctx)
+
+        pub = MagicMock()
+        pub.data = FANOUT
+        pub.info = MagicMock(user="conn-user-9")
+        await router.on_publication(MagicMock(pub=pub, channel="user:a#a"))
+
+        assert seen[0].publisher_user_id == "conn-user-9"
 
     def test_from_token_wires_end_user_realtime(self):
         client = MagickMind.from_token(BASE_URL, "jwt-agent", ws_endpoint=WS_URL)

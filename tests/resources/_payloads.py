@@ -7,7 +7,7 @@ BASE_URL = "https://api.test"
 MINDSPACE_PAYLOAD = {
     "id": "ms-123",
     "name": "Test Space",
-    "type": "PRIVATE",
+    "type": "MAGICKSPACE_TYPE_PRIVATE",
     "description": "test",
     "project_id": "proj-1",
     "created_by": "user-1",

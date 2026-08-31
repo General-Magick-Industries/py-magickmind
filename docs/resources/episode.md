@@ -130,3 +130,28 @@ except MagickMindError as exc:
 ```
 
 Validate configuration at startup instead, so a bad base URL or credential fails fast rather than being swallowed once per message forever.
+
+## Recall
+
+Two questions, two routes. `search` ranks by relevance and returns
+prompt-ready text; `list_range` answers *when* with an inclusive date window,
+newest first.
+
+```python
+# service user, with an agent lens ("__neutral__" = the space's unowned memory)
+what = await client.v1.episode.search("the trip", agent_id="agent-1", magickspace_id="ms-1")
+when = await client.v1.episode.list_range(
+    date_start="2026-08-01", date_end="2026-08-31", agent_id="agent-1"
+)
+
+# as the agent -- lens fixed to the token subject
+what = await agent.v1.episode.search_own("the trip", magickspace_id="ms-1")
+when = await agent.v1.episode.list_range_own(date_start="2026-08-01", date_end="2026-08-31")
+```
+
+`search*` returns `SearchEpisodesResponse.memory_content`; `list_range*`
+returns `ListEpisodesByDateRangeResponse.data`, a list of `Episode`
+(`topic`, `subtopics`, `summarized_conversation`, `what_worked`,
+`what_to_avoid`, `participant_ids`, `entities`). Both `process` and
+`process_own` accept `client_message_id=` as an idempotency key; a replay
+comes back with `deduplicated=True`.

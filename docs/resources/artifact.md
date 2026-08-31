@@ -401,3 +401,34 @@ response2 = client.v1.chat.send(
 
 - [ADR-004: Upload and Notifications](../../bifrost/docs/adr/ADR-004-upload-and-notifications.md)
 - [Example Code](../examples/artifact_example.py)
+
+## Magickspace-scoped and agent (end-user) operations
+
+Service user, into a space the tenant owns:
+
+```python
+presigned = await client.v1.artifact.presign_upload_to_magickspace(
+    "ms-1", content_type="image/png", size_bytes=2048, end_user_id="agent-1"
+)
+```
+
+As the agent (`MagickMind.from_token`), keyed by the space it participates in:
+
+| Method | Route |
+|---|---|
+| `presign_own_upload(ms, content_type=, size_bytes=, file_name=)` | `POST /v1/end-user/magickspaces/{ms}/artifacts/presign` |
+| `finalize_own(ms, artifact_id=, bucket=, key=, version_id=)` | `POST .../artifacts/finalize` |
+| `list_own(ms, content_type=, status=, page_size=, page_token=)` | `GET .../artifacts` -> `ListArtifactsResponse` (`.data`, `.next_page_token`) |
+| `get_own(ms, artifact_id)` / `download_url_own(...)` / `delete_own(...)` | `GET` / `GET .../download` / `DELETE .../artifacts/{id}` |
+
+Owner operations, keyed by artifact alone, keep working after the agent
+leaves the space:
+
+```python
+await agent.v1.artifact.get_uploaded("art-1")
+await agent.v1.artifact.download_url_uploaded("art-1")
+await agent.v1.artifact.delete_uploaded("art-1")
+```
+
+Note that `list()` returns a plain `list[Artifact]` while `list_own()`
+returns the page envelope, because an agent needs `next_page_token`.

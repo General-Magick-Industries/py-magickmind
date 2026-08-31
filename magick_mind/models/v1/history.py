@@ -9,6 +9,7 @@ from typing import ClassVar, Optional
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field, field_validator
 
 from magick_mind.models.common import Cursors, PageInfo
+from magick_mind.models.v1.space_type import MindSpaceType, space_type_or_none
 
 
 class ChatHistoryMessage(BaseModel):
@@ -32,8 +33,8 @@ class ChatHistoryMessage(BaseModel):
     sent_by_user_name: Optional[str] = Field(
         None, description="Sender display name, joined best-effort"
     )
-    magickspace_type: Optional[str] = Field(
-        None, description="PRIVATE or GROUP of the containing space"
+    magickspace_type: Optional[MindSpaceType] = Field(
+        default=None, description="PRIVATE or GROUP of the containing space"
     )
     content: Optional[str] = Field(default=None, description="Message content/text")
     reply_to_message_id: Optional[str] = Field(
@@ -52,6 +53,11 @@ class ChatHistoryMessage(BaseModel):
     @classmethod
     def _coerce_null_list(cls, v: object) -> object:
         return v if v is not None else []
+
+    @field_validator("magickspace_type", mode="before")
+    @classmethod
+    def _normalize_type(cls, v: object) -> object:
+        return space_type_or_none(v)
 
     @property
     def magickspace_id(self) -> Optional[str]:

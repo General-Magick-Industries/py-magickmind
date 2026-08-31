@@ -12,7 +12,7 @@ from typing import IO, Optional
 
 import httpx
 
-from magick_mind.exceptions import MagickMindError, reraise_with_hint
+from magick_mind.exceptions import MagickMindError, hint_by_status
 from magick_mind.models.v1.corpus import (
     AddArtifactsRequest,
     AddArtifactsResponse,
@@ -475,9 +475,7 @@ class CorpusResourceV1(BaseResource):
                 ),
                 404: f"hint: corpus {corpus_id!r} is unknown to this tenant",
             }
-            if exc.status_code is not None and exc.status_code in hints:
-                reraise_with_hint(exc, hints[exc.status_code])
-            raise
+            hint_by_status(exc, hints)
         return QueryCorpusResponse.model_validate(response)
 
     async def query(

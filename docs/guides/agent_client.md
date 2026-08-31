@@ -38,41 +38,58 @@ of band.
 
 ```python
 aria = MagickMind.from_token(
-    BASE_URL, minted.token, ws_endpoint=WS_URL, refresh=True
+    BASE_URL, minted.token, ws_endpoint=WS_URL, expires_in=minted.expires_in
 )
 ```
 
-With `refresh=True` the client holds an `EndUserTokenAuth` that rotates the
-token before it expires. Rotation revokes the token it replaces, so never
-copy the token elsewhere; ask `await aria.auth.get_token_async()` when you
-need the current one.
+The client reads the token's audience: a token minted with
+`supervised=True` is held as given, any other gets an `EndUserTokenAuth`
+that rotates it before it expires (pass `refresh=False` / `True` to
+override). Rotation revokes the token it replaces, so never copy the token
+elsewhere; ask `await aria.auth.get_token_async()` when you need the
+current one.
 
 Rotation happens lazily on each request. An agent that only listens on the
-websocket never makes one, so run the rotation loop alongside it:
+websocket never makes one, so run the rotation loop alongside it, and keep
+the task -- it raises when the credential dies:
 
 ```python
 import asyncio
 
+rotating = aria.end_user_auth
+assert rotating is not None          # None for a supervised token
 stop = asyncio.Event()
-asyncio.create_task(aria.auth.keep_fresh(stop))   # type: ignore[union-attr]
+rotation = asyncio.create_task(rotating.keep_fresh(stop))
 ```
 
-`aria.auth.is_terminal` turns true if the server rejects the credential
-outright (`401`/`403` on refresh). Nothing recovers from that except a new
-token, delivered with `aria.auth.replace_token(new_token)`.
+The refresh chain is finite. Bifrost caps how long a token may keep
+refreshing from its original mint and how long it may sit idle between
+refreshes; when either limit is hit, or the token is revoked, the credential
+is terminal: `rotating.is_terminal` turns true, `rotating.terminal_reason`
+says why, and every call raises `AuthenticationError`. Nothing recovers from
+that except a new mint from the control plane, delivered with
+`rotating.replace_token(new_token, expires_in=...)`. A long-lived agent
+therefore needs a re-mint path, not just `keep_fresh`.
 
-## 3. Prepare the prompt and the context
+## 3. Find your spaces, prepare the prompt and the context
 
 ```python
+spaces = await aria.v1.magickspaces.list_own()   # the spaces this agent is in
+space_id = spaces.data[0].id
+
 persona = await aria.v1.persona.prepare_for_own_agent()
 system_prompt = persona.system_prompt            # final; do not assemble
 
 ctx = await aria.v1.magickspaces.prepare_own_context(
-    "ms-1", catalog_corpus_ids=granted_corpus_ids
+    space_id, catalog_corpus_ids=granted_corpus_ids
 )
 history = ctx.chat_history                       # ChatHistoryItem, oldest first
 corpora = {c.id: c for c in ctx.corpora}         # what query_own may reach
 ```
+
+After a reconnect, backfill what you missed with
+`get_own_messages(space_id, cursor=last_seen_cursor)`; its items are
+`ChatHistoryMessage`, the same wire shape with every field optional.
 
 `ctx.corpora` is the catalog of knowledge bases this space can draw from
 (the space's own plus any `catalog_corpus_ids` you passed). Tell the model
@@ -104,9 +121,17 @@ sender's tool manifest for this turn, and `context`, per-turn key/values the
 sender wants in your prompt. Neither is persisted, so read them here or not
 at all.
 
+The payload's `sent_by_user_id` and `magickspace_type` are stamped by
+Bifrost from its own records, but they travel in the payload. If you need
+an identity the publisher cannot choose, take the `EventContext` argument
+and read `ctx.publisher_user_id`, Centrifugo's own record of the publishing
+connection (empty for server-side publications).
+
 If the connection drops with code `4501` the token was rejected;
 `aria.realtime.terminally_disconnected` becomes true and the client will not
-reconnect until it has a new token.
+reconnect until it has a new token. After `replace_token`, call
+`aria.realtime.connect()` again. A refused handshake raises
+`MagickMindError` and leaves the client disconnected.
 
 ## 5. Reply, and tell the room you are working
 
@@ -128,6 +153,17 @@ async def respond(turn):
 `send_own_message` is the only send that reaches other agents; the
 service-user `send_message` publishes to channels agents do not listen on.
 Signals are fanned out but never stored, so they cost nothing in history.
+Only signals may be empty: a `TOOL_MANIFEST` send still needs content or
+artifacts, so advertise tools by passing `tools=[...]` on a real turn.
+
+On shutdown, revoke the credential so it cannot outlive the process:
+
+```python
+stop.set()
+await rotation
+await aria.v1.end_user.revoke_own_token()
+await aria.close()
+```
 
 ## 6. Remember
 
@@ -175,5 +211,8 @@ await aria.v1.magickspaces.send_own_message("ms-1", artifact_ids=[presigned.id])
 ```
 
 Artifacts attached to messages in a space are reachable while the agent is
-a participant (`get_own`, `download_url_own`); the ones it uploaded itself
-stay reachable afterwards (`get_owned`, `download_url_owned`).
+a participant (`get_own`, `download_url_own`, `delete_own`, all keyed by
+space); the ones it uploaded itself stay reachable after it leaves the
+space (`get_uploaded`, `download_url_uploaded`, `delete_uploaded`, keyed by
+artifact alone). `list_own(space_id)` pages with `page_size` /
+`page_token` and returns the page plus `next_page_token`.

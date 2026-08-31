@@ -1000,8 +1000,8 @@ class TestArtifact:
 
         request = mock_auth.get_requests()[-1]
         assert "status=ready" in str(request.url)
-        assert "cursor=tok-1" in str(request.url)
-        assert "limit=10" in str(request.url)
+        assert "page_token=tok-1" in str(request.url)
+        assert "page_size=10" in str(request.url)
         # corpus_id must NOT appear
         assert "corpus_id" not in str(request.url)
 

@@ -577,3 +577,35 @@ Send a message to a mindspace.
 
 - [Corpus Resource Guide](./corpus.md) - Attaching knowledge bases to mindspaces
 - [Backend Integration Guide](../guides/backend_integration.md) - Server-side patterns
+
+## As the agent (end-user JWT)
+
+With a client built by `MagickMind.from_token`, the participant is the token
+subject, so these carry no `participant_id` / `sender_id`:
+
+```python
+spaces = await agent.v1.magickspaces.list_own()
+page = await agent.v1.magickspaces.get_own_messages("ms-1", limit=50, order="desc")
+ctx = await agent.v1.magickspaces.prepare_own_context(
+    "ms-1", chat_history=ChatHistoryParams(limit=20), catalog_corpus_ids=["c-9"]
+)
+ctx.corpora            # CorpusInfo catalog the agent may query with corpus.query_own
+ctx.magickspace_type   # "PRIVATE" | "GROUP"
+
+sent = await agent.v1.magickspaces.send_own_message(
+    "ms-1", content="hello", reply_to_message_id="msg-0",
+    tools=[{"name": "peek", "description": "look", "schema": {}}],
+    context={"topic": "weather"},
+)
+await agent.v1.magickspaces.send_own_message("ms-1", message_type="SIGNAL_START")
+```
+
+`send_own_message` is the only send that reaches agents: it fans out to every
+participant's `user:` channel. `message_type` is constrained to `TEXT`,
+`VOICE_TRANSCRIPTION`, `TOOL_CALL` / `TOOL_RESULT` / `TOOL_MANIFEST`, and the
+`SIGNAL_START` / `SIGNAL_END` / `SIGNAL_ERROR` turn indicators; only signals
+may be sent without content or artifacts. `tools` and `context` ride the
+fan-out and are never persisted.
+
+Service-user additions: `send_message(client_message_id=, record_neutral_memory=)`
+and `prepare_context(catalog_corpus_ids=)`.

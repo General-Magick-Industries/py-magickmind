@@ -2,7 +2,7 @@
 
 The SDK never validates a token -- only the server can -- but it does read
 claims the server put there (``sub`` for channel names, ``exp`` to schedule
-rotation ahead of expiry).
+rotation ahead of expiry, ``aud`` to learn whether the token may refresh).
 """
 
 from __future__ import annotations
@@ -10,6 +10,12 @@ from __future__ import annotations
 import base64
 import json
 from typing import Any, Optional
+
+# Bifrost stamps refreshability into the audience: a supervised token is barred
+# from the self-refresh route. A token with no audience predates the claim and
+# is treated as self-managed, matching the server.
+AUDIENCE_SELF_REFRESH = "end_user_self"
+AUDIENCE_SUPERVISED = "end_user_supervised"
 
 
 def decode_jwt_claims(token: str) -> dict[str, Any]:
@@ -39,3 +45,18 @@ def jwt_expiry(token: str) -> Optional[float]:
     if isinstance(exp, bool) or not isinstance(exp, (int, float)):
         return None
     return float(exp)
+
+
+def jwt_audience(token: str) -> list[str]:
+    """The ``aud`` claim as a list (the claim may be a string or an array)."""
+    aud = decode_jwt_claims(token).get("aud")
+    if isinstance(aud, str):
+        return [aud]
+    if isinstance(aud, list):
+        return [a for a in aud if isinstance(a, str)]
+    return []
+
+
+def jwt_is_supervised(token: str) -> bool:
+    """True when the token's audience marks it supervisor-managed."""
+    return AUDIENCE_SUPERVISED in jwt_audience(token)

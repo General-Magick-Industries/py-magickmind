@@ -9,7 +9,7 @@ from __future__ import annotations
 from typing import Optional
 
 
-from magick_mind.exceptions import MagickMindError, reraise_with_hint
+from magick_mind.exceptions import MagickMindError, hint_by_status
 from magick_mind.models.v1.end_user import (
     AttachPersonaRequest,
     CreateEndUserRequest,
@@ -276,9 +276,7 @@ class EndUserResourceV1(BaseResource):
                 ),
                 503: "hint: end-user token minting is not configured on this server",
             }
-            if exc.status_code is not None and exc.status_code in hints:
-                reraise_with_hint(exc, hints[exc.status_code])
-            raise
+            hint_by_status(exc, hints)
         return MintEndUserTokenResponse.model_validate(response)
 
     async def refresh_own_token(
@@ -316,9 +314,7 @@ class EndUserResourceV1(BaseResource):
                     "supervisor mints replacements"
                 ),
             }
-            if exc.status_code is not None and exc.status_code in hints:
-                reraise_with_hint(exc, hints[exc.status_code])
-            raise
+            hint_by_status(exc, hints)
         return MintEndUserTokenResponse.model_validate(response)
 
     async def revoke_own_token(

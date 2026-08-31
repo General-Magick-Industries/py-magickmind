@@ -331,6 +331,46 @@ pytest tests/test_end_user_resource.py -v
 pytest tests/test_end_user_* -v
 ```
 
+## Agents
+
+An end user with `participant_type="AGENT"` is an agent identity. Its
+persona binding lives on the record (`persona_id`,
+`active_persona_version_id`) and is managed with service-user credentials:
+
+```python
+agent = await client.v1.end_user.create(name="Aria", participant_type="AGENT")
+await client.v1.end_user.attach_persona(agent.id, persona_id="p-1", version_id="pv-1")
+await client.v1.end_user.set_persona_version(agent.id, version_id="pv-2")
+agents = await client.v1.end_user.query(participant_type="AGENT")
+```
+
+`create(...)` also accepts `persona_id=` to attach at creation; `EndUser`
+exposes `persona_id`, `active_persona_version_id` and `participant_type`.
+
+### Tokens
+
+```python
+minted = await client.v1.end_user.mint_token(agent.id, ttl_seconds=3600)
+minted.token        # the end-user JWT -- redacted in repr()
+minted.expires_in   # seconds, for scheduling rotation
+```
+
+`mint_token(..., supervised=True)` marks the token supervisor-managed: the
+server bars it from the self-refresh route, so the caller must deliver
+replacements. Hand either kind to `MagickMind.from_token(...)`, which reads
+the token's audience and rotates only the refreshable kind.
+
+With the agent's own token (`MagickMind.from_token`):
+
+```python
+fresh = await agent_client.v1.end_user.refresh_own_token(ttl_seconds=3600)
+await agent_client.v1.end_user.revoke_own_token(disconnect=True)
+```
+
+`refresh_own_token` is rotation, not exchange -- the presented token is
+revoked as the new one is issued. `EndUserTokenAuth` calls it for you;
+`revoke_own_token` belongs in the agent's shutdown path.
+
 ## See Also
 
 - [Project Resource](project.md) - For managing projects

@@ -23,7 +23,8 @@ from .handler import EventCallback, EventRouter
 logger: logging.Logger = logging.getLogger(__name__)
 
 # Bifrost's connect proxy rejects a bad, expired, or revoked end-user token with
-# this code. It is in Centrifugo's no-reconnect range, so the client stops.
+# this code. It is in Centrifugo's no-reconnect range (4500-4999), which
+# centrifuge-python honours on the websocket-close path Bifrost uses.
 DISCONNECT_UNAUTHORIZED = 4501
 
 
@@ -160,28 +161,42 @@ class RealtimeClient:
 
         if self.end_user:
             self._set_connect_token(await self._get_token())
-            self._client = Client(
+            client = Client(
                 ws_url,
                 events=self._router,
                 data=self._connect_data,
                 use_protobuf=False,
             )
         else:
-            self._client = Client(
+            client = Client(
                 ws_url,
                 events=self._router,
                 get_token=self._get_token,
                 use_protobuf=False,
             )
 
-        await self._client.connect()
-        await self._client.ready()
+        self.last_disconnect = None
+        try:
+            await client.connect()
+            await client.ready()
+        except Exception as e:
+            # Leave the slot empty so a later connect() (after replace_token)
+            # is a real attempt rather than the "already connected" no-op.
+            await client.disconnect()
+            reason = (
+                f"end-user token rejected ({self.last_disconnect.reason})"
+                if self.terminally_disconnected and self.last_disconnect
+                else str(e)
+            )
+            raise MagickMindError(f"Realtime connect failed: {reason}") from e
+        self._client = client
 
     async def disconnect(self) -> None:
         """Disconnect from the realtime service."""
         if self._client:
             await self._client.disconnect()
             self._client = None
+        self._connect_data.clear()
 
     async def subscribe(self, target_user_id: str) -> None:
         """

@@ -146,13 +146,24 @@ class EventRouter(ClientEventHandler):
         Parses raw data into typed event, dispatches to registered handler.
         """
         data = getattr(ctx.pub, "data", None)
-        if data is None:
+        channel: str = getattr(ctx, "channel", "") or ""
+        if not isinstance(data, dict):
+            logger.warning("Dropping non-object publication on %s", channel)
             return
 
-        channel: str = getattr(ctx, "channel", "") or ""
-        event_ctx = EventContext.from_channel(channel)
+        info = getattr(ctx.pub, "info", None)
+        publisher = getattr(info, "user", "") or ""
+        event_ctx = EventContext.from_channel(channel, publisher_user_id=publisher)
 
-        event = parse_ws_event(data)
+        # A server-side subscription hands publications straight to this method
+        # from centrifuge's message loop, which has no guard of its own: one
+        # exception there stops every later publication while the socket stays
+        # open. Nothing may escape from here.
+        try:
+            event = parse_ws_event(data)
+        except Exception:
+            logger.exception("Dropping unparseable publication on %s", channel)
+            return
         key = dispatch_key(event)
         handler = self._handlers.get(key)
 

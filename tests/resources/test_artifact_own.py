@@ -38,11 +38,28 @@ PRESIGN_RESPONSE = {
 
 
 @pytest.fixture
-def agent() -> MagickMind:
-    return MagickMind.from_token(BASE_URL, "jwt-agent")
+async def agent():
+    client = MagickMind.from_token(BASE_URL, "jwt-agent")
+    yield client
+    await client.close()
 
 
 class TestServiceUserScoped:
+    async def test_list_sends_bifrost_pagination_params(
+        self, client: MagickMind, mock_auth: HTTPXMock
+    ):
+        """The server's list route pages with page_size/page_token; the
+        cursor/limit names were silently ignored."""
+        mock_auth.add_response(
+            url=f"{BASE_URL}/v1/artifacts?status=ready&page_token=p2&page_size=5",
+            method="GET",
+            json={"artifacts": [BIFROST_ARTIFACT], "next_page_token": "p3"},
+        )
+
+        artifacts = await client.v1.artifact.list(status="ready", cursor="p2", limit=5)
+
+        assert [a.id for a in artifacts] == ["art-1"]
+
     async def test_presign_upload_to_magickspace(
         self, client: MagickMind, mock_auth: HTTPXMock
     ):
@@ -162,8 +179,10 @@ class TestOwned:
             url=base, method="DELETE", json={"success": True, "already_deleted": True}
         )
 
-        assert (await agent.v1.artifact.get_owned("art-1")).id == "art-1"
+        assert (await agent.v1.artifact.get_uploaded("art-1")).id == "art-1"
         assert (
-            await agent.v1.artifact.download_url_owned("art-1")
+            await agent.v1.artifact.download_url_uploaded("art-1")
         ).download_url == "https://s3.test/get"
-        assert (await agent.v1.artifact.delete_owned("art-1")).already_deleted is True
+        assert (
+            await agent.v1.artifact.delete_uploaded("art-1")
+        ).already_deleted is True

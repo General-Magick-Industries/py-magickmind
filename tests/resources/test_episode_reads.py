@@ -63,6 +63,7 @@ class TestSearch:
 
     async def test_search_own_hints_on_401(self, httpx_mock: HTTPXMock):
         httpx_mock.add_response(
+            url=f"{BASE_URL}/v1/end-user/episodes/search?q=trip",
             method="GET",
             status_code=401,
             json=_error_envelope(401, "Unauthorized", "bad token"),
@@ -73,6 +74,10 @@ class TestSearch:
             await agent.v1.episode.search_own("trip")
 
         assert "end-user JWT" in str(exc.value)
+        assert "non-_own method with agent_id" in str(exc.value)
+        assert (
+            httpx_mock.get_requests()[-1].headers["Authorization"] == "Bearer jwt-agent"
+        )
         await agent.close()
 
 

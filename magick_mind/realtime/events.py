@@ -24,15 +24,16 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
-from typing import Any, Optional
+from typing import Any, ClassVar, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import AliasChoices, BaseModel, ConfigDict, Field, field_validator
 
 from magick_mind.models.v1.mindspace import (
     ChatHistoryItem,
     is_control_message,
     is_signal_message,
 )
+from magick_mind.models.v1.space_type import normalize_space_type
 
 _CHANNEL_RE = re.compile(
     r"^(?P<family>personal|user):(?P<target>[^#]+)#(?P<service>.+)$"
@@ -49,28 +50,43 @@ class EventContext:
         channel: Raw Centrifugo channel string.
         target_user_id: The end-user ID the channel belongs to, for both
             ``personal:<target>#<service>`` and ``user:<id>#<id>``.
+        publisher_user_id: Centrifugo's own record of which connection
+            published, when the server attaches it. Unlike the payload's
+            ``sent_by_user_id``, this cannot be chosen by the publisher; it is
+            empty for publications Bifrost makes server-side.
     """
 
     channel: str
     target_user_id: str
+    publisher_user_id: str = ""
 
     @classmethod
-    def from_channel(cls, channel: str) -> EventContext:
+    def from_channel(cls, channel: str, publisher_user_id: str = "") -> EventContext:
         """Parse a ``personal:`` or ``user:`` channel string."""
         m = _CHANNEL_RE.match(channel)
-        if not m:
-            return cls(channel=channel, target_user_id="")
-        return cls(channel=channel, target_user_id=m.group("target"))
+        target = m.group("target") if m else ""
+        return cls(
+            channel=channel, target_user_id=target, publisher_user_id=publisher_user_id
+        )
 
 
 class ChatMessagePayload(BaseModel):
-    """Payload for type="chat_message" realtime events."""
+    """Payload for type="chat_message" realtime events (Xavier)."""
 
-    mindspace_id: str
+    model_config: ClassVar[ConfigDict] = ConfigDict(populate_by_name=True)
+
+    mindspace_id: str = Field(
+        validation_alias=AliasChoices("magickspace_id", "mindspace_id")
+    )
     message_id: str
     task_id: str
     message: str
     reply_to: str | None = None
+
+    @property
+    def magickspace_id(self) -> str:
+        """The space this reply belongs to (``mindspace_id`` is the legacy name)."""
+        return self.mindspace_id
 
 
 class ChatMessageEvent(BaseModel):
@@ -81,14 +97,31 @@ class ChatMessageEvent(BaseModel):
 
 
 class MagickspaceMessagePayload(ChatHistoryItem):
-    """A magickspace fan-out: the stored message plus wire-only turn extras."""
+    """A magickspace fan-out: the stored message plus wire-only turn extras.
 
+    ``sent_by_user_id``, ``sent_by_user_name`` and ``magickspace_type`` are
+    stamped by Bifrost from its own records, but they travel in the payload;
+    :attr:`EventContext.publisher_user_id` is the only publisher-independent
+    identity Centrifugo offers.
+    """
+
+    # An unknown space type must not take down the agent's only event channel,
+    # so the fan-out payload normalizes without the strict Literal the REST
+    # models apply.
+    magickspace_type: Optional[str] = Field(  # type: ignore[assignment]
+        default=None, description="PRIVATE or GROUP, as stamped by the server"
+    )
     tools: Optional[list[dict[str, Any]]] = Field(
-        None, description="The sender's live tool manifest for this turn"
+        default=None, description="The sender's live tool manifest for this turn"
     )
     context: Optional[dict[str, str]] = Field(
-        None, description="Per-turn key/value context from the sender"
+        default=None, description="Per-turn key/value context from the sender"
     )
+
+    @field_validator("magickspace_type", mode="before")
+    @classmethod
+    def _normalize_type(cls, v: object) -> object:
+        return normalize_space_type(v) if v else None
 
     @property
     def is_signal(self) -> bool:

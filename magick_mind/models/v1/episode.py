@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Optional
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import AliasChoices, BaseModel, Field, field_validator
 
 
 class ProcessEpisodeRequest(BaseModel):
@@ -73,7 +73,9 @@ class Episode(BaseModel):
     """One episode of an agent's episodic memory."""
 
     id: str
-    mindspace_id: str = ""
+    mindspace_id: str = Field(
+        default="", validation_alias=AliasChoices("mindspace_id", "magickspace_id")
+    )
     topic: str = ""
     subtopics: list[str] = Field(default_factory=list)
     summarized_conversation: str = ""
@@ -86,6 +88,11 @@ class Episode(BaseModel):
     @classmethod
     def _coerce_null_list(cls, v: object) -> object:
         return v if v is not None else []
+
+    @property
+    def magickspace_id(self) -> str:
+        """The space this episode belongs to (``mindspace_id`` is the wire name)."""
+        return self.mindspace_id
 
 
 class SearchEpisodesResponse(BaseModel):

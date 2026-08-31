@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, NoReturn, Optional
+from typing import Any, Mapping, NoReturn, Optional
 
 from magick_mind.models.errors import ProblemDetails, ValidationErrorField
 
@@ -42,10 +42,9 @@ def reraise_with_hint(exc: MagickMindError, hint: str) -> NoReturn:
     Applying a hint twice replaces the first rather than stacking.
     """
     exc.hint = hint
-    # Keep args/message in step so logging.exception, repr(), and traceback
-    # formatting -- none of which call __str__ -- show the hint too.
-    exc.message = str(exc)
-    exc.args = (exc.message,)
+    # args feeds repr() and traceback formatting, which bypass __str__; message
+    # stays the server's own text so __str__ can append the hint exactly once.
+    exc.args = (str(exc),)
     raise exc
 
 
@@ -53,6 +52,21 @@ class AuthenticationError(MagickMindError):
     """Raised when authentication fails."""
 
     pass
+
+
+def hint_by_status(exc: MagickMindError, hints: Mapping[int, str]) -> NoReturn:
+    """Re-raise an API error with the hint registered for its status, if any.
+
+    Credential errors raised by the auth provider itself (an
+    :class:`AuthenticationError` from token rotation) pass through untouched:
+    their status is a verdict on the token, not on the route, and a
+    route-specific hint would misdiagnose them.
+    """
+    if isinstance(exc, AuthenticationError):
+        raise exc
+    if exc.status_code is not None and exc.status_code in hints:
+        reraise_with_hint(exc, hints[exc.status_code])
+    raise exc
 
 
 class TokenExpiredError(AuthenticationError):

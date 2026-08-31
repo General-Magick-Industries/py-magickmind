@@ -61,7 +61,9 @@ class TestAgentLifecycle:
         agents = await client.v1.end_user.query(participant_type="AGENT")
 
         assert [a.id for a in agents] == ["agent-1"]
-        assert "participant_type=AGENT" in str(mock_auth.get_requests()[-1].url)
+        request = mock_auth.get_requests()[-1]
+        assert request.url.path == "/v1/end-users"
+        assert request.url.params["participant_type"] == "AGENT"
 
     async def test_attach_persona(self, client: MagickMind, mock_auth: HTTPXMock):
         mock_auth.add_response(

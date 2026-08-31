@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any, Optional
 
-from magick_mind.exceptions import MagickMindError, reraise_with_hint
+from magick_mind.exceptions import MagickMindError, hint_by_status
 from magick_mind.models.v1.mindspace import (
     AddMindSpaceUsersRequest,
     ChatHistoryItem,
@@ -412,9 +412,7 @@ class MindspaceResourceV1(BaseResource):
         try:
             response = await self._http.get(Routes.END_USER_MAGICKSPACES, params=params)
         except MagickMindError as exc:
-            if exc.status_code == 401:
-                reraise_with_hint(exc, _END_USER_ROUTE_HINTS[401])
-            raise
+            hint_by_status(exc, {401: _END_USER_ROUTE_HINTS[401]})
         return GetMindSpaceListResponse.model_validate(response)
 
     async def get_own_messages(
@@ -436,9 +434,7 @@ class MindspaceResourceV1(BaseResource):
                 params=_messages_params(cursor, limit, order),
             )
         except MagickMindError as exc:
-            if exc.status_code is not None and exc.status_code in _END_USER_ROUTE_HINTS:
-                reraise_with_hint(exc, _END_USER_ROUTE_HINTS[exc.status_code])
-            raise
+            hint_by_status(exc, _END_USER_ROUTE_HINTS)
         return MindspaceMessagesResponse.model_validate(response)
 
     async def send_own_message(
@@ -463,9 +459,9 @@ class MindspaceResourceV1(BaseResource):
 
         Args:
             magickspace_id: Magickspace to send to
-            content: Message text (max 32 KiB). May be omitted for an
-                attachment-only send, or for a ``SIGNAL_*`` indicator; a
-                request with neither content nor artifacts is rejected
+            content: Message text (max 32 KiB). ``SIGNAL_*`` sends may be
+                empty; every other type -- ``TOOL_MANIFEST`` included -- needs
+                content or ``artifact_ids``, or the server rejects it
             reply_to_message_id: Optional ID of the message being replied to
             artifact_ids: Optional artifact IDs to attach (max 64)
             message_type: ``TEXT`` (default), ``VOICE_TRANSCRIPTION``, the
@@ -475,7 +471,8 @@ class MindspaceResourceV1(BaseResource):
             broadcast: Whether to fan out via Centrifugo (default: True)
             tools: The sender's live tool manifest for this turn, one
                 ``{name, description, schema}`` per tool (max 32). Fan-out
-                only; never persisted
+                only; never persisted. Ride it on a real turn rather than a
+                bare ``TOOL_MANIFEST`` send, which still needs content
             context: Per-turn key/value context replayed into the receiving
                 agent's prompt (max 32 entries). Fan-out only
 
@@ -502,9 +499,7 @@ class MindspaceResourceV1(BaseResource):
                 json=request.model_dump(exclude_none=True),
             )
         except MagickMindError as exc:
-            if exc.status_code is not None and exc.status_code in _END_USER_ROUTE_HINTS:
-                reraise_with_hint(exc, _END_USER_ROUTE_HINTS[exc.status_code])
-            raise
+            hint_by_status(exc, _END_USER_ROUTE_HINTS)
         return ChatHistoryItem.model_validate(response)
 
     async def prepare_own_context(
@@ -546,9 +541,7 @@ class MindspaceResourceV1(BaseResource):
                 Routes.end_user_magickspace_context(magickspace_id), json=body
             )
         except MagickMindError as exc:
-            if exc.status_code is not None and exc.status_code in _END_USER_ROUTE_HINTS:
-                reraise_with_hint(exc, _END_USER_ROUTE_HINTS[exc.status_code])
-            raise
+            hint_by_status(exc, _END_USER_ROUTE_HINTS)
         return ContextPrepareResponse.model_validate(response)
 
     async def add_participants(

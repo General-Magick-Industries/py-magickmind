@@ -247,11 +247,12 @@ class TestPersonaResource:
         assert "unrevoked end-user JWT" in str(exc)
         assert "prepare_for_agent" in str(exc)
         assert exc.status == 401
-        # the hint must reach args/message too, not just __str__
+        # the hint must reach args too (repr / traceback), not just __str__
         assert "prepare_for_agent" in exc.args[0]
-        assert "prepare_for_agent" in exc.message
         assert exc.hint is not None
+        assert str(exc).count("hint:") == 1
         # ...without corrupting the server's own payload
+        assert exc.message == "missing end-user claims"
         assert exc.detail == "missing end-user claims"
         assert exc.problem.detail == "missing end-user claims"
 

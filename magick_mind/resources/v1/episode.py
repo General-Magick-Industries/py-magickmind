@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Optional
 
-from magick_mind.exceptions import MagickMindError, reraise_with_hint
+from magick_mind.exceptions import MagickMindError, hint_by_status
 from magick_mind.models.v1.episode import (
     EndUserProcessEpisodeRequest,
     ListEpisodesByDateRangeResponse,
@@ -126,9 +126,7 @@ class EpisodeResourceV1(BaseResource):
                     "process_own() with that token"
                 ),
             }
-            if exc.status_code is not None and exc.status_code in hints:
-                reraise_with_hint(exc, hints[exc.status_code])
-            raise
+            hint_by_status(exc, hints)
         return ProcessEpisodeResponse.model_validate(response)
 
     async def process_own(
@@ -198,9 +196,7 @@ class EpisodeResourceV1(BaseResource):
                 ),
                 404: "hint: magickspace not found",
             }
-            if exc.status_code is not None and exc.status_code in hints:
-                reraise_with_hint(exc, hints[exc.status_code])
-            raise
+            hint_by_status(exc, hints)
         return ProcessEpisodeResponse.model_validate(response)
 
     async def search(
@@ -270,9 +266,7 @@ class EpisodeResourceV1(BaseResource):
         try:
             response = await self._http.get(Routes.EPISODES_SEARCH_OWN, params=params)
         except MagickMindError as exc:
-            if exc.status_code == 401:
-                reraise_with_hint(exc, _OWN_ROUTE_401_HINT)
-            raise
+            hint_by_status(exc, {401: _OWN_ROUTE_401_HINT})
         return SearchEpisodesResponse.model_validate(response)
 
     async def list_range(
@@ -334,9 +328,7 @@ class EpisodeResourceV1(BaseResource):
         try:
             response = await self._http.get(Routes.EPISODES_RANGE_OWN, params=params)
         except MagickMindError as exc:
-            if exc.status_code == 401:
-                reraise_with_hint(exc, _OWN_ROUTE_401_HINT)
-            raise
+            hint_by_status(exc, {401: _OWN_ROUTE_401_HINT})
         return ListEpisodesByDateRangeResponse.model_validate(response)
 
 

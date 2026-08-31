@@ -9,7 +9,7 @@ import pytest
 from pytest_httpx import HTTPXMock
 
 from magick_mind import MagickMind
-from magick_mind.auth import StaticTokenAuth
+from magick_mind.auth import EndUserTokenAuth, StaticTokenAuth
 
 BASE_URL = "https://api.test"
 
@@ -47,7 +47,9 @@ class TestFromToken:
     def test_builds_a_usable_client(self):
         client = MagickMind.from_token(BASE_URL, "jwt-abc")
 
-        assert isinstance(client.auth, StaticTokenAuth)
+        assert isinstance(client.auth, EndUserTokenAuth), "unmarked tokens rotate"
+        static = MagickMind.from_token(BASE_URL, "jwt-abc", refresh=False)
+        assert isinstance(static.auth, StaticTokenAuth)
         assert client.config.base_url == BASE_URL
         assert client.is_authenticated() is True
         # the end-user surface this credential exists for

@@ -212,12 +212,12 @@ class ArtifactResourceV1(BaseResource):
         if status is not None:
             params["status"] = status
         if cursor is not None:
-            params["cursor"] = cursor
+            params["page_token"] = cursor
         if limit is not None:
-            params["limit"] = str(limit)
+            params["page_size"] = str(limit)
 
         response = await self._http.get(Routes.ARTIFACTS, params=params)
-        list_response = ListArtifactsResponse(**response)
+        list_response = ListArtifactsResponse.model_validate(response)
         return list_response.data
 
     async def delete(self, artifact_id: str) -> None:
@@ -460,7 +460,7 @@ class ArtifactResourceV1(BaseResource):
         )
         return DeleteArtifactResponse.model_validate(response)
 
-    async def get_owned(self, artifact_id: str) -> Artifact:
+    async def get_uploaded(self, artifact_id: str) -> Artifact:
         """Get an artifact the calling end user uploaded (end-user JWT).
 
         Owner operations need no current magickspace membership, so they keep
@@ -469,12 +469,12 @@ class ArtifactResourceV1(BaseResource):
         response = await self._http.get(Routes.end_user_artifact(artifact_id))
         return Artifact.model_validate(response)
 
-    async def download_url_owned(self, artifact_id: str) -> DownloadUrlResponse:
+    async def download_url_uploaded(self, artifact_id: str) -> DownloadUrlResponse:
         """Presigned download of an artifact the calling end user uploaded."""
         response = await self._http.get(Routes.end_user_artifact_download(artifact_id))
         return DownloadUrlResponse.model_validate(response)
 
-    async def delete_owned(self, artifact_id: str) -> DeleteArtifactResponse:
+    async def delete_uploaded(self, artifact_id: str) -> DeleteArtifactResponse:
         """Soft-delete an artifact the calling end user uploaded."""
         response = await self._http.delete(Routes.end_user_artifact(artifact_id))
         return DeleteArtifactResponse.model_validate(response)

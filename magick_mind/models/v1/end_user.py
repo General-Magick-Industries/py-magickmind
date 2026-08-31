@@ -122,7 +122,11 @@ class MintEndUserTokenRequest(BaseModel):
 
 
 class MintEndUserTokenResponse(BaseModel):
-    """Response containing a minted end-user JWT."""
+    """Response containing a minted end-user JWT.
+
+    ``repr`` redacts the token so a logged or asserted response never prints
+    the credential; read ``.token`` deliberately.
+    """
 
     token: str = Field(..., description="The signed end-user JWT")
     expires_at: str = Field(..., description="Expiry timestamp (RFC3339)")
@@ -131,6 +135,10 @@ class MintEndUserTokenResponse(BaseModel):
         default=None,
         description="Lifetime in seconds, for scheduling rotation without a clock",
     )
+
+    def __repr_args__(self):  # type: ignore[override]
+        for name, value in super().__repr_args__():
+            yield name, "<redacted>" if name == "token" else value
 
 
 class RefreshEndUserTokenRequest(BaseModel):

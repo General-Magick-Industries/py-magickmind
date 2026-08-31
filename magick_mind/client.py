@@ -13,6 +13,7 @@ from magick_mind.auth import (
     EndUserTokenAuth,
     StaticTokenAuth,
 )
+from magick_mind.auth.jwt import jwt_is_supervised
 from magick_mind.config import SDKConfig
 from magick_mind.exceptions import MagickMindError
 from magick_mind.http import HTTPClient
@@ -140,8 +141,9 @@ class MagickMind:
         verify_ssl: bool = True,
         ws_endpoint: Optional[str] = None,
         *,
-        refresh: bool = False,
+        refresh: Optional[bool] = None,
         refresh_window_seconds: float = 120.0,
+        expires_in: Optional[float] = None,
     ) -> MagickMind:
         """
         Build a client that authenticates with a pre-issued end-user token.
@@ -155,7 +157,7 @@ class MagickMind:
         ...). ``.realtime`` connects as the end user and receives magickspace
         fan-out on the agent's own ``user:`` channel.
 
-        The token is not inspected or validated here. Only the server decides
+        The token's signature is never checked here. Only the server decides
         whether it is acceptable, so a wrong-kind, expired, or revoked token
         surfaces as a 401 on the first call rather than at construction.
 
@@ -165,15 +167,19 @@ class MagickMind:
             timeout: Request timeout in seconds
             verify_ssl: Whether to verify SSL certificates
             ws_endpoint: WebSocket URL (required for ``.realtime`` usage)
-            refresh: Keep the token alive by rotating it through
+            refresh: Whether to keep the token alive by rotating it through
                 ``POST /v1/end-user/tokens/refresh`` ahead of expiry (see
-                :class:`~magick_mind.auth.EndUserTokenAuth`). Leave ``False``
-                for a token minted with ``supervised=True`` -- the server bars
-                it from that route -- and for any token whose lifecycle a
-                control plane owns; such a client uses the token as given
-                and never refreshes it.
-            refresh_window_seconds: With ``refresh``, rotate once this close
-                to expiry
+                :class:`~magick_mind.auth.EndUserTokenAuth`). ``None`` (the
+                default) reads the token's audience: a token minted with
+                ``supervised=True`` is barred from that route and is used as
+                given, any other token rotates. Pass ``False`` to hold a
+                refreshable token static anyway, or ``True`` to force
+                rotation.
+            refresh_window_seconds: When rotating, rotate once this close to
+                expiry
+            expires_in: Seconds until the token expires, from the mint
+                response; needed for rotation only when the token has no
+                ``exp`` claim
 
         Returns:
             A MagickMind client bound to the token
@@ -183,9 +189,13 @@ class MagickMind:
 
         Example:
             minted = await client.v1.end_user.mint_token(agent_id)
-            agent = MagickMind.from_token(BASE_URL, minted.token, refresh=True)
+            agent = MagickMind.from_token(
+                BASE_URL, minted.token, expires_in=minted.expires_in
+            )
             prepared = await agent.v1.persona.prepare_for_own_agent()
         """
+        if not token:
+            raise ValueError("token is required")
         self = cls.__new__(cls)
         config = SDKConfig(
             base_url=base_url,
@@ -193,18 +203,31 @@ class MagickMind:
             verify_ssl=verify_ssl,
             ws_endpoint=ws_endpoint,
         )
+        if refresh is None:
+            refresh = not jwt_is_supervised(token)
         auth: AuthProvider = (
             EndUserTokenAuth(
                 token,
                 base_url,
                 timeout=timeout,
                 refresh_window_seconds=refresh_window_seconds,
+                expires_in=expires_in,
             )
             if refresh
             else StaticTokenAuth(token)
         )
         self._wire(config, auth, ws_endpoint, end_user=True)
         return self
+
+    @property
+    def end_user_auth(self) -> Optional[EndUserTokenAuth]:
+        """The rotating end-user credential, when this client holds one.
+
+        ``None`` for service-user clients and for a static end-user token.
+        Use it to reach ``keep_fresh()``, ``is_terminal``, ``terminal_reason``
+        and ``replace_token()`` without narrowing ``self.auth`` by hand.
+        """
+        return self.auth if isinstance(self.auth, EndUserTokenAuth) else None
 
     @property
     def http(self) -> HTTPClient:
@@ -294,7 +317,11 @@ class MagickMind:
         return self.auth.is_authenticated()
 
     async def close(self) -> None:
-        """Close the client and cleanup resources."""
+        """Close the client and cleanup resources.
+
+        A ``keep_fresh()`` task started on :attr:`end_user_auth` is owned by
+        the caller and is not stopped here; set its stop event first.
+        """
         await self._http.close()
         await self._realtime.disconnect()
 
