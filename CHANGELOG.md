@@ -5,6 +5,174 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+The end-user (agent) surface. A service user creates an agent, binds its
+persona and mints its credential; the agent process holds that end-user JWT
+and can now do everything the Rust runtime (mindroid v2) does against
+Bifrost, without the SDK taking on any runtime of its own.
+
+### Added
+- **Agent-scoped persona prepare** — `persona.prepare_for_agent(agent_id)`
+  (service user, `POST /v1/end-users/{id}/persona/prepare`) and
+  `persona.prepare_for_own_agent()` (end-user JWT,
+  `POST /v1/end-user/persona/prepare`, the agent is the token subject).
+  Both return `PrepareAgentPersonaResponse` whose `system_prompt` is
+  assembled server-side and used verbatim. The persona-keyed `prepare()`
+  is unchanged.
+- **End-user tokens** — `end_user.mint_token(subject_id, ttl_seconds=)`
+  (`POST /v1/end-users/tokens`) returning `MintEndUserTokenResponse`.
+- **`MagickMind.from_token(base_url, token)`** and `StaticTokenAuth` —
+  build a client from a pre-issued end-user JWT, with no email/password and
+  no login round-trip.
+- **Episode ingest** — `episode.process(agent_id=, ...)` (service user,
+  owner named in the body) and `episode.process_own(...)` (end-user JWT,
+  owner is the token subject). Modeled as two request classes so the
+  end-user path structurally cannot send an `agent_id`.
+- **Typed error hints** — `reraise_with_hint()` attaches a per-status hint
+  to an API error and re-raises the *same* exception instance, so
+  `except ProblemDetailsException` still matches and `status`, `title`,
+  `request_id` and `validation_errors` survive. Hints steer a caller who
+  used the wrong credential family (Keycloak RS256 vs bifrost HS256 fail
+  with an opaque `unexpected signing method`) to the right route.
+- **`EndUserTokenAuth`** — keeps an end-user JWT alive by rotating it through
+  `POST /v1/end-user/tokens/refresh` ahead of expiry (read from the token's
+  `exp`, an `expires_in` given at construction, or `expires_in` on the
+  refresh response). Rotation is single-flight and lazy on each request;
+  `keep_fresh()` drives it for an agent that only listens, with exponential
+  backoff (1 s → 120 s) after a transient failure so an outage cannot drain
+  the server's per-hour refresh budget. A `401`, a `403` Bifrost explains
+  (`credential-supervised`), or an unreadable refresh response latch the
+  credential terminal (`is_terminal`, `terminal_reason` carries the server's
+  detail: chain exhausted, idle too long, revoked); an unexplained `403`
+  and every other failure are retried while the current token is valid.
+  `replace_token()` adopts a token minted out of band.
+  `MagickMind.from_token` picks the provider from the token's `aud` claim:
+  a `supervised=True` token (`end_user_supervised`) is held static, any
+  other rotates; `refresh=True/False` overrides. `MagickMind.end_user_auth`
+  exposes the rotating provider with its real type.
+- **End-user magickspaces** — `magickspaces.list_own()`,
+  `get_own_messages()`, `send_own_message()` and `prepare_own_context()` on
+  the `/v1/end-user/magickspaces` routes. `send_own_message` is the one send
+  that reaches agents (it fans out to each participant's `user:` channel);
+  it takes the constrained `message_type` vocabulary including the
+  `TOOL_*` protocol types and `SIGNAL_START/END/ERROR` turn indicators, plus
+  per-turn `tools` and `context` that ride the fan-out only.
+  `prepare_own_context` returns the `corpora` catalog and accepts
+  `catalog_corpus_ids`.
+- **Episode reads** — `episode.search()` / `search_own()` (relevance) and
+  `list_range()` / `list_range_own()` (inclusive date window, newest first).
+- **End-user corpus query** — `corpus.query_own()` on
+  `/v1/end-user/corpus/{id}/query`, with `x-api-key` funding the retrieval.
+- **Magickspace-scoped and end-user artifacts** —
+  `artifact.presign_upload_to_magickspace()` (service user), and as the
+  agent: `presign_own_upload`, `finalize_own`, `list_own`, `get_own`,
+  `download_url_own`, `delete_own`, plus the membership-independent
+  `get_uploaded` / `download_url_uploaded` / `delete_uploaded`.
+- **Agent management** — `end_user.attach_persona()`,
+  `set_persona_version()`, `create(participant_type=, persona_id=)`,
+  `query(participant_type=)`, `mint_token(supervised=)`,
+  `refresh_own_token()`, `revoke_own_token()`.
+- **Realtime as an end user** — `MagickMind.from_token` builds a realtime
+  client that puts the end-user JWT in the connect frame's `data.token` for
+  Bifrost's connect proxy; the server grants `user:{sub}#{sub}` and fan-out
+  arrives with no `subscribe()`. A rotated token is swapped into the connect
+  frame automatically. Disconnect code `4501` (token rejected) is surfaced
+  as `realtime.terminally_disconnected`.
+- **`MagickspaceMessageEvent`** — the magickspace fan-out payload (a
+  `ChatHistoryItem` plus `tools`/`context`), dispatched to handlers
+  registered under `MAGICKSPACE_MESSAGE`. `payload.is_signal` /
+  `is_control` let a handler drop turn signals and tool-protocol traffic
+  by type. `EventContext.from_channel` understands `user:` channels, and
+  `EventContext.publisher_user_id` carries Centrifugo's own record of the
+  publishing connection — the only identity a payload cannot choose.
+- `Routes` percent-encode every path parameter, so an id taken off the wire
+  cannot splice a query string or extra path segment into a request.
+- `MessageType`, `SIGNAL_MESSAGE_TYPES`, `CONTROL_MESSAGE_TYPES`,
+  `is_signal_message()`, `is_control_message()`, `CorpusInfo`.
+- `magickspaces.send_message(client_message_id=, record_neutral_memory=)`,
+  `prepare_context(catalog_corpus_ids=)`, `episode.process(client_message_id=)`.
+- `docs/guides/agent_client.md` — how an agent process uses this surface.
+
+### Breaking
+- **`artifact.list()` returns the page, not a bare list.** Bifrost pages
+  `GET /v1/artifacts` with `page_size`/`page_token` and answers
+  `{artifacts, next_page_token}`; the previous `list[Artifact]` return
+  discarded the token, so pagination was unreachable (and, see Fixed, the
+  request parameters it sent were ignored). It now returns
+  `ListArtifactsResponse`: iterate `page.data`, pass `page.next_cursor`
+  back as `cursor=`. `list_own()` takes the same `cursor=`/`limit=` names.
+  Migration: `for a in await artifact.list()` → `for a in (await artifact.list()).data`.
+- **`ChatHistoryItem.mindspace_id` is now a read-only property** over the
+  new `magickspace_id` field. Construction by either keyword still works and
+  reads are unchanged, but assignment raises, `model_dump()` emits
+  `magickspace_id` instead of `mindspace_id`, and `model_fields` no longer
+  lists `mindspace_id`. `ContextPrepareResponse` changes the same way.
+- `Artifact.created_at` / `updated_at` are `int | str` (Bifrost sends RFC
+  3339); arithmetic on them needs a type check now.
+- `DeleteArtifactResponse.message` is optional (Bifrost omits it).
+- `Routes.runtime_effective_personality(persona_id=)` is now
+  `(agent_id=)`, matching the server route; positional callers are
+  unaffected.
+- `reraise_with_hint` no longer folds the hint into `exc.message`; it stays
+  the server's own text and the hint is appended once by `str(exc)` (and in
+  `exc.args`). Code that searched `exc.message` for a hint must use
+  `str(exc)` or `exc.hint`.
+
+### Changed
+- `ChatHistoryItem`, `ChatHistoryMessage`, `ContextPrepareResponse` and
+  Xavier's `ChatMessagePayload` accept Bifrost's `magickspace_id` as well as
+  the legacy `mindspace_id`, and the first two carry `sent_by_user_name`,
+  `magickspace_type` (normalized to `PRIVATE`/`GROUP`), `artifact_ids`,
+  `message_type`, `client_message_id` and `deduplicated`. Every model that
+  carries a space id exposes both spellings; `Episode` gains a
+  `magickspace_id` property.
+- `is_signal_message` / `is_control_message` accept `None`, so they work on
+  `ChatHistoryMessage.message_type` directly.
+- `MintEndUserTokenResponse` redacts `token` in `repr`.
+- `RealtimeClient.connect()` wraps a failed handshake in `MagickMindError`
+  and leaves the client unset, so `replace_token()` followed by `connect()`
+  is a real reconnect rather than a no-op; `disconnect()` forgets the
+  connect-frame token.
+- `Artifact.created_at` / `updated_at` accept RFC 3339 strings as well as
+  unix seconds; `ListArtifactsResponse` reads Bifrost's `artifacts` key and
+  `next_page_token`; `DeleteArtifactResponse.message` is optional and
+  `already_deleted` is exposed; `DownloadUrlResponse` gains `id` and
+  `content_type`.
+- `EndUser` exposes `persona_id`, `active_persona_version_id` and
+  `participant_type`; `MintEndUserTokenResponse` exposes `expires_in`;
+  `ProcessEpisodeResponse` exposes `deduplicated`.
+- `Routes.runtime_effective_personality` is keyed by agent id, matching the
+  server route (the parameter was misnamed `persona_id`).
+- `repr(MagickMind)` reports the auth provider in use.
+
+### Fixed
+- **`artifact.list()` sent `cursor` / `limit`, which the server ignores** —
+  its route pages with `page_token` / `page_size`, so every call returned
+  the default page of 20. The parameters are now mapped to the wire names.
+- **Xavier's `chat_message` payload failed to parse** since the
+  `mindspace_id` → `magickspace_id` rename on the server side, so
+  `@realtime.on("chat_message")` handlers never fired.
+- **A malformed realtime publication no longer deafens an end-user
+  connection.** On a server-side subscription centrifuge hands publications
+  straight to the router; an exception there killed its message loop while
+  the socket stayed open. Parsing is now guarded and bad publications are
+  logged and dropped. An unknown space type on the fan-out is tolerated
+  rather than rejected.
+- **`reraise_with_hint` printed the hint twice** on any error that was not
+  a `ProblemDetailsException` (non-JSON bodies, gateway errors).
+- **Route-specific hints no longer misdiagnose credential errors.** A
+  `401`/`403` raised by token rotation before a request now passes through
+  `hint_by_status` untouched instead of acquiring, say, "the sender must be
+  a participant of this magickspace".
+- **`magickspaces.list()` was broken against dev.** The server sends
+  `MAGICKSPACE_TYPE_*` enum names but the normalizer only mapped the
+  pre-rename `MINDSPACE_TYPE_*`, so every row failed validation. The type
+  validator now accepts the short form and any `<ENUM>_TYPE_<SHORT>`
+  spelling whose suffix is valid, so the next rename degrades to a working
+  value instead of failing every row; unrecognized values are still
+  rejected.
+
 ## [0.4.1] - 2026-06-09
 
 ### Fixed

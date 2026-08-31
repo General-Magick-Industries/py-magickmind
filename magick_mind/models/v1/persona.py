@@ -113,9 +113,25 @@ class PreparePersonaRequest(BaseModel):
 
 
 class PreparePersonaResponse(BaseModel):
-    """Response containing the generated system prompt."""
+    """Response containing the generated system prompt (legacy persona-keyed path)."""
 
     system_prompt: str
+
+
+class PrepareAgentPersonaResponse(BaseModel):
+    """Response from the agent-keyed persona prepare endpoint.
+
+    ``system_prompt`` is assembled server-side and complete: identity, background,
+    traits, and tones are already blended in. It is used verbatim.
+    """
+
+    agent_id: str
+    persona_id: str
+    active_persona_version_id: str
+    user_id: Optional[str] = None
+    system_prompt: str
+    computed_at: str = ""
+    ttl_seconds: int = 0
 
 
 class ListPersonaVersionsResponse(BaseModel):

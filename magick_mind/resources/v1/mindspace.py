@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Optional
+from typing import Any, Optional
 
+from magick_mind.exceptions import MagickMindError, hint_by_status
 from magick_mind.models.v1.mindspace import (
     AddMindSpaceUsersRequest,
     ChatHistoryItem,
@@ -11,10 +12,12 @@ from magick_mind.models.v1.mindspace import (
     ContextPrepareResponse,
     CorpusParams,
     CreateMindSpaceRequest,
+    EndUserSendMessageRequest,
     FetcherParams,
     GetMindSpaceListResponse,
     LivekitJoinResponse,
     LivekitTokenResponse,
+    MessageType,
     MindSpace,
     MindSpaceType,
     MindspaceMessagesResponse,
@@ -24,8 +27,27 @@ from magick_mind.models.v1.mindspace import (
 from magick_mind.resources.base import BaseResource
 from magick_mind.routes import Routes
 
-if TYPE_CHECKING:
-    pass
+_END_USER_ROUTE_HINTS = {
+    401: (
+        "hint: this route needs a valid, unrevoked end-user JWT; with "
+        "service-user credentials use the non-_own method"
+    ),
+    403: "hint: the calling agent is not a participant of this magickspace",
+    404: "hint: magickspace not found",
+}
+
+
+def _messages_params(
+    cursor: Optional[str], limit: Optional[int], order: Optional[str]
+) -> Optional[dict[str, object]]:
+    params: dict[str, object] = {}
+    if cursor is not None:
+        params["cursor"] = cursor
+    if limit is not None:
+        params["limit"] = limit
+    if order is not None:
+        params["order"] = order
+    return params or None
 
 
 class MindspaceResourceV1(BaseResource):
@@ -286,17 +308,9 @@ class MindspaceResourceV1(BaseResource):
                     cursor=messages.next_after_id,
                 )
         """
-        params: dict[str, object] = {}
-        if cursor is not None:
-            params["cursor"] = cursor
-        if limit is not None:
-            params["limit"] = limit
-        if order is not None:
-            params["order"] = order
-
         response_data = await self._http.get(
             Routes.magickspace_messages(mindspace_id),
-            params=params if params else None,
+            params=_messages_params(cursor, limit, order),
         )
 
         return MindspaceMessagesResponse.model_validate(response_data)
@@ -311,9 +325,15 @@ class MindspaceResourceV1(BaseResource):
         artifact_ids: Optional[list[str]] = None,
         message_type: str = "TEXT",
         broadcast: bool = True,
+        record_neutral_memory: bool = False,
+        client_message_id: Optional[str] = None,
     ) -> ChatHistoryItem:
         """
         Send a message to a mindspace.
+
+        Note that this service-user route broadcasts to ``personal:`` channels
+        only, which agents never hear. A message meant to reach agents must be
+        sent as an end user through :meth:`send_own_message`.
 
         Args:
             mindspace_id: Mindspace ID to send message to
@@ -323,6 +343,11 @@ class MindspaceResourceV1(BaseResource):
             artifact_ids: Optional list of artifact IDs to attach
             message_type: Message type (default: ``"TEXT"``)
             broadcast: Whether to broadcast via Centrifugo (default: True)
+            record_neutral_memory: Also write to the space's unowned episodic
+                memory
+            client_message_id: Idempotency key, unique per (magickspace,
+                sender). A reused key returns the ORIGINAL message with
+                ``deduplicated=True`` and drops the new content; use a UUID.
 
         Returns:
             ChatHistoryItem for the created message
@@ -345,12 +370,179 @@ class MindspaceResourceV1(BaseResource):
             artifact_ids=artifact_ids or [],
             message_type=message_type,
             broadcast=broadcast,
+            record_neutral_memory=record_neutral_memory,
+            client_message_id=client_message_id,
         )
         response = await self._http.post(
             Routes.magickspace_messages(mindspace_id),
             json=request.model_dump(exclude_none=True),
         )
         return ChatHistoryItem.model_validate(response)
+
+    async def list_own(
+        self,
+        *,
+        project_id: Optional[str] = None,
+        type: Optional[MindSpaceType] = None,
+        name: Optional[str] = None,
+        cursor: Optional[str] = None,
+        limit: Optional[int] = None,
+        order: Optional[str] = None,
+    ) -> GetMindSpaceListResponse:
+        """
+        List the magickspaces the calling agent participates in (end-user JWT).
+
+        The participant is the token subject, so unlike :meth:`list` there is
+        no ``participant_id`` to supply.
+        """
+        params: dict[str, object] = {}
+        if project_id is not None:
+            params["project_id"] = project_id
+        if type is not None:
+            params["type"] = type
+        if name is not None:
+            params["name"] = name
+        if cursor is not None:
+            params["cursor"] = cursor
+        if limit is not None:
+            params["limit"] = limit
+        if order is not None:
+            params["order"] = order
+
+        try:
+            response = await self._http.get(Routes.END_USER_MAGICKSPACES, params=params)
+        except MagickMindError as exc:
+            hint_by_status(exc, {401: _END_USER_ROUTE_HINTS[401]})
+        return GetMindSpaceListResponse.model_validate(response)
+
+    async def get_own_messages(
+        self,
+        magickspace_id: str,
+        *,
+        cursor: Optional[str] = None,
+        limit: Optional[int] = None,
+        order: Optional[str] = None,
+    ) -> MindspaceMessagesResponse:
+        """
+        Fetch messages of a magickspace the calling agent participates in
+        (end-user JWT). Same pagination as :meth:`get_messages`; ``limit`` is
+        capped at 200 server-side.
+        """
+        try:
+            response = await self._http.get(
+                Routes.end_user_magickspace_messages(magickspace_id),
+                params=_messages_params(cursor, limit, order),
+            )
+        except MagickMindError as exc:
+            hint_by_status(exc, _END_USER_ROUTE_HINTS)
+        return MindspaceMessagesResponse.model_validate(response)
+
+    async def send_own_message(
+        self,
+        magickspace_id: str,
+        *,
+        content: Optional[str] = None,
+        reply_to_message_id: Optional[str] = None,
+        artifact_ids: Optional[list[str]] = None,
+        message_type: MessageType = "TEXT",
+        broadcast: bool = True,
+        tools: Optional[list[dict[str, Any]]] = None,
+        context: Optional[dict[str, str]] = None,
+    ) -> ChatHistoryItem:
+        """
+        Send a message as the calling agent, fanned out to every participant
+        (end-user JWT).
+
+        This is the only send that reaches agents: it publishes to each
+        participant's ``user:`` channel as well as the legacy ``personal:``
+        channel. The sender is the token subject, so there is no ``sender_id``.
+
+        Args:
+            magickspace_id: Magickspace to send to
+            content: Message text (max 32 KiB). ``SIGNAL_*`` sends may be
+                empty; every other type -- ``TOOL_MANIFEST`` included -- needs
+                content or ``artifact_ids``, or the server rejects it
+            reply_to_message_id: Optional ID of the message being replied to
+            artifact_ids: Optional artifact IDs to attach (max 64)
+            message_type: ``TEXT`` (default), ``VOICE_TRANSCRIPTION``, the
+                ``TOOL_*`` protocol types, or a ``SIGNAL_START`` /
+                ``SIGNAL_END`` / ``SIGNAL_ERROR`` turn indicator. Signals and
+                manifests are fanned out but never persisted
+            broadcast: Whether to fan out via Centrifugo (default: True)
+            tools: The sender's live tool manifest for this turn, one
+                ``{name, description, schema}`` per tool (max 32). Fan-out
+                only; never persisted. Ride it on a real turn rather than a
+                bare ``TOOL_MANIFEST`` send, which still needs content
+            context: Per-turn key/value context replayed into the receiving
+                agent's prompt (max 32 entries). Fan-out only
+
+        Returns:
+            ChatHistoryItem for the created message
+
+        Raises:
+            MagickMindError: 401 with service-user credentials or a revoked
+                token, 403 if the agent is not a participant, 404 if the
+                magickspace does not exist
+        """
+        request = EndUserSendMessageRequest(
+            content=content,
+            reply_to_message_id=reply_to_message_id,
+            artifact_ids=artifact_ids or [],
+            message_type=message_type,
+            broadcast=broadcast,
+            tools=tools,
+            context=context,
+        )
+        try:
+            response = await self._http.post(
+                Routes.end_user_magickspace_messages(magickspace_id),
+                json=request.model_dump(exclude_none=True),
+            )
+        except MagickMindError as exc:
+            hint_by_status(exc, _END_USER_ROUTE_HINTS)
+        return ChatHistoryItem.model_validate(response)
+
+    async def prepare_own_context(
+        self,
+        magickspace_id: str,
+        *,
+        chat_history: Optional[ChatHistoryParams] = None,
+        catalog_corpus_ids: Optional[list[str]] = None,
+    ) -> ContextPrepareResponse:
+        """
+        Retrieve the calling agent's conversation context for a magickspace
+        (end-user JWT).
+
+        Returns recent chat history plus the ``corpora`` catalog -- the
+        knowledge bases the agent may query with :meth:`~CorpusResourceV1.query_own`.
+        The participant is the token subject.
+
+        Args:
+            magickspace_id: Magickspace to prepare for
+            chat_history: History window (``limit``, 1..200)
+            catalog_corpus_ids: Extra corpus ids to resolve into the catalog
+                beside the space's own (max 64) -- how an agent's
+                activation-granted corpora gain names and descriptions.
+                Unknown or cross-tenant ids contribute nothing
+
+        Raises:
+            MagickMindError: 401 with service-user credentials, 403 if the
+                agent is not a participant, 404 if the magickspace does not
+                exist
+        """
+        body: dict[str, object] = {}
+        if chat_history:
+            body["chat_history"] = chat_history.model_dump(exclude_none=True)
+        if catalog_corpus_ids:
+            body["catalog_corpus_ids"] = catalog_corpus_ids
+
+        try:
+            response = await self._http.post(
+                Routes.end_user_magickspace_context(magickspace_id), json=body
+            )
+        except MagickMindError as exc:
+            hint_by_status(exc, _END_USER_ROUTE_HINTS)
+        return ContextPrepareResponse.model_validate(response)
 
     async def add_participants(
         self,
@@ -419,6 +611,7 @@ class MindspaceResourceV1(BaseResource):
         corpus: Optional[CorpusParams] = None,
         pelican: Optional[FetcherParams] = None,
         api_key: Optional[str] = None,
+        catalog_corpus_ids: Optional[list[str]] = None,
     ) -> ContextPrepareResponse:
         """
         Retrieve multiple memory sources for a mindspace in a single call.
@@ -430,8 +623,11 @@ class MindspaceResourceV1(BaseResource):
             participant_id: Participant ID (required)
             chat_history: Chat history params (limit)
             corpus: Corpus search params (query)
-            pelican: Pelican episodic memory params (query). Requires api_key.
-            api_key: API key required when using pelican fetcher (sent as x-api-key header)
+            pelican: Deprecated; accepted and ignored by the server. Use
+                ``client.v1.episode.search`` / ``list_range`` instead.
+            api_key: Optional API key (sent as x-api-key header)
+            catalog_corpus_ids: Extra corpus ids to resolve into the response's
+                ``corpora`` catalog beside the space's own (max 64)
 
         Returns:
             ContextPrepareResponse
@@ -443,6 +639,8 @@ class MindspaceResourceV1(BaseResource):
             body["corpus"] = corpus.model_dump()
         if pelican:
             body["pelican"] = pelican.model_dump()
+        if catalog_corpus_ids:
+            body["catalog_corpus_ids"] = catalog_corpus_ids
 
         headers = {}
         if api_key:

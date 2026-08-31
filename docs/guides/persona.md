@@ -88,6 +88,79 @@ Use **per-user mode** when the persona has dyadic learning enabled and should ad
 result.system_prompt  # str — inject this directly into your chat call
 ```
 
+## Agent-keyed prepare
+
+`prepare_for_agent()` resolves the prompt for an **agent**, letting the server pick
+which persona that agent currently uses:
+
+```python
+prepared = await client.v1.persona.prepare_for_agent(agent_id, user_id="user-abc-123")
+print(prepared.system_prompt)   # complete — identity, background, traits, tones
+print(prepared.persona_id)      # which persona the agent resolved to
+```
+
+> **The argument is an agent ID, not a persona ID.** The two paths take
+> same-shaped IDs in same-shaped URLs, so a persona ID passed here reaches the
+> server as an agent lookup and fails — **400** if the ID is malformed or names
+> an end user that is not an agent, **404** if it is well-formed but unknown. A
+> **403** means the agent ID does not match the token subject, or is not visible
+> to these credentials; a **409** means the agent has no attached persona or no
+> active version. The SDK appends a hint to each.
+
+Unlike `prepare()`, the response carries the resolution metadata:
+
+| Field | Meaning |
+| --- | --- |
+| `agent_id` | The agent the prompt was prepared for |
+| `persona_id` | The persona that agent resolved to |
+| `active_persona_version_id` | The version whose constraints were applied |
+| `user_id` | Echoes the per-user context, if any |
+| `system_prompt` | The complete prompt — use verbatim |
+| `computed_at` | When the server assembled it |
+| `ttl_seconds` | How long it stays valid |
+
+If you cache these, **key the cache by `agent_id`, not the returned `persona_id`.**
+Two agents can resolve to the same persona, so a persona-keyed cache can serve one
+agent's prompt to another — potentially across tenants.
+
+### Two callers, two routes
+
+`prepare_for_agent()` is the **service-user** path: your backend holds tenant
+credentials and names the agent by ID in the URL. An agent running with **its own
+end-user JWT** uses a different route where the token *is* the subject, so no ID is
+sent:
+
+```python
+# The agent holds its own end-user token; the server resolves it from the credential.
+prepared = await client.v1.persona.prepare_for_own_agent(user_id="user-abc-123")
+```
+
+Both return the same `PrepareAgentPersonaResponse`. Picking the wrong one still
+fails — the two routes verify differently signed tokens, so the call returns 401
+either way — but the SDK attaches a hint naming the method you wanted. The error
+is diagnosed, not prevented.
+
+The agent's client is built from the token rather than from credentials:
+
+```python
+# On your backend, holding service-user credentials:
+minted = await client.v1.end_user.mint_token(agent_id, ttl_seconds=3600)
+
+# In the agent process, holding only that token:
+agent = MagickMind.from_token(BASE_URL, minted.token)
+prepared = await agent.v1.persona.prepare_for_own_agent()
+```
+
+`from_token()` does not inspect or refresh the token — only the server judges
+it, so an expired or wrong-kind token surfaces as a 401 on the first call.
+
+To mint the end-user JWT an agent needs, use `client.v1.end_user.mint_token()`:
+
+```python
+minted = await client.v1.end_user.mint_token("eu-123", ttl_seconds=3600)
+# Hand minted.token to the agent process; it then calls prepare_for_own_agent().
+```
+
 ### Using it with chat
 
 ```python
@@ -391,6 +464,8 @@ async def handle_chat_request(
 ```
 
 > **Caching tip:** `prepare()` is a network call. In high-throughput scenarios, cache `system_prompt` per `(persona_id, user_id)` pair and invalidate when the active version changes or when you explicitly call `client.v1.runtime.invalidate_cache(persona_id)`.
+>
+> This key is correct **only for `prepare()`**, which is genuinely keyed by persona. Results from `prepare_for_agent()` / `prepare_for_own_agent()` must be keyed by `agent_id` instead — two agents can share a persona, so a persona-keyed entry would serve one agent's prompt to another.
 
 ## API Reference
 
@@ -420,6 +495,41 @@ Resolve a persona into a ready-to-use system prompt.
 
 **Returns:** `PreparePersonaResponse`
 - `system_prompt` (str): The generated system prompt string
+
+---
+
+### `prepare_for_agent()`
+
+Resolve an **agent's** persona into a ready-to-use system prompt.
+
+**Parameters:**
+- `agent_id` (str, required): Agent ID — *not* a persona ID; passing one fails with 404/403
+- `user_id` (str, optional): User ID for per-user dyadic adaptation
+
+**Returns:** `PrepareAgentPersonaResponse`
+- `agent_id` (str): The agent the prompt was prepared for
+- `persona_id` (str): The persona that agent resolved to
+- `active_persona_version_id` (str): Version whose constraints were applied
+- `user_id` (str | None): Echoed per-user context
+- `system_prompt` (str): The complete system prompt
+- `computed_at` (str): Server assembly timestamp
+- `ttl_seconds` (int): Validity window
+
+---
+
+### `prepare_for_own_agent()`
+
+Resolve the **calling agent's own** persona, for a client holding an end-user JWT.
+The agent is the token subject, so no ID is sent. Use `prepare_for_agent()` instead
+when calling with service-user credentials.
+
+**Parameters:**
+- `user_id` (str, optional): User ID for per-user dyadic adaptation
+
+**Returns:** `PrepareAgentPersonaResponse` (same shape as `prepare_for_agent()`)
+
+Calling this with service-user credentials returns 401; the SDK hint points you to
+`prepare_for_agent()`.
 
 ---
 

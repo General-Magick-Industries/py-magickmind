@@ -44,12 +44,12 @@ class TestArtifact:
 
         from magick_mind.models.v1.artifact import Artifact
 
-        result = await client.v1.artifact.list()
+        page = await client.v1.artifact.list()
 
-        assert isinstance(result, list)
-        assert len(result) == 1
-        assert isinstance(result[0], Artifact)
-        assert result[0].id == "art-123"
+        assert len(page.data) == 1
+        assert isinstance(page.data[0], Artifact)
+        assert page.data[0].id == "art-123"
+        assert page.next_cursor is None
 
         request = mock_auth.get_requests()[-1]
         assert request.method == "GET"
@@ -68,11 +68,12 @@ class TestArtifact:
         await client.v1.artifact.list(status="ready", cursor="tok-1", limit=10)
 
         request = mock_auth.get_requests()[-1]
-        assert "status=ready" in str(request.url)
-        assert "cursor=tok-1" in str(request.url)
-        assert "limit=10" in str(request.url)
-        # corpus_id must NOT appear
-        assert "corpus_id" not in str(request.url)
+        assert request.url.path == "/v1/artifacts"
+        assert dict(request.url.params) == {
+            "status": "ready",
+            "page_token": "tok-1",
+            "page_size": "10",
+        }
 
     async def test_list_no_corpus_id_param(
         self,

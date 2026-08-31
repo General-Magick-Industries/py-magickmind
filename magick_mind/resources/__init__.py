@@ -14,6 +14,7 @@ if TYPE_CHECKING:
     from magick_mind.resources.v1.chat import ChatResourceV1
     from magick_mind.resources.v1.corpus import CorpusResourceV1
     from magick_mind.resources.v1.end_user import EndUserResourceV1
+    from magick_mind.resources.v1.episode import EpisodeResourceV1
     from magick_mind.resources.v1.history import HistoryResourceV1
     from magick_mind.resources.v1.magickspaces import MagickspacesResourceV1
     from magick_mind.resources.v1.mindspace import MindspaceResourceV1
@@ -33,6 +34,7 @@ class V1Resources:
     chat: ChatResourceV1
     corpus: CorpusResourceV1
     end_user: EndUserResourceV1
+    episode: EpisodeResourceV1
     history: HistoryResourceV1
     magickspaces: MagickspacesResourceV1
     mindspace: MindspaceResourceV1
@@ -54,6 +56,7 @@ class V1Resources:
         from magick_mind.resources.v1.chat import ChatResourceV1
         from magick_mind.resources.v1.corpus import CorpusResourceV1
         from magick_mind.resources.v1.end_user import EndUserResourceV1
+        from magick_mind.resources.v1.episode import EpisodeResourceV1
         from magick_mind.resources.v1.history import HistoryResourceV1
         from magick_mind.resources.v1.magickspaces import MagickspacesResourceV1
         from magick_mind.resources.v1.persona import PersonaResourceV1
@@ -67,6 +70,7 @@ class V1Resources:
         self.chat = ChatResourceV1(http_client)
         self.corpus = CorpusResourceV1(http_client)
         self.end_user = EndUserResourceV1(http_client)
+        self.episode = EpisodeResourceV1(http_client)
         self.history = HistoryResourceV1(http_client)
         self.magickspaces = MagickspacesResourceV1(http_client)
         self.mindspace = self.magickspaces

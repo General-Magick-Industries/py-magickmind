@@ -12,6 +12,7 @@ import httpx
 
 from magick_mind.models.v1.artifact import (
     Artifact,
+    DeleteArtifactResponse,
     DownloadUrlResponse,
     FinalizeArtifactRequest,
     FinalizeArtifactResponse,
@@ -19,6 +20,7 @@ from magick_mind.models.v1.artifact import (
     ListArtifactsResponse,
     PresignArtifactRequest,
     PresignArtifactResponse,
+    ScopedPresignRequest,
 )
 from magick_mind.resources.base import BaseResource
 from magick_mind.routes import Routes
@@ -182,27 +184,28 @@ class ArtifactResourceV1(BaseResource):
         status: Optional[str] = None,
         cursor: Optional[str] = None,
         limit: Optional[int] = None,
-    ) -> list[Artifact]:
+    ) -> ListArtifactsResponse:
         """
         List artifacts for the authenticated tenant with optional filters.
 
         Args:
             end_user_id: Filter by end user ID (optional)
-            status: Filter by status — uploaded, processing, ready, failed, deleted
-            cursor: Pagination cursor (opaque string from a previous response)
-            limit: Maximum number of results to return
+            status: Filter by status — uploaded, processing, ready, failed
+            cursor: ``next_cursor`` of the previous page
+            limit: Page size, 1..100 (server default 20)
 
         Returns:
-            List of Artifact objects
+            ListArtifactsResponse: the page (``data``) and ``next_cursor``
+            for the following one, ``None`` on the last page
 
         Example:
-            # Get all artifacts
-            artifacts = await client.v1.artifact.list()
-            for artifact in artifacts:
+            page = await client.v1.artifact.list(status="ready", limit=50)
+            for artifact in page.data:
                 print(f"- {artifact.id}: {artifact.status}")
-
-            # Get ready artifacts with pagination
-            ready = await client.v1.artifact.list(status="ready", limit=20)
+            while page.next_cursor:
+                page = await client.v1.artifact.list(
+                    status="ready", limit=50, cursor=page.next_cursor
+                )
         """
         params: dict[str, object] = {}
         if end_user_id is not None:
@@ -210,13 +213,12 @@ class ArtifactResourceV1(BaseResource):
         if status is not None:
             params["status"] = status
         if cursor is not None:
-            params["cursor"] = cursor
+            params["page_token"] = cursor
         if limit is not None:
-            params["limit"] = str(limit)
+            params["page_size"] = str(limit)
 
         response = await self._http.get(Routes.ARTIFACTS, params=params)
-        list_response = ListArtifactsResponse(**response)
-        return list_response.data
+        return ListArtifactsResponse.model_validate(response)
 
     async def delete(self, artifact_id: str) -> None:
         """
@@ -319,3 +321,161 @@ class ArtifactResourceV1(BaseResource):
             endpoint, json=request.model_dump(exclude_none=True)
         )
         return FinalizeArtifactResponse(**response)
+
+    async def presign_upload_to_magickspace(
+        self,
+        magickspace_id: str,
+        *,
+        content_type: str,
+        size_bytes: int,
+        file_name: Optional[str] = None,
+        end_user_id: Optional[str] = None,
+    ) -> PresignArtifactResponse:
+        """
+        Presign an upload into a magickspace (service-user credentials).
+
+        The resulting artifact can be attached to a message in that space via
+        ``artifact_ids``. Upload with a PUT to ``upload_url`` carrying
+        ``required_headers``, then :meth:`finalize`.
+
+        Args:
+            magickspace_id: Magickspace owned by the caller's tenant
+            content_type: MIME type of the file
+            size_bytes: File size in bytes
+            file_name: Derived server-side if omitted
+            end_user_id: End user to associate the artifact with
+        """
+        request = ScopedPresignRequest(
+            file_name=file_name,
+            content_type=content_type,
+            size_bytes=size_bytes,
+            end_user_id=end_user_id,
+        )
+        response = await self._http.post(
+            Routes.magickspace_artifacts_presign(magickspace_id),
+            json=request.model_dump(exclude_none=True),
+        )
+        return PresignArtifactResponse(**response)
+
+    async def presign_own_upload(
+        self,
+        magickspace_id: str,
+        *,
+        content_type: str,
+        size_bytes: int,
+        file_name: Optional[str] = None,
+    ) -> PresignArtifactResponse:
+        """
+        Presign an upload into a magickspace as the calling agent (end-user JWT).
+
+        Requires membership of the space. Upload with a PUT to ``upload_url``
+        carrying ``required_headers``, then :meth:`finalize_own`.
+        """
+        request = ScopedPresignRequest(
+            file_name=file_name, content_type=content_type, size_bytes=size_bytes
+        )
+        response = await self._http.post(
+            Routes.end_user_magickspace_artifacts_presign(magickspace_id),
+            json=request.model_dump(exclude_none=True),
+        )
+        return PresignArtifactResponse(**response)
+
+    async def finalize_own(
+        self,
+        magickspace_id: str,
+        *,
+        artifact_id: str,
+        bucket: str,
+        key: str,
+        version_id: Optional[str] = None,
+    ) -> FinalizeArtifactResponse:
+        """Finalize an upload into a magickspace as the calling agent (end-user JWT)."""
+        body: dict[str, object] = {
+            "artifact_id": artifact_id,
+            "bucket": bucket,
+            "key": key,
+        }
+        if version_id is not None:
+            body["version_id"] = version_id
+        response = await self._http.post(
+            Routes.end_user_magickspace_artifacts_finalize(magickspace_id), json=body
+        )
+        return FinalizeArtifactResponse(**response)
+
+    async def list_own(
+        self,
+        magickspace_id: str,
+        *,
+        content_type: Optional[str] = None,
+        status: Optional[str] = None,
+        cursor: Optional[str] = None,
+        limit: Optional[int] = None,
+    ) -> ListArtifactsResponse:
+        """
+        List artifacts attached to messages in a magickspace the calling agent
+        participates in (end-user JWT).
+
+        Same paging as :meth:`list`: ``limit`` is the page size (1..100),
+        ``cursor`` is the previous page's ``next_cursor``.
+        """
+        params: dict[str, object] = {}
+        if content_type is not None:
+            params["content_type"] = content_type
+        if status is not None:
+            params["status"] = status
+        if cursor is not None:
+            params["page_token"] = cursor
+        if limit is not None:
+            params["page_size"] = limit
+        response = await self._http.get(
+            Routes.end_user_magickspace_artifacts(magickspace_id), params=params
+        )
+        return ListArtifactsResponse.model_validate(response)
+
+    async def get_own(self, magickspace_id: str, artifact_id: str) -> Artifact:
+        """Get an artifact attached to a message in a magickspace (end-user JWT)."""
+        response = await self._http.get(
+            Routes.end_user_magickspace_artifact(magickspace_id, artifact_id)
+        )
+        return Artifact.model_validate(response)
+
+    async def download_url_own(
+        self, magickspace_id: str, artifact_id: str
+    ) -> DownloadUrlResponse:
+        """Presigned download of a magickspace artifact (end-user JWT).
+
+        Bifrost never proxies artifact bytes; fetch ``download_url`` directly
+        before ``expires_at``.
+        """
+        response = await self._http.get(
+            Routes.end_user_magickspace_artifact_download(magickspace_id, artifact_id)
+        )
+        return DownloadUrlResponse.model_validate(response)
+
+    async def delete_own(
+        self, magickspace_id: str, artifact_id: str
+    ) -> DeleteArtifactResponse:
+        """Soft-delete an artifact attached to a message in a magickspace (end-user JWT)."""
+        response = await self._http.delete(
+            Routes.end_user_magickspace_artifact(magickspace_id, artifact_id)
+        )
+        return DeleteArtifactResponse.model_validate(response)
+
+    async def get_uploaded(self, artifact_id: str) -> Artifact:
+        """Get an artifact the calling end user uploaded (end-user JWT).
+
+        Owner operations need no current magickspace membership, so they keep
+        working after the agent leaves a space.
+        """
+        response = await self._http.get(Routes.end_user_artifact(artifact_id))
+        return Artifact.model_validate(response)
+
+    async def download_url_uploaded(self, artifact_id: str) -> DownloadUrlResponse:
+        """Presigned download of an artifact the calling end user uploaded."""
+        response = await self._http.get(Routes.end_user_artifact_download(artifact_id))
+        return DownloadUrlResponse.model_validate(response)
+
+    async def delete_uploaded(self, artifact_id: str) -> DeleteArtifactResponse:
+        """Soft-delete an artifact the calling end user uploaded."""
+        response = await self._http.delete(Routes.end_user_artifact(artifact_id))
+        return DeleteArtifactResponse.model_validate(response)

@@ -9,6 +9,13 @@ Usage:
     async def handle_chat(event: ChatMessageEvent):
         print(event.payload.message)
 
+    # Magickspace fan-out (what an agent connected as an end user receives)
+    @router.on(MAGICKSPACE_MESSAGE)
+    async def handle_turn(event: MagickspaceMessageEvent):
+        if event.payload.is_signal or event.payload.is_control:
+            return
+        print(f"{event.payload.sent_by_user_name}: {event.payload.content}")
+
     # Handler with EventContext — identifies which end-user the event is for
     @router.on("chat_message")
     async def handle_chat(event: ChatMessageEvent, ctx: EventContext):
@@ -30,9 +37,18 @@ import inspect
 import logging
 from collections.abc import Awaitable, Callable
 
-from centrifuge import ClientEventHandler, ServerPublicationContext
+from centrifuge import (
+    ClientEventHandler,
+    DisconnectedContext,
+    ServerPublicationContext,
+)
 
-from magick_mind.realtime.events import EventContext, UnknownEvent, parse_ws_event
+from magick_mind.realtime.events import (
+    EventContext,
+    UnknownEvent,
+    dispatch_key,
+    parse_ws_event,
+)
 
 logger: logging.Logger = logging.getLogger(__name__)
 
@@ -76,6 +92,13 @@ class EventRouter(ClientEventHandler):
         self._handler_wants_ctx: dict[str, bool] = {}
         self._unknown_handler: EventCallback | None = None
         self._unknown_wants_ctx: bool = False
+        self.on_disconnected_hook: (
+            Callable[[DisconnectedContext], Awaitable[None]] | None
+        ) = None
+
+    async def on_disconnected(self, ctx: DisconnectedContext) -> None:
+        if self.on_disconnected_hook is not None:
+            await self.on_disconnected_hook(ctx)
 
     def on(self, event_type: str) -> Callable[[EventCallback], EventCallback]:
         """
@@ -123,23 +146,35 @@ class EventRouter(ClientEventHandler):
         Parses raw data into typed event, dispatches to registered handler.
         """
         data = getattr(ctx.pub, "data", None)
-        if data is None:
+        channel: str = getattr(ctx, "channel", "") or ""
+        if not isinstance(data, dict):
+            logger.warning("Dropping non-object publication on %s", channel)
             return
 
-        channel: str = getattr(ctx, "channel", "") or ""
-        event_ctx = EventContext.from_channel(channel)
+        info = getattr(ctx.pub, "info", None)
+        publisher = getattr(info, "user", "") or ""
+        event_ctx = EventContext.from_channel(channel, publisher_user_id=publisher)
 
-        event = parse_ws_event(data)
-        handler = self._handlers.get(event.type)
+        # A server-side subscription hands publications straight to this method
+        # from centrifuge's message loop, which has no guard of its own: one
+        # exception there stops every later publication while the socket stays
+        # open. Nothing may escape from here.
+        try:
+            event = parse_ws_event(data)
+        except Exception:
+            logger.exception("Dropping unparseable publication on %s", channel)
+            return
+        key = dispatch_key(event)
+        handler = self._handlers.get(key)
 
         if handler:
             try:
-                if self._handler_wants_ctx.get(event.type, False):
+                if self._handler_wants_ctx.get(key, False):
                     await handler(event, event_ctx)
                 else:
                     await handler(event)
             except Exception:
-                logger.exception(f"Error in handler for event type '{event.type}'")
+                logger.exception(f"Error in handler for event type '{key}'")
         elif self._unknown_handler:
             try:
                 unknown = (

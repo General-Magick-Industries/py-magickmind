@@ -10,6 +10,7 @@ from magick_mind import MagickMind
 from magick_mind.models.v1.end_user import EndUser
 
 import pytest
+from pydantic import ValidationError as PydanticValidationError
 
 from tests.resources._payloads import (
     BASE_URL,
@@ -17,6 +18,7 @@ from tests.resources._payloads import (
     ERROR_500_ENVELOPE,
     ERROR_ENVELOPE,
     PAGING_EMPTY,
+    _error_envelope,
 )
 from magick_mind.exceptions import ProblemDetailsException
 
@@ -113,6 +115,93 @@ class TestEndUser:
         request = mock_auth.get_requests()[-1]
         assert request.method == "DELETE"
         assert str(request.url).endswith("/v1/end-users/eu-123")
+
+    async def test_mint_token(
+        self,
+        client: MagickMind,
+        mock_auth: HTTPXMock,
+    ):
+        mock_auth.add_response(
+            url=f"{BASE_URL}/v1/end-users/tokens",
+            method="POST",
+            json={
+                "token": "jwt-abc",
+                "expires_at": "2026-07-22T12:00:00Z",
+                "token_type": "Bearer",
+            },
+        )
+
+        result = await client.v1.end_user.mint_token("eu-123", ttl_seconds=300)
+
+        assert result.token == "jwt-abc"
+        assert result.expires_at == "2026-07-22T12:00:00Z"
+        assert result.token_type == "Bearer"
+
+        request = mock_auth.get_requests()[-1]
+        assert str(request.url).endswith("/v1/end-users/tokens")
+        body = json.loads(request.content)
+        assert body == {"subject_id": "eu-123", "ttl_seconds": 300}
+
+    async def test_mint_token_omits_ttl_when_unset(
+        self,
+        client: MagickMind,
+        mock_auth: HTTPXMock,
+    ):
+        mock_auth.add_response(
+            url=f"{BASE_URL}/v1/end-users/tokens",
+            method="POST",
+            json={
+                "token": "jwt-abc",
+                "expires_at": "2026-07-22T12:00:00Z",
+                "token_type": "Bearer",
+            },
+        )
+
+        await client.v1.end_user.mint_token("eu-123")
+
+        body = json.loads(mock_auth.get_requests()[-1].content)
+        assert body == {"subject_id": "eu-123"}
+
+    async def test_mint_token_rejects_response_without_token(
+        self,
+        client: MagickMind,
+        mock_auth: HTTPXMock,
+    ):
+        """This method returns a credential: a malformed response must fail
+        loudly rather than yield an empty-string bearer."""
+        mock_auth.add_response(
+            url=f"{BASE_URL}/v1/end-users/tokens",
+            method="POST",
+            json={"expires_at": "2026-07-22T12:00:00Z", "token_type": "Bearer"},
+        )
+
+        with pytest.raises(PydanticValidationError):
+            await client.v1.end_user.mint_token("eu-123")
+
+    @pytest.mark.parametrize("status", [403, 404])
+    async def test_mint_token_hints_on_bad_subject(
+        self,
+        client: MagickMind,
+        mock_auth: HTTPXMock,
+        status: int,
+    ):
+        mock_auth.add_response(
+            url=f"{BASE_URL}/v1/end-users/tokens",
+            method="POST",
+            status_code=status,
+            json=_error_envelope(
+                status, "Forbidden", "end user does not belong to service user"
+            ),
+        )
+
+        with pytest.raises(ProblemDetailsException) as exc:
+            await client.v1.end_user.mint_token("eu-other")
+
+        message = str(exc.value)
+        assert "must be an end user owned by the calling service user" in message
+        assert "'eu-other'" in message
+        assert exc.value.status == status
+        assert exc.value.request_id == "req-abc123"  # rich fields preserved
 
     async def test_get_404_raises_problem_details(
         self,

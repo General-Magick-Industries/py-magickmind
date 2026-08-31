@@ -144,6 +144,43 @@ client.v1.end_user.delete(end_user_id="user-123")
 print("End user deleted successfully")
 ```
 
+---
+
+### `mint_token(subject_id, *, ttl_seconds=None)`
+
+Mint a scoped JWT for an end user. Called with service-user credentials.
+
+The returned token has the end user as its subject, and is what an agent process
+presents to the end-user API surface — `persona.prepare_for_own_agent()` and
+`episode.process_own()`, where the caller is identified by the token rather than
+by an ID in the request.
+
+**Parameters:**
+- `subject_id` (str, required): End user the token represents. Must belong to the calling service user.
+- `ttl_seconds` (int, optional): Token lifetime. The server applies its own default when omitted, and rejects a value above its configured maximum.
+
+**Returns:** `MintEndUserTokenResponse` with `token`, `expires_at` (RFC3339), and `token_type`
+
+**Raises:** `MagickMindError` — `400` invalid `ttl_seconds`, `403` subject belongs to another tenant, `404` subject unknown, `503` minting not configured on the server.
+
+**Example:**
+```python
+minted = await client.v1.end_user.mint_token("eu-123", ttl_seconds=3600)
+print(minted.token, minted.expires_at)
+```
+
+Hand the token to the agent process, which builds its own client from it:
+
+```python
+from magick_mind import MagickMind
+
+agent = MagickMind.from_token("https://api.example.com", minted.token)
+prepared = await agent.v1.persona.prepare_for_own_agent()
+```
+
+See the [persona guide](../guides/persona.md) for the end-user API surface these
+tokens unlock.
+
 ## Data Models
 
 ### EndUser
@@ -293,6 +330,46 @@ pytest tests/test_end_user_resource.py -v
 # Test both
 pytest tests/test_end_user_* -v
 ```
+
+## Agents
+
+An end user with `participant_type="AGENT"` is an agent identity. Its
+persona binding lives on the record (`persona_id`,
+`active_persona_version_id`) and is managed with service-user credentials:
+
+```python
+agent = await client.v1.end_user.create(name="Aria", participant_type="AGENT")
+await client.v1.end_user.attach_persona(agent.id, persona_id="p-1", version_id="pv-1")
+await client.v1.end_user.set_persona_version(agent.id, version_id="pv-2")
+agents = await client.v1.end_user.query(participant_type="AGENT")
+```
+
+`create(...)` also accepts `persona_id=` to attach at creation; `EndUser`
+exposes `persona_id`, `active_persona_version_id` and `participant_type`.
+
+### Tokens
+
+```python
+minted = await client.v1.end_user.mint_token(agent.id, ttl_seconds=3600)
+minted.token        # the end-user JWT -- redacted in repr()
+minted.expires_in   # seconds, for scheduling rotation
+```
+
+`mint_token(..., supervised=True)` marks the token supervisor-managed: the
+server bars it from the self-refresh route, so the caller must deliver
+replacements. Hand either kind to `MagickMind.from_token(...)`, which reads
+the token's audience and rotates only the refreshable kind.
+
+With the agent's own token (`MagickMind.from_token`):
+
+```python
+fresh = await agent_client.v1.end_user.refresh_own_token(ttl_seconds=3600)
+await agent_client.v1.end_user.revoke_own_token(disconnect=True)
+```
+
+`refresh_own_token` is rotation, not exchange -- the presented token is
+revoked as the new one is issued. `EndUserTokenAuth` calls it for you;
+`revoke_own_token` belongs in the agent's shutdown path.
 
 ## See Also
 

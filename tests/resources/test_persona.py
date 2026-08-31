@@ -13,12 +13,14 @@ from magick_mind.exceptions import ProblemDetailsException
 from tests.factories import (
     PersonaFactory,
     PersonaVersionFactory,
+    PrepareAgentPersonaResponseFactory,
     PreparePersonaResponseFactory,
 )
 from tests.resources._payloads import (
     BASE_URL,
     ERROR_500_ENVELOPE as ERROR_500,
     PAGING_EMPTY,
+    _error_envelope,
 )
 
 
@@ -98,6 +100,161 @@ class TestPersonaResource:
 
         await client.v1.persona.delete("p-1")
         assert mock_auth.get_requests()[-1].method == "DELETE"
+
+    async def test_prepare_for_agent_uses_agent_keyed_route(
+        self, client: MagickMind, mock_auth: HTTPXMock
+    ):
+        prepared = PrepareAgentPersonaResponseFactory.build(
+            agent_id="a-1",
+            persona_id="p-1",
+            user_id="u-1",
+            system_prompt="You are Aria.",
+            ttl_seconds=300,
+        )
+        mock_auth.add_response(
+            url=f"{BASE_URL}/v1/end-users/a-1/persona/prepare",
+            method="POST",
+            json=prepared.model_dump(mode="json"),
+        )
+
+        prep = await client.v1.persona.prepare_for_agent("a-1", user_id="u-1")
+
+        assert prep.system_prompt == "You are Aria."
+        assert prep.agent_id == "a-1"
+        assert prep.persona_id == "p-1"
+        assert prep.ttl_seconds == 300
+        assert json.loads(mock_auth.get_requests()[-1].content) == {"user_id": "u-1"}
+
+    async def test_prepare_for_agent_404_hints_persona_vs_agent(
+        self, client: MagickMind, mock_auth: HTTPXMock
+    ):
+        mock_auth.add_response(
+            url=f"{BASE_URL}/v1/end-users/p-1/persona/prepare",
+            method="POST",
+            status_code=404,
+            json=_error_envelope(404, "Not Found", "Agent not found"),
+        )
+
+        with pytest.raises(ProblemDetailsException) as exc_info:
+            await client.v1.persona.prepare_for_agent("p-1")
+
+        exc = exc_info.value
+        assert "keyed by agent" in str(exc)
+        assert "'p-1'" in str(exc)
+        assert "Agent not found" in str(exc)
+        assert exc.status == 404
+        assert exc.request_id == "req-abc123"  # rich fields preserved
+
+    async def test_prepare_for_agent_400_hints_malformed_id(
+        self, client: MagickMind, mock_auth: HTTPXMock
+    ):
+        """A malformed id returns 400 on dev, not 404 -- the likeliest misuse."""
+        mock_auth.add_response(
+            url=f"{BASE_URL}/v1/end-users/not-an-id/persona/prepare",
+            method="POST",
+            status_code=400,
+            json=_error_envelope(400, "Bad Request", "Invalid agent ID"),
+        )
+
+        with pytest.raises(ProblemDetailsException) as exc_info:
+            await client.v1.persona.prepare_for_agent("not-an-id")
+
+        exc = exc_info.value
+        assert "not a well-formed id" in str(exc)
+        assert "not an agent" in str(exc)  # 400 has two distinct server causes
+        assert "'not-an-id'" in str(exc)
+        assert "Invalid agent ID" in str(exc)
+        assert exc.status == 400
+
+    async def test_prepare_for_agent_401_hints_wrong_credential(
+        self, client: MagickMind, mock_auth: HTTPXMock
+    ):
+        """An end-user JWT fails signature verification here (HS256 vs RS256),
+        so the 401 carries no clue about which route to use instead."""
+        mock_auth.add_response(
+            url=f"{BASE_URL}/v1/end-users/a-1/persona/prepare",
+            method="POST",
+            status_code=401,
+            json=_error_envelope(
+                401, "Unauthorized", "token is unverifiable: unexpected signing method"
+            ),
+        )
+
+        with pytest.raises(ProblemDetailsException) as exc_info:
+            await client.v1.persona.prepare_for_agent("a-1")
+
+        exc = exc_info.value
+        assert "needs service-user credentials" in str(exc)
+        assert "prepare_for_own_agent()" in str(exc)
+        assert exc.status == 401
+
+    async def test_prepare_for_agent_403_hints_token_subject(
+        self, client: MagickMind, mock_auth: HTTPXMock
+    ):
+        mock_auth.add_response(
+            url=f"{BASE_URL}/v1/end-users/a-1/persona/prepare",
+            method="POST",
+            status_code=403,
+            json=_error_envelope(403, "Forbidden", "not permitted"),
+        )
+
+        with pytest.raises(ProblemDetailsException) as exc_info:
+            await client.v1.persona.prepare_for_agent("a-1")
+
+        exc = exc_info.value
+        assert "does not match the token subject" in str(exc)
+        assert "prepare_for_own_agent()" in str(exc)
+        assert exc.status == 403
+
+    async def test_prepare_for_own_agent_uses_idless_route(
+        self, client: MagickMind, mock_auth: HTTPXMock
+    ):
+        prepared = PrepareAgentPersonaResponseFactory.build(
+            agent_id="a-self",
+            persona_id="p-1",
+            user_id=None,
+            system_prompt="You are Aria.",
+        )
+        mock_auth.add_response(
+            url=f"{BASE_URL}/v1/end-user/persona/prepare",
+            method="POST",
+            json=prepared.model_dump(mode="json"),
+        )
+
+        prep = await client.v1.persona.prepare_for_own_agent()
+
+        assert prep.system_prompt == "You are Aria."
+        assert prep.agent_id == "a-self"
+        request = mock_auth.get_requests()[-1]
+        assert str(request.url).endswith("/v1/end-user/persona/prepare")
+        assert "/end-users/" not in str(request.url)
+        assert json.loads(request.content) == {}
+
+    async def test_prepare_for_own_agent_401_hints_wrong_credential(
+        self, client: MagickMind, mock_auth: HTTPXMock
+    ):
+        mock_auth.add_response(
+            url=f"{BASE_URL}/v1/end-user/persona/prepare",
+            method="POST",
+            status_code=401,
+            json=_error_envelope(401, "Unauthorized", "missing end-user claims"),
+        )
+
+        with pytest.raises(ProblemDetailsException) as exc_info:
+            await client.v1.persona.prepare_for_own_agent()
+
+        exc = exc_info.value
+        assert "unrevoked end-user JWT" in str(exc)
+        assert "prepare_for_agent" in str(exc)
+        assert exc.status == 401
+        # the hint must reach args too (repr / traceback), not just __str__
+        assert "prepare_for_agent" in exc.args[0]
+        assert exc.hint is not None
+        assert str(exc).count("hint:") == 1
+        # ...without corrupting the server's own payload
+        assert exc.message == "missing end-user claims"
+        assert exc.detail == "missing end-user claims"
+        assert exc.problem.detail == "missing end-user claims"
 
     async def test_versioning_methods_happy_path(
         self, client: MagickMind, mock_auth: HTTPXMock

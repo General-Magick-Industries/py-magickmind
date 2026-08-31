@@ -9,6 +9,7 @@ from magick_mind.models.v1.corpus import QueryCorpusResponse
 from magick_mind.models.v1.persona import (
     Persona,
     PersonaVersion,
+    PrepareAgentPersonaResponse,
     PreparePersonaResponse,
 )
 from magick_mind.models.v1.runtime import EffectivePersonality
@@ -36,6 +37,11 @@ class PersonaVersionFactory(ModelFactory):
 
 class PreparePersonaResponseFactory(ModelFactory):
     __model__ = PreparePersonaResponse
+    __random_seed__ = 1
+
+
+class PrepareAgentPersonaResponseFactory(ModelFactory):
+    __model__ = PrepareAgentPersonaResponse
     __random_seed__ = 1
 
 
