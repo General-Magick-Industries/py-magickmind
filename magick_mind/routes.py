@@ -18,6 +18,17 @@ class Routes:
     # Magickspaces endpoints
     MAGICKSPACES = "/v1/magickspaces"
     MINDSPACES = MAGICKSPACES
+    END_USER_MAGICKSPACES = "/v1/end-user/magickspaces"
+
+    @staticmethod
+    def end_user_magickspace_context(magickspace_id: str) -> str:
+        """Context preparation for the calling agent (end-user JWT)."""
+        return f"/v1/end-user/magickspaces/{magickspace_id}/context"
+
+    @staticmethod
+    def end_user_magickspace_messages(magickspace_id: str) -> str:
+        """Messages of a magickspace the calling agent participates in (end-user JWT)."""
+        return f"/v1/end-user/magickspaces/{magickspace_id}/messages"
 
     @staticmethod
     def magickspace(magickspace_id: str) -> str:
@@ -83,9 +94,9 @@ class Routes:
     RUNTIME_INVALIDATE_CACHE = "/v1/runtime/invalidate-cache"
 
     @staticmethod
-    def runtime_effective_personality(persona_id: str) -> str:
-        """Get path for effective personality."""
-        return f"/v1/runtime/effective-personality/{persona_id}"
+    def runtime_effective_personality(agent_id: str) -> str:
+        """Get path for an agent's effective personality (keyed by agent id)."""
+        return f"/v1/runtime/effective-personality/{agent_id}"
 
     # Blueprint endpoints
     BLUEPRINTS = "/v1/blueprints"
@@ -149,6 +160,10 @@ class Routes:
     # Episode endpoints
     EPISODES_PROCESS = "/v1/episodes/process"
     EPISODES_PROCESS_OWN = "/v1/end-user/episodes/process"
+    EPISODES_SEARCH = "/v1/episodes/search"
+    EPISODES_SEARCH_OWN = "/v1/end-user/episodes/search"
+    EPISODES_RANGE = "/v1/episodes/range"
+    EPISODES_RANGE_OWN = "/v1/end-user/episodes/range"
 
     # Project endpoints
     PROJECTS = "/v1/projects"
@@ -161,11 +176,23 @@ class Routes:
     # End User endpoints
     END_USERS = "/v1/end-users"
     END_USER_TOKENS = "/v1/end-users/tokens"
+    END_USER_TOKENS_REFRESH = "/v1/end-user/tokens/refresh"
+    END_USER_TOKENS_REVOKE = "/v1/end-user/tokens/revoke"
 
     @staticmethod
     def end_user(end_user_id: str) -> str:
         """Get path for a specific end user."""
         return f"/v1/end-users/{end_user_id}"
+
+    @staticmethod
+    def end_user_persona(agent_id: str) -> str:
+        """Attach a persona to an agent (service-user credentials)."""
+        return f"/v1/end-users/{agent_id}/persona"
+
+    @staticmethod
+    def end_user_persona_version(agent_id: str) -> str:
+        """Change an agent's active persona version (service-user credentials)."""
+        return f"/v1/end-users/{agent_id}/persona/version"
 
     @staticmethod
     def end_user_persona_prepare(agent_id: str) -> str:
@@ -217,6 +244,11 @@ class Routes:
         """Get path for querying a corpus."""
         return f"/v1/corpus/{corpus_id}/query"
 
+    @staticmethod
+    def end_user_corpus_query(corpus_id: str) -> str:
+        """Query a corpus with the calling agent's end-user JWT."""
+        return f"/v1/end-user/corpus/{corpus_id}/query"
+
     # Artifact endpoints
     ARTIFACTS = "/v1/artifacts"
     ARTIFACTS_PRESIGN = "/v1/artifacts/presign"
@@ -231,6 +263,48 @@ class Routes:
     def artifact_download(artifact_id: str) -> str:
         """Get path for retrieving an artifact's presigned download URL."""
         return f"/v1/artifacts/{artifact_id}/download"
+
+    @staticmethod
+    def magickspace_artifacts_presign(magickspace_id: str) -> str:
+        """Presign an upload into a magickspace (service-user credentials)."""
+        return f"/v1/magickspaces/{magickspace_id}/artifacts/presign"
+
+    @staticmethod
+    def end_user_magickspace_artifacts(magickspace_id: str) -> str:
+        """Artifacts attached to messages in a magickspace (end-user JWT)."""
+        return f"/v1/end-user/magickspaces/{magickspace_id}/artifacts"
+
+    @staticmethod
+    def end_user_magickspace_artifacts_presign(magickspace_id: str) -> str:
+        """Presign an upload into a magickspace (end-user JWT)."""
+        return f"/v1/end-user/magickspaces/{magickspace_id}/artifacts/presign"
+
+    @staticmethod
+    def end_user_magickspace_artifacts_finalize(magickspace_id: str) -> str:
+        """Finalize an upload into a magickspace (end-user JWT)."""
+        return f"/v1/end-user/magickspaces/{magickspace_id}/artifacts/finalize"
+
+    @staticmethod
+    def end_user_magickspace_artifact(magickspace_id: str, artifact_id: str) -> str:
+        """One artifact attached to a message in a magickspace (end-user JWT)."""
+        return f"/v1/end-user/magickspaces/{magickspace_id}/artifacts/{artifact_id}"
+
+    @staticmethod
+    def end_user_magickspace_artifact_download(
+        magickspace_id: str, artifact_id: str
+    ) -> str:
+        """Presigned download of a magickspace artifact (end-user JWT)."""
+        return f"/v1/end-user/magickspaces/{magickspace_id}/artifacts/{artifact_id}/download"
+
+    @staticmethod
+    def end_user_artifact(artifact_id: str) -> str:
+        """An artifact owned by the calling end user, regardless of membership."""
+        return f"/v1/end-user/artifacts/{artifact_id}"
+
+    @staticmethod
+    def end_user_artifact_download(artifact_id: str) -> str:
+        """Presigned download of an artifact owned by the calling end user."""
+        return f"/v1/end-user/artifacts/{artifact_id}/download"
 
     # API Keys endpoints
     KEYS = "/v1/keys"

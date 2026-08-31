@@ -7,24 +7,36 @@ from typing import Optional
 from magick_mind.exceptions import MagickMindError, reraise_with_hint
 from magick_mind.models.v1.episode import (
     EndUserProcessEpisodeRequest,
+    ListEpisodesByDateRangeResponse,
     ProcessEpisodeRequest,
     ProcessEpisodeResponse,
+    SearchEpisodesResponse,
 )
 from magick_mind.resources.base import BaseResource
 from magick_mind.routes import Routes
+
+_OWN_ROUTE_401_HINT = (
+    "hint: this route needs a valid, unrevoked end-user JWT; with service-user "
+    "credentials use the non-_own method with agent_id=..."
+)
 
 
 class EpisodeResourceV1(BaseResource):
     """
     Episode resource client for V1 API.
 
-    Ingests messages into an agent's episodic memory. Two routes, chosen by
-    which credential the client holds:
+    Writes to and reads from an agent's episodic memory. Every operation has
+    two routes, chosen by which credential the client holds:
 
-    - :meth:`process` -- service-user credentials, memory owner named by
-      ``agent_id`` in the body.
-    - :meth:`process_own` -- the agent's own end-user JWT, where the owner is
-      the token subject and no ``agent_id`` is sent.
+    - :meth:`process` / :meth:`search` / :meth:`list_range` -- service-user
+      credentials, memory owner named by ``agent_id``.
+    - :meth:`process_own` / :meth:`search_own` / :meth:`list_range_own` --
+      the agent's own end-user JWT, where the owner is the token subject and
+      no ``agent_id`` is sent.
+
+    Reads answer different questions: :meth:`search` ranks by relevance and
+    cannot filter on time, so a question about *when* goes to
+    :meth:`list_range`, which returns an inclusive date window newest first.
 
     Ingest both sides of a conversation: the inbound message and the agent's
     own reply. Capturing only inbound messages stores half the conversation.
@@ -54,6 +66,7 @@ class EpisodeResourceV1(BaseResource):
         display_name: Optional[str] = None,
         is_group: bool = False,
         skip_persona: bool = False,
+        client_message_id: Optional[str] = None,
     ) -> ProcessEpisodeResponse:
         """
         Ingest a message into an agent's episodic memory (service-user path).
@@ -71,6 +84,8 @@ class EpisodeResourceV1(BaseResource):
                 user's own name when omitted
             is_group: Whether the message came from a group conversation
             skip_persona: Skip persona resolution when building the episode
+            client_message_id: Idempotency key, stable across retries and unique
+                per (magickspace, agent); a reused key is deduplicated
 
         Returns:
             ProcessEpisodeResponse indicating whether the message was processed
@@ -89,6 +104,7 @@ class EpisodeResourceV1(BaseResource):
             display_name=display_name,
             is_group=is_group,
             skip_persona=skip_persona,
+            client_message_id=client_message_id,
         )
         try:
             response = await self._http.post(
@@ -125,6 +141,7 @@ class EpisodeResourceV1(BaseResource):
         display_name: Optional[str] = None,
         is_group: bool = False,
         skip_persona: bool = False,
+        client_message_id: Optional[str] = None,
     ) -> ProcessEpisodeResponse:
         """
         Ingest a message into the calling agent's episodic memory (end-user JWT).
@@ -143,6 +160,8 @@ class EpisodeResourceV1(BaseResource):
                 user's own name when omitted
             is_group: Whether the message came from a group conversation
             skip_persona: Skip persona resolution when building the episode
+            client_message_id: Idempotency key, stable across retries and unique
+                per (magickspace, agent); a reused key is deduplicated
 
         Returns:
             ProcessEpisodeResponse indicating whether the message was processed
@@ -160,6 +179,7 @@ class EpisodeResourceV1(BaseResource):
             display_name=display_name,
             is_group=is_group,
             skip_persona=skip_persona,
+            client_message_id=client_message_id,
         )
         try:
             response = await self._http.post(
@@ -182,3 +202,180 @@ class EpisodeResourceV1(BaseResource):
                 reraise_with_hint(exc, hints[exc.status_code])
             raise
         return ProcessEpisodeResponse.model_validate(response)
+
+    async def search(
+        self,
+        query: str,
+        *,
+        agent_id: Optional[str] = None,
+        magickspace_id: Optional[str] = None,
+        magickspace_ids: Optional[list[str]] = None,
+        user_id: Optional[str] = None,
+        participant_id: Optional[str] = None,
+        limit: Optional[int] = None,
+    ) -> SearchEpisodesResponse:
+        """
+        Search episodic memory by relevance (service-user path).
+
+        Args:
+            query: Free-text query
+            agent_id: Memory lens -- an agent's id, ``"__neutral__"`` for the
+                space's unowned memory, or omitted for every owner
+            magickspace_id: Scope to one magickspace; omitted = user-wide
+            magickspace_ids: Scope to several magickspaces
+            user_id: Restrict to memories involving this user
+            participant_id: Restrict to memories involving this participant
+            limit: Maximum episodes to fold into the result
+
+        Returns:
+            SearchEpisodesResponse whose ``memory_content`` is prompt-ready text
+        """
+        params = _search_params(
+            query,
+            magickspace_id=magickspace_id,
+            magickspace_ids=magickspace_ids,
+            user_id=user_id,
+            participant_id=participant_id,
+            limit=limit,
+        )
+        if agent_id is not None:
+            params["agent_id"] = agent_id
+        response = await self._http.get(Routes.EPISODES_SEARCH, params=params)
+        return SearchEpisodesResponse.model_validate(response)
+
+    async def search_own(
+        self,
+        query: str,
+        *,
+        magickspace_id: Optional[str] = None,
+        magickspace_ids: Optional[list[str]] = None,
+        user_id: Optional[str] = None,
+        participant_id: Optional[str] = None,
+        limit: Optional[int] = None,
+    ) -> SearchEpisodesResponse:
+        """
+        Search the calling agent's episodic memory by relevance (end-user JWT).
+
+        The lens is fixed to the token subject, so there is no ``agent_id``.
+        See :meth:`search` for the other parameters.
+        """
+        params = _search_params(
+            query,
+            magickspace_id=magickspace_id,
+            magickspace_ids=magickspace_ids,
+            user_id=user_id,
+            participant_id=participant_id,
+            limit=limit,
+        )
+        try:
+            response = await self._http.get(Routes.EPISODES_SEARCH_OWN, params=params)
+        except MagickMindError as exc:
+            if exc.status_code == 401:
+                reraise_with_hint(exc, _OWN_ROUTE_401_HINT)
+            raise
+        return SearchEpisodesResponse.model_validate(response)
+
+    async def list_range(
+        self,
+        *,
+        date_start: str,
+        date_end: str,
+        agent_id: Optional[str] = None,
+        magickspace_id: Optional[str] = None,
+        participant_id: Optional[str] = None,
+        limit: Optional[int] = None,
+    ) -> ListEpisodesByDateRangeResponse:
+        """
+        List episodes in a date window, newest first (service-user path).
+
+        Use this rather than :meth:`search` when the question is about time:
+        search ranks by relevance and cannot filter on it.
+
+        Args:
+            date_start: ``YYYY-MM-DD``, inclusive
+            date_end: ``YYYY-MM-DD``, inclusive
+            agent_id: Memory lens, as in :meth:`search`
+            magickspace_id: Scope to one magickspace
+            participant_id: Restrict to memories involving this participant
+            limit: 1..200 (server default 50)
+        """
+        params = _range_params(
+            date_start,
+            date_end,
+            magickspace_id=magickspace_id,
+            participant_id=participant_id,
+            limit=limit,
+        )
+        if agent_id is not None:
+            params["agent_id"] = agent_id
+        response = await self._http.get(Routes.EPISODES_RANGE, params=params)
+        return ListEpisodesByDateRangeResponse.model_validate(response)
+
+    async def list_range_own(
+        self,
+        *,
+        date_start: str,
+        date_end: str,
+        magickspace_id: Optional[str] = None,
+        participant_id: Optional[str] = None,
+        limit: Optional[int] = None,
+    ) -> ListEpisodesByDateRangeResponse:
+        """
+        List the calling agent's episodes in a date window, newest first
+        (end-user JWT). See :meth:`list_range`.
+        """
+        params = _range_params(
+            date_start,
+            date_end,
+            magickspace_id=magickspace_id,
+            participant_id=participant_id,
+            limit=limit,
+        )
+        try:
+            response = await self._http.get(Routes.EPISODES_RANGE_OWN, params=params)
+        except MagickMindError as exc:
+            if exc.status_code == 401:
+                reraise_with_hint(exc, _OWN_ROUTE_401_HINT)
+            raise
+        return ListEpisodesByDateRangeResponse.model_validate(response)
+
+
+def _search_params(
+    query: str,
+    *,
+    magickspace_id: Optional[str],
+    magickspace_ids: Optional[list[str]],
+    user_id: Optional[str],
+    participant_id: Optional[str],
+    limit: Optional[int],
+) -> dict[str, object]:
+    params: dict[str, object] = {"q": query}
+    if magickspace_id is not None:
+        params["mindspace_id"] = magickspace_id
+    if magickspace_ids:
+        params["mindspace_ids"] = magickspace_ids
+    if user_id is not None:
+        params["user_id"] = user_id
+    if participant_id is not None:
+        params["participant_id"] = participant_id
+    if limit is not None:
+        params["limit"] = limit
+    return params
+
+
+def _range_params(
+    date_start: str,
+    date_end: str,
+    *,
+    magickspace_id: Optional[str],
+    participant_id: Optional[str],
+    limit: Optional[int],
+) -> dict[str, object]:
+    params: dict[str, object] = {"date_start": date_start, "date_end": date_end}
+    if magickspace_id is not None:
+        params["mindspace_id"] = magickspace_id
+    if participant_id is not None:
+        params["participant_id"] = participant_id
+    if limit is not None:
+        params["limit"] = limit
+    return params
