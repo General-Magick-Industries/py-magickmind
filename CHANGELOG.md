@@ -7,11 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-The end-user (agent) surface. An agent process holding a minted end-user JWT
-can now do everything the Rust runtime (mindroid v2) does against Bifrost,
-without the SDK taking on any runtime of its own.
+The end-user (agent) surface. A service user creates an agent, binds its
+persona and mints its credential; the agent process holds that end-user JWT
+and can now do everything the Rust runtime (mindroid v2) does against
+Bifrost, without the SDK taking on any runtime of its own.
 
 ### Added
+- **Agent-scoped persona prepare** — `persona.prepare_for_agent(agent_id)`
+  (service user, `POST /v1/end-users/{id}/persona/prepare`) and
+  `persona.prepare_for_own_agent()` (end-user JWT,
+  `POST /v1/end-user/persona/prepare`, the agent is the token subject).
+  Both return `PrepareAgentPersonaResponse` whose `system_prompt` is
+  assembled server-side and used verbatim. The persona-keyed `prepare()`
+  is unchanged.
+- **End-user tokens** — `end_user.mint_token(subject_id, ttl_seconds=)`
+  (`POST /v1/end-users/tokens`) returning `MintEndUserTokenResponse`.
+- **`MagickMind.from_token(base_url, token)`** and `StaticTokenAuth` —
+  build a client from a pre-issued end-user JWT, with no email/password and
+  no login round-trip.
+- **Episode ingest** — `episode.process(agent_id=, ...)` (service user,
+  owner named in the body) and `episode.process_own(...)` (end-user JWT,
+  owner is the token subject). Modeled as two request classes so the
+  end-user path structurally cannot send an `agent_id`.
+- **Typed error hints** — `reraise_with_hint()` attaches a per-status hint
+  to an API error and re-raises the *same* exception instance, so
+  `except ProblemDetailsException` still matches and `status`, `title`,
+  `request_id` and `validation_errors` survive. Hints steer a caller who
+  used the wrong credential family (Keycloak RS256 vs bifrost HS256 fail
+  with an opaque `unexpected signing method`) to the right route.
 - **`EndUserTokenAuth`** — keeps an end-user JWT alive by rotating it through
   `POST /v1/end-user/tokens/refresh` ahead of expiry (read from the token's
   `exp`, or `expires_in` on the refresh response). Rotation is single-flight
@@ -77,6 +100,15 @@ without the SDK taking on any runtime of its own.
 - `Routes.runtime_effective_personality` is keyed by agent id, matching the
   server route (the parameter was misnamed `persona_id`).
 - `repr(MagickMind)` reports the auth provider in use.
+
+### Fixed
+- **`magickspaces.list()` was broken against dev.** The server sends
+  `MAGICKSPACE_TYPE_*` enum names but the normalizer only mapped the
+  pre-rename `MINDSPACE_TYPE_*`, so every row failed validation. The type
+  validator now accepts the short form and any `<ENUM>_TYPE_<SHORT>`
+  spelling whose suffix is valid, so the next rename degrades to a working
+  value instead of failing every row; unrecognized values are still
+  rejected.
 
 ## [0.4.1] - 2026-06-09
 
