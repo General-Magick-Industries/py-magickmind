@@ -74,6 +74,11 @@ dev = [
   "ruff>=0.15.11",
 ]
 
+[tool.ruff]
+# Python only: newer ruff releases also format Markdown code blocks, which
+# would put every doc page under the formatter.
+extend-exclude = ["*.md"]
+
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 markers = [
