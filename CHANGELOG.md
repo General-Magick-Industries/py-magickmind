@@ -5,6 +5,79 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+The end-user (agent) surface. An agent process holding a minted end-user JWT
+can now do everything the Rust runtime (mindroid v2) does against Bifrost,
+without the SDK taking on any runtime of its own.
+
+### Added
+- **`EndUserTokenAuth`** — keeps an end-user JWT alive by rotating it through
+  `POST /v1/end-user/tokens/refresh` ahead of expiry (read from the token's
+  `exp`, or `expires_in` on the refresh response). Rotation is single-flight
+  and lazy on each request; `keep_fresh()` drives it for an agent that only
+  listens. `401`/`403` from the refresh route latch the credential terminal
+  (`is_terminal`); other failures are retried while the current token is
+  valid. `replace_token()` adopts a token minted out of band.
+  `MagickMind.from_token(..., refresh=True)` selects it; the default stays
+  the never-refreshing `StaticTokenAuth`, which is what a `supervised=True`
+  token needs.
+- **End-user magickspaces** — `magickspaces.list_own()`,
+  `get_own_messages()`, `send_own_message()` and `prepare_own_context()` on
+  the `/v1/end-user/magickspaces` routes. `send_own_message` is the one send
+  that reaches agents (it fans out to each participant's `user:` channel);
+  it takes the constrained `message_type` vocabulary including the
+  `TOOL_*` protocol types and `SIGNAL_START/END/ERROR` turn indicators, plus
+  per-turn `tools` and `context` that ride the fan-out only.
+  `prepare_own_context` returns the `corpora` catalog and accepts
+  `catalog_corpus_ids`.
+- **Episode reads** — `episode.search()` / `search_own()` (relevance) and
+  `list_range()` / `list_range_own()` (inclusive date window, newest first).
+- **End-user corpus query** — `corpus.query_own()` on
+  `/v1/end-user/corpus/{id}/query`, with `x-api-key` funding the retrieval.
+- **Magickspace-scoped and end-user artifacts** —
+  `artifact.presign_upload_to_magickspace()` (service user), and as the
+  agent: `presign_own_upload`, `finalize_own`, `list_own`, `get_own`,
+  `download_url_own`, `delete_own`, plus the membership-independent
+  `get_owned` / `download_url_owned` / `delete_owned`.
+- **Agent management** — `end_user.attach_persona()`,
+  `set_persona_version()`, `create(participant_type=, persona_id=)`,
+  `query(participant_type=)`, `mint_token(supervised=)`,
+  `refresh_own_token()`, `revoke_own_token()`.
+- **Realtime as an end user** — `MagickMind.from_token` builds a realtime
+  client that puts the end-user JWT in the connect frame's `data.token` for
+  Bifrost's connect proxy; the server grants `user:{sub}#{sub}` and fan-out
+  arrives with no `subscribe()`. A rotated token is swapped into the connect
+  frame automatically. Disconnect code `4501` (token rejected) is surfaced
+  as `realtime.terminally_disconnected`.
+- **`MagickspaceMessageEvent`** — the magickspace fan-out payload (a
+  `ChatHistoryItem` plus `tools`/`context`), dispatched to handlers
+  registered under `MAGICKSPACE_MESSAGE`. `payload.is_signal` /
+  `is_control` let a handler drop turn signals and tool-protocol traffic
+  by type. `EventContext.from_channel` understands `user:` channels.
+- `MessageType`, `SIGNAL_MESSAGE_TYPES`, `CONTROL_MESSAGE_TYPES`,
+  `is_signal_message()`, `is_control_message()`, `CorpusInfo`.
+- `magickspaces.send_message(client_message_id=, record_neutral_memory=)`,
+  `prepare_context(catalog_corpus_ids=)`, `episode.process(client_message_id=)`.
+- `docs/guides/agent_client.md` — how an agent process uses this surface.
+
+### Changed
+- `ChatHistoryItem`, `ChatHistoryMessage` and `ContextPrepareResponse` accept
+  Bifrost's `magickspace_id` as well as the legacy `mindspace_id`, and carry
+  `sent_by_user_name`, `magickspace_type`, `artifact_ids`, `message_type`,
+  `client_message_id` and `deduplicated`. `mindspace_id` remains readable.
+- `Artifact.created_at` / `updated_at` accept RFC 3339 strings as well as
+  unix seconds; `ListArtifactsResponse` reads Bifrost's `artifacts` key and
+  `next_page_token`; `DeleteArtifactResponse.message` is optional and
+  `already_deleted` is exposed; `DownloadUrlResponse` gains `id` and
+  `content_type`.
+- `EndUser` exposes `persona_id`, `active_persona_version_id` and
+  `participant_type`; `MintEndUserTokenResponse` exposes `expires_in`;
+  `ProcessEpisodeResponse` exposes `deduplicated`.
+- `Routes.runtime_effective_personality` is keyed by agent id, matching the
+  server route (the parameter was misnamed `persona_id`).
+- `repr(MagickMind)` reports the auth provider in use.
+
 ## [0.4.1] - 2026-06-09
 
 ### Fixed

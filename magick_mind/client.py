@@ -7,7 +7,12 @@ from typing import TYPE_CHECKING, Optional
 if TYPE_CHECKING:
     from openai import AsyncOpenAI
 
-from magick_mind.auth import AuthProvider, EmailPasswordAuth, StaticTokenAuth
+from magick_mind.auth import (
+    AuthProvider,
+    EmailPasswordAuth,
+    EndUserTokenAuth,
+    StaticTokenAuth,
+)
 from magick_mind.config import SDKConfig
 from magick_mind.exceptions import MagickMindError
 from magick_mind.http import HTTPClient
@@ -92,13 +97,15 @@ class MagickMind:
         auth = EmailPasswordAuth(
             email=email, password=password, base_url=base_url, timeout=timeout
         )
-        self._wire(config, auth, ws_endpoint)
+        self._wire(config, auth, ws_endpoint, end_user=False)
 
     def _wire(
         self,
         config: SDKConfig,
         auth: AuthProvider,
         ws_endpoint: Optional[str],
+        *,
+        end_user: bool,
     ) -> None:
         """Build the HTTP, realtime, and resource graph around an auth provider."""
         self.config: SDKConfig = config
@@ -108,7 +115,9 @@ class MagickMind:
         self._http = HTTPClient(config=self.config, auth=self.auth)
 
         # Create Realtime client (private, accessed via property)
-        self._realtime = RealtimeClient(auth=self.auth, ws_url=ws_endpoint)
+        self._realtime = RealtimeClient(
+            auth=self.auth, ws_url=ws_endpoint, end_user=end_user
+        )
 
         # Initialize typed resources
         from magick_mind.resources import V1Resources, V2Resources
@@ -130,27 +139,41 @@ class MagickMind:
         timeout: float = 30.0,
         verify_ssl: bool = True,
         ws_endpoint: Optional[str] = None,
+        *,
+        refresh: bool = False,
+        refresh_window_seconds: float = 120.0,
     ) -> MagickMind:
         """
-        Build a client that authenticates with a pre-issued bearer token.
+        Build a client that authenticates with a pre-issued end-user token.
 
         This is how an agent process uses an end-user JWT minted for it by a
         service user (``client.v1.end_user.mint_token()``). Such a token is the
         credential for the end-user API surface, where the caller is identified
-        by the token subject rather than by an ID in the request --
-        ``v1.persona.prepare_for_own_agent()`` and ``v1.episode.process_own()``.
+        by the token subject rather than by an ID in the request -- the
+        ``*_own`` methods (``v1.persona.prepare_for_own_agent()``,
+        ``v1.magickspaces.send_own_message()``, ``v1.episode.process_own()``,
+        ...). ``.realtime`` connects as the end user and receives magickspace
+        fan-out on the agent's own ``user:`` channel.
 
-        The token is used as given: it is never refreshed, and it is not
-        inspected or validated here. Only the server decides whether it is
-        acceptable, so a wrong-kind, expired, or revoked token surfaces as a
-        401 on the first call rather than at construction.
+        The token is not inspected or validated here. Only the server decides
+        whether it is acceptable, so a wrong-kind, expired, or revoked token
+        surfaces as a 401 on the first call rather than at construction.
 
         Args:
             base_url: Base URL of the Magick Mind API
-            token: Bearer token to present on every request
+            token: End-user JWT to present on every request
             timeout: Request timeout in seconds
             verify_ssl: Whether to verify SSL certificates
             ws_endpoint: WebSocket URL (required for ``.realtime`` usage)
+            refresh: Keep the token alive by rotating it through
+                ``POST /v1/end-user/tokens/refresh`` ahead of expiry (see
+                :class:`~magick_mind.auth.EndUserTokenAuth`). Leave ``False``
+                for a token minted with ``supervised=True`` -- the server bars
+                it from that route -- and for any token whose lifecycle a
+                control plane owns; such a client uses the token as given
+                and never refreshes it.
+            refresh_window_seconds: With ``refresh``, rotate once this close
+                to expiry
 
         Returns:
             A MagickMind client bound to the token
@@ -160,7 +183,7 @@ class MagickMind:
 
         Example:
             minted = await client.v1.end_user.mint_token(agent_id)
-            agent = MagickMind.from_token(BASE_URL, minted.token)
+            agent = MagickMind.from_token(BASE_URL, minted.token, refresh=True)
             prepared = await agent.v1.persona.prepare_for_own_agent()
         """
         self = cls.__new__(cls)
@@ -170,7 +193,17 @@ class MagickMind:
             verify_ssl=verify_ssl,
             ws_endpoint=ws_endpoint,
         )
-        self._wire(config, StaticTokenAuth(token), ws_endpoint)
+        auth: AuthProvider = (
+            EndUserTokenAuth(
+                token,
+                base_url,
+                timeout=timeout,
+                refresh_window_seconds=refresh_window_seconds,
+            )
+            if refresh
+            else StaticTokenAuth(token)
+        )
+        self._wire(config, auth, ws_endpoint, end_user=True)
         return self
 
     @property
@@ -234,10 +267,10 @@ class MagickMind:
             MagickMindError: If the current token does not contain a ``sub`` claim
                 or cannot be decoded.
         """
-        from magick_mind.realtime.client import _extract_jwt_sub
+        from magick_mind.auth.jwt import jwt_subject
 
         token = await self.auth.get_token_async()
-        uid = _extract_jwt_sub(token)
+        uid = jwt_subject(token)
         if not uid:
             raise MagickMindError("Failed to extract user_id from JWT token")
         return uid
@@ -318,4 +351,7 @@ class MagickMind:
 
     def __repr__(self) -> str:
         """String representation of the client."""
-        return f"MagickMind(base_url='{self.config.base_url}', auth='EmailPassword')"
+        return (
+            f"MagickMind(base_url='{self.config.base_url}', "
+            f"auth='{type(self.auth).__name__}')"
+        )
