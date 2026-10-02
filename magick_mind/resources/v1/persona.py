@@ -296,6 +296,7 @@ class PersonaResourceV1(BaseResource):
     async def create_from_blueprint(
         self,
         blueprint_id: str,
+        version: str,
         name: str,
         role: str,
         background_story: Optional[str] = None,
@@ -311,6 +312,7 @@ class PersonaResourceV1(BaseResource):
 
         Args:
             blueprint_id: Source blueprint ID
+            version: Label of the persona's initial version, e.g. "1.0.0"
             name: Persona name
             role: Persona role
             background_story: Optional background story
@@ -326,6 +328,7 @@ class PersonaResourceV1(BaseResource):
         """
         request = CreatePersonaFromBlueprintRequest(
             blueprint_id=blueprint_id,
+            version=version,
             name=name,
             role=role,
             background_story=background_story,

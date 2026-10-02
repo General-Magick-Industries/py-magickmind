@@ -108,7 +108,6 @@ class Routes:
 
     # Blueprint endpoints
     BLUEPRINTS = "/v1/blueprints"
-    BLUEPRINTS_VALIDATE = "/v1/blueprints/validate"
     BLUEPRINTS_BY_KEY = "/v1/blueprints/by-key"
 
     @staticmethod
@@ -122,9 +121,9 @@ class Routes:
         return f"/v1/blueprints/{_seg(blueprint_id)}/clone"
 
     @staticmethod
-    def blueprint_hydrate(blueprint_id: str) -> str:
-        """Get path to hydrate a blueprint."""
-        return f"/v1/blueprints/{_seg(blueprint_id)}/hydrate"
+    def blueprint_visibility(blueprint_id: str) -> str:
+        """Get path to change a blueprint's visibility."""
+        return f"/v1/blueprints/{_seg(blueprint_id)}/visibility"
 
     # Persona endpoints
     PERSONAS = "/v1/persona"
@@ -210,14 +209,6 @@ class Routes:
         See :attr:`PERSONA_PREPARE_OWN` for the end-user-JWT path.
         """
         return f"/v1/end-users/{_seg(agent_id)}/persona/prepare"
-
-    # Trait endpoints
-    TRAITS = "/v1/traits"
-
-    @staticmethod
-    def trait(trait_id: str) -> str:
-        """Get path for a specific trait."""
-        return f"/v1/traits/{_seg(trait_id)}"
 
     # Corpus endpoints
     CORPUS = "/v1/corpus"

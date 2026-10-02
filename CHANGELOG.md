@@ -118,6 +118,23 @@ Bifrost, without the SDK taking on any runtime of its own.
   the server's own text and the hint is appended once by `str(exc)` (and in
   `exc.args`). Code that searched `exc.message` for a hint must use
   `str(exc)` or `exc.hint`.
+- **Blueprints follow Bifrost's public/private model (MM-365).** Blueprints
+  have no namespace any more, and visibility is `PRIVATE` or `PUBLIC`:
+  `create()` drops `namespace=`, `get_by_key()` takes `blueprint_id` and an
+  optional `owner_id` (defaults to the caller), `clone()` takes only
+  `new_blueprint_id`, and `patch()` no longer changes visibility; use the new
+  `set_visibility()` (`PATCH /v1/blueprints/{id}/visibility`). `Blueprint`
+  gains `revision`. `BlueprintTrait` now requires `type`
+  (`NUMERIC`/`CATEGORICAL`/`MULTILABEL`) and carries `display_name`,
+  `description` and `category`, matching what the server validates.
+- **Removed `blueprint.validate()`, `blueprint.hydrate()` and the `trait`
+  resource** with their models (`ValidateBlueprint*`, `HydratedBlueprint*`,
+  `Trait*`, `Namespace`). Bifrost no longer serves `/v1/blueprints/validate`,
+  `/v1/blueprints/{id}/hydrate` or `/v1/traits`; blueprints are
+  self-contained. `TraitType` and `LockType` now come from
+  `magick_mind.models.v1.personality`.
+- `persona.create_from_blueprint()` requires `version=`, the label of the
+  persona's initial version. Bifrost rejects the request without it.
 
 ### Changed
 - `ChatHistoryItem`, `ChatHistoryMessage`, `ContextPrepareResponse` and

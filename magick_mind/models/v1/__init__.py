@@ -18,14 +18,10 @@ from magick_mind.models.v1.blueprint import (
     Blueprint,
     CloneBlueprintRequest,
     CreateBlueprintRequest,
-    HydratedBlueprint,
-    HydratedBlueprintTrait,
     ListBlueprintsResponse,
     PatchBlueprintRequest,
+    SetBlueprintVisibilityRequest,
     UpdateBlueprintRequest,
-    ValidateBlueprintRequest,
-    ValidateBlueprintResponse,
-    ValidationError as BlueprintValidationError,
 )
 from magick_mind.models.v1.chat import (
     ChatAck,
@@ -131,8 +127,9 @@ from magick_mind.models.v1.personality import (
     GrowthConfig,
     GrowthTrigger,
     GrowthType,
-    Namespace,
+    LockType,
     TraitConstraint,
+    TraitType,
     TraitValue,
     TriggerDirection,
     Visibility,
@@ -147,20 +144,6 @@ from magick_mind.models.v1.runtime import (
     EffectivePersonality,
     EffectiveSources,
     EffectiveTrait,
-)
-from magick_mind.models.v1.trait import (
-    CategoricalConfig,
-    CreateTraitRequest,
-    ListTraitsResponse,
-    LockType,
-    MultilabelConfig,
-    NumericConfig,
-    PatchTraitRequest,
-    Trait,
-    TraitNamespace,
-    TraitType,
-    TraitVisibility,
-    UpdateTraitRequest,
 )
 
 
@@ -236,7 +219,8 @@ __all__ = [
     "UpdateApiKeyResponse",
     "DeleteApiKeyResponse",
     # Personality primitives
-    "Namespace",
+    "LockType",
+    "TraitType",
     "Visibility",
     "GrowthType",
     "TriggerDirection",
@@ -257,11 +241,7 @@ __all__ = [
     "UpdateBlueprintRequest",
     "PatchBlueprintRequest",
     "CloneBlueprintRequest",
-    "ValidateBlueprintRequest",
-    "BlueprintValidationError",
-    "ValidateBlueprintResponse",
-    "HydratedBlueprintTrait",
-    "HydratedBlueprint",
+    "SetBlueprintVisibilityRequest",
     "ListBlueprintsResponse",
     # Mindspace
     "MindSpace",
@@ -303,16 +283,4 @@ __all__ = [
     "EffectiveSources",
     "EffectiveTrait",
     "EffectivePersonality",
-    # Trait
-    "CategoricalConfig",
-    "CreateTraitRequest",
-    "ListTraitsResponse",
-    "MultilabelConfig",
-    "NumericConfig",
-    "PatchTraitRequest",
-    "Trait",
-    "TraitNamespace",
-    "TraitType",
-    "TraitVisibility",
-    "UpdateTraitRequest",
 ]

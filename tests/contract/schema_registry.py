@@ -52,13 +52,6 @@ from magick_mind.models.v1.mindspace import (
 from magick_mind.models.v1.persona import Persona, UpdatePersonaRequest
 from magick_mind.models.v1.history import HistoryResponse
 from magick_mind.models.auth import TokenResponse, LoginRequest, RefreshRequest
-from magick_mind.models.v1.trait import (
-    Trait,
-    CreateTraitRequest,
-    UpdateTraitRequest,
-    PatchTraitRequest,
-    ListTraitsResponse,
-)
 
 
 class SchemaStatus(Enum):
@@ -163,29 +156,6 @@ class RefreshRequestFactory(ModelFactory):
     __model__ = RefreshRequest
 
 
-class CreateTraitRequestFactory(ModelFactory):
-    __model__ = CreateTraitRequest
-    namespace = "SYSTEM"
-    type = "NUMERIC"
-    visibility = "PUBLIC"
-    category = "personality"
-    display_name = "Test"
-    description = "desc"
-
-
-class UpdateTraitRequestFactory(ModelFactory):
-    __model__ = UpdateTraitRequest
-    type = "NUMERIC"
-    visibility = "PUBLIC"
-    category = "personality"
-    display_name = "Test"
-    description = "desc"
-
-
-class PatchTraitRequestFactory(ModelFactory):
-    __model__ = PatchTraitRequest
-
-
 class AddMindSpaceUsersRequestFactory(ModelFactory):
     __model__ = AddMindSpaceUsersRequest
     participant_ids = ["user-1"]
@@ -285,19 +255,16 @@ RESPONSES = [
     ),  # Alias to existing QueryEndUserResponse
     ContractDef("KeyResponseSchema", status=SchemaStatus.SKIPPED, reason="Component"),
     ContractDef("ModelsListResp", status=SchemaStatus.SKIPPED, reason="No API route"),
-    # Trait - Skipped: Apidog spec has garbled enums (e.g. "YSTEM|USER|ORG|PROMOTE")
-    # and all nullable fields incorrectly marked required. Models are correct per trait.api.
+    # Trait - the Apidog export predates its removal from Bifrost
     ContractDef(
         "TraitSchema",
-        Trait,
         status=SchemaStatus.SKIPPED,
-        reason="Apidog spec corrupted - garbled enums, wrong required fields",
+        reason="Trait CRUD removed from Bifrost (MM-365)",
     ),
     ContractDef(
         "ListTraitsResponse",
-        ListTraitsResponse,
         status=SchemaStatus.SKIPPED,
-        reason="Apidog spec corrupted - garbled enums in nested TraitSchema",
+        reason="Trait CRUD removed from Bifrost (MM-365)",
     ),
     # Persona
     ContractDef("GetPersonaByIdRes", Persona),
@@ -308,24 +275,21 @@ RESPONSES = [
         status=SchemaStatus.SKIPPED,
         reason="No SDK model",
     ),
-    # Trait (spec corrupted)
+    # Trait
     ContractDef(
         "CreateTraitResponse",
-        Trait,
         status=SchemaStatus.SKIPPED,
-        reason="Apidog spec corrupted - garbled enums",
+        reason="Trait CRUD removed from Bifrost (MM-365)",
     ),
     ContractDef(
         "GetTraitResponse",
-        Trait,
         status=SchemaStatus.SKIPPED,
-        reason="Apidog spec corrupted - garbled enums",
+        reason="Trait CRUD removed from Bifrost (MM-365)",
     ),
     ContractDef(
         "UpdateTraitResponse",
-        Trait,
         status=SchemaStatus.SKIPPED,
-        reason="Apidog spec corrupted - garbled enums",
+        reason="Trait CRUD removed from Bifrost (MM-365)",
     ),
     # Auth
     ContractDef(
@@ -416,25 +380,21 @@ REQUESTS = [
     # Auth
     ContractDef("LoginRequest", LoginRequest, factory=LoginRequestFactory.build),
     ContractDef("RefreshRequest", RefreshRequest, factory=RefreshRequestFactory.build),
-    # Trait - Skipped: CreateTraitRequest absent from Apidog spec entirely;
-    # Update/Patch have garbled enums. Models are correct per trait.api.
+    # Trait
     ContractDef(
         "CreateTraitRequest",
-        CreateTraitRequest,
         status=SchemaStatus.SKIPPED,
-        reason="Apidog spec corrupted - schema absent from spec export",
+        reason="Trait CRUD removed from Bifrost (MM-365)",
     ),
     ContractDef(
         "UpdateTraitRequest",
-        UpdateTraitRequest,
         status=SchemaStatus.SKIPPED,
-        reason="Apidog spec corrupted - garbled enums",
+        reason="Trait CRUD removed from Bifrost (MM-365)",
     ),
     ContractDef(
         "PatchTraitRequest",
-        PatchTraitRequest,
         status=SchemaStatus.SKIPPED,
-        reason="Apidog spec corrupted - garbled enums",
+        reason="Trait CRUD removed from Bifrost (MM-365)",
     ),
     # --- INTENTIONAL SKIPS ---
     # Internal/RPC

@@ -214,6 +214,7 @@ async with MagickMind(...) as client:
     # Create from an existing blueprint
     result = await client.v1.persona.create_from_blueprint(
         blueprint_id="bp-support-agent",
+        version="1.0",
         name="Aria",
         role="customer support specialist",
         background_story="Aria handles tier-1 support for the EMEA region.",
@@ -238,6 +239,7 @@ from magick_mind.models.v1.personality import TraitConstraint, TraitValue
 
 result = await client.v1.persona.create_from_blueprint(
     blueprint_id="bp-support-agent",
+    version="1.0",
     name="Aria (EMEA)",
     role="customer support specialist",
     # Override a specific trait's value
@@ -374,6 +376,7 @@ async def create_regional_agents(client, blueprint_id: str):
     for name, role, story in regions:
         result = await client.v1.persona.create_from_blueprint(
             blueprint_id=blueprint_id,
+            version="1.0",
             name=name,
             role=role,
             background_story=story,
@@ -539,6 +542,7 @@ Create a persona and its initial version from a blueprint template.
 
 **Parameters:**
 - `blueprint_id` (str, required): Source blueprint ID
+- `version` (str, required): Label of the persona's initial version, e.g. `"1.0"`
 - `name` (str, required): Persona name
 - `role` (str, required): Persona role
 - `background_story` (str, optional): Background narrative

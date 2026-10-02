@@ -21,7 +21,6 @@ if TYPE_CHECKING:
     from magick_mind.resources.v1.persona import PersonaResourceV1
     from magick_mind.resources.v1.project import ProjectResourceV1
     from magick_mind.resources.v1.runtime import RuntimeResourceV1
-    from magick_mind.resources.v1.trait import TraitResourceV1
     from magick_mind.resources.v2.reason import ReasonResourceV2
 
 
@@ -41,7 +40,6 @@ class V1Resources:
     persona: PersonaResourceV1
     project: ProjectResourceV1
     runtime: RuntimeResourceV1
-    trait: TraitResourceV1
 
     def __init__(self, http_client: HTTPClient) -> None:
         """
@@ -62,7 +60,6 @@ class V1Resources:
         from magick_mind.resources.v1.persona import PersonaResourceV1
         from magick_mind.resources.v1.project import ProjectResourceV1
         from magick_mind.resources.v1.runtime import RuntimeResourceV1
-        from magick_mind.resources.v1.trait import TraitResourceV1
 
         self.artifact = ArtifactResourceV1(http_client)
         self.api_keys = ApiKeysResourceV1(http_client)
@@ -77,7 +74,6 @@ class V1Resources:
         self.persona = PersonaResourceV1(http_client)
         self.project = ProjectResourceV1(http_client)
         self.runtime = RuntimeResourceV1(http_client)
-        self.trait = TraitResourceV1(http_client)
 
 
 class V2Resources:

@@ -8,8 +8,8 @@ from pydantic import BaseModel, Field, field_validator
 
 
 # --- Enums ---
-Namespace = Literal["SYSTEM", "USER", "ORG"]
-Visibility = Literal["PRIVATE", "ORG", "PUBLIC"]
+Visibility = Literal["PRIVATE", "PUBLIC"]
+TraitType = Literal["NUMERIC", "CATEGORICAL", "MULTILABEL"]
 GrowthType = Literal["FIXED", "EXPANDING", "CORRUPTING", "REDEEMING", "TRANSCENDING"]
 LockType = Literal["HARD", "SOFT"]
 TriggerDirection = Literal["toward_target", "away_from_target", "normal"]
@@ -137,5 +137,9 @@ class BlueprintTrait(BaseModel):
     """A trait slot within a blueprint."""
 
     trait_ref: str
+    type: TraitType
     required: bool = False
     default: Optional[TraitConstraint] = None
+    display_name: str = ""
+    description: str = ""
+    category: str = ""

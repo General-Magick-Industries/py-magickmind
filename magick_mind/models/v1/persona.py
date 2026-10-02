@@ -60,6 +60,7 @@ class CreatePersonaFromBlueprintRequest(BaseModel):
     """Request to create a persona from a blueprint with optional overrides."""
 
     blueprint_id: str
+    version: str
     name: str
     role: str
     background_story: Optional[str] = None

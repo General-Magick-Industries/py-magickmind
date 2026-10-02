@@ -93,10 +93,13 @@ class TestPersonaResource:
         assert prep_body == {}
 
         pwv = await client.v1.persona.create_from_blueprint(
-            blueprint_id="bp-1", name="Aria", role="assistant"
+            blueprint_id="bp-1", version="1.0", name="Aria", role="assistant"
         )
         assert pwv.persona.id == "p-1"
         assert pwv.version.version == "1.0"
+        from_bp_body = json.loads(mock_auth.get_requests()[-1].content)
+        assert from_bp_body["blueprint_id"] == "bp-1"
+        assert from_bp_body["version"] == "1.0"
 
         await client.v1.persona.delete("p-1")
         assert mock_auth.get_requests()[-1].method == "DELETE"
