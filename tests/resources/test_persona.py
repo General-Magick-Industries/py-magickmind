@@ -9,16 +9,19 @@ from pytest_httpx import HTTPXMock
 
 from magick_mind import MagickMind
 from magick_mind.exceptions import ProblemDetailsException
+from magick_mind.models.v1.persona import Persona, PersonaVersion
 
 from tests.factories import (
     PersonaFactory,
     PersonaVersionFactory,
+    PrepareAgentPersonaResponseFactory,
     PreparePersonaResponseFactory,
 )
 from tests.resources._payloads import (
     BASE_URL,
     ERROR_500_ENVELOPE as ERROR_500,
     PAGING_EMPTY,
+    _error_envelope,
 )
 
 
@@ -34,7 +37,6 @@ class TestPersonaResource:
             id="pv-1",
             persona_id="p-1",
             version="1.0",
-            is_active=True,
         )
 
         mock_auth.add_response(
@@ -91,13 +93,171 @@ class TestPersonaResource:
         assert prep_body == {}
 
         pwv = await client.v1.persona.create_from_blueprint(
-            blueprint_id="bp-1", name="Aria", role="assistant"
+            blueprint_id="bp-1", version="1.0", name="Aria", role="assistant"
         )
         assert pwv.persona.id == "p-1"
         assert pwv.version.version == "1.0"
+        from_bp_body = json.loads(mock_auth.get_requests()[-1].content)
+        assert from_bp_body["blueprint_id"] == "bp-1"
+        assert from_bp_body["version"] == "1.0"
 
         await client.v1.persona.delete("p-1")
         assert mock_auth.get_requests()[-1].method == "DELETE"
+
+    async def test_prepare_for_agent_uses_agent_keyed_route(
+        self, client: MagickMind, mock_auth: HTTPXMock
+    ):
+        prepared = PrepareAgentPersonaResponseFactory.build(
+            agent_id="a-1",
+            persona_id="p-1",
+            user_id="u-1",
+            system_prompt="You are Aria.",
+            ttl_seconds=300,
+        )
+        mock_auth.add_response(
+            url=f"{BASE_URL}/v1/end-users/a-1/persona/prepare",
+            method="POST",
+            json=prepared.model_dump(mode="json"),
+        )
+
+        prep = await client.v1.persona.prepare_for_agent("a-1", user_id="u-1")
+
+        assert prep.system_prompt == "You are Aria."
+        assert prep.agent_id == "a-1"
+        assert prep.persona_id == "p-1"
+        assert prep.ttl_seconds == 300
+        assert json.loads(mock_auth.get_requests()[-1].content) == {"user_id": "u-1"}
+
+    async def test_prepare_for_agent_404_hints_persona_vs_agent(
+        self, client: MagickMind, mock_auth: HTTPXMock
+    ):
+        mock_auth.add_response(
+            url=f"{BASE_URL}/v1/end-users/p-1/persona/prepare",
+            method="POST",
+            status_code=404,
+            json=_error_envelope(404, "Not Found", "Agent not found"),
+        )
+
+        with pytest.raises(ProblemDetailsException) as exc_info:
+            await client.v1.persona.prepare_for_agent("p-1")
+
+        exc = exc_info.value
+        assert "keyed by agent" in str(exc)
+        assert "'p-1'" in str(exc)
+        assert "Agent not found" in str(exc)
+        assert exc.status == 404
+        assert exc.request_id == "req-abc123"  # rich fields preserved
+
+    async def test_prepare_for_agent_400_hints_malformed_id(
+        self, client: MagickMind, mock_auth: HTTPXMock
+    ):
+        """A malformed id returns 400 on dev, not 404 -- the likeliest misuse."""
+        mock_auth.add_response(
+            url=f"{BASE_URL}/v1/end-users/not-an-id/persona/prepare",
+            method="POST",
+            status_code=400,
+            json=_error_envelope(400, "Bad Request", "Invalid agent ID"),
+        )
+
+        with pytest.raises(ProblemDetailsException) as exc_info:
+            await client.v1.persona.prepare_for_agent("not-an-id")
+
+        exc = exc_info.value
+        assert "not a well-formed id" in str(exc)
+        assert "not an agent" in str(exc)  # 400 has two distinct server causes
+        assert "'not-an-id'" in str(exc)
+        assert "Invalid agent ID" in str(exc)
+        assert exc.status == 400
+
+    async def test_prepare_for_agent_401_hints_wrong_credential(
+        self, client: MagickMind, mock_auth: HTTPXMock
+    ):
+        """An end-user JWT fails signature verification here (HS256 vs RS256),
+        so the 401 carries no clue about which route to use instead."""
+        mock_auth.add_response(
+            url=f"{BASE_URL}/v1/end-users/a-1/persona/prepare",
+            method="POST",
+            status_code=401,
+            json=_error_envelope(
+                401, "Unauthorized", "token is unverifiable: unexpected signing method"
+            ),
+        )
+
+        with pytest.raises(ProblemDetailsException) as exc_info:
+            await client.v1.persona.prepare_for_agent("a-1")
+
+        exc = exc_info.value
+        assert "needs service-user credentials" in str(exc)
+        assert "prepare_for_own_agent()" in str(exc)
+        assert exc.status == 401
+
+    async def test_prepare_for_agent_403_hints_token_subject(
+        self, client: MagickMind, mock_auth: HTTPXMock
+    ):
+        mock_auth.add_response(
+            url=f"{BASE_URL}/v1/end-users/a-1/persona/prepare",
+            method="POST",
+            status_code=403,
+            json=_error_envelope(403, "Forbidden", "not permitted"),
+        )
+
+        with pytest.raises(ProblemDetailsException) as exc_info:
+            await client.v1.persona.prepare_for_agent("a-1")
+
+        exc = exc_info.value
+        assert "does not match the token subject" in str(exc)
+        assert "prepare_for_own_agent()" in str(exc)
+        assert exc.status == 403
+
+    async def test_prepare_for_own_agent_uses_idless_route(
+        self, client: MagickMind, mock_auth: HTTPXMock
+    ):
+        prepared = PrepareAgentPersonaResponseFactory.build(
+            agent_id="a-self",
+            persona_id="p-1",
+            user_id=None,
+            system_prompt="You are Aria.",
+        )
+        mock_auth.add_response(
+            url=f"{BASE_URL}/v1/end-user/persona/prepare",
+            method="POST",
+            json=prepared.model_dump(mode="json"),
+        )
+
+        prep = await client.v1.persona.prepare_for_own_agent()
+
+        assert prep.system_prompt == "You are Aria."
+        assert prep.agent_id == "a-self"
+        request = mock_auth.get_requests()[-1]
+        assert str(request.url).endswith("/v1/end-user/persona/prepare")
+        assert "/end-users/" not in str(request.url)
+        assert json.loads(request.content) == {}
+
+    async def test_prepare_for_own_agent_401_hints_wrong_credential(
+        self, client: MagickMind, mock_auth: HTTPXMock
+    ):
+        mock_auth.add_response(
+            url=f"{BASE_URL}/v1/end-user/persona/prepare",
+            method="POST",
+            status_code=401,
+            json=_error_envelope(401, "Unauthorized", "missing end-user claims"),
+        )
+
+        with pytest.raises(ProblemDetailsException) as exc_info:
+            await client.v1.persona.prepare_for_own_agent()
+
+        exc = exc_info.value
+        assert "unrevoked end-user JWT" in str(exc)
+        assert "prepare_for_agent" in str(exc)
+        assert exc.status == 401
+        # the hint must reach args too (repr / traceback), not just __str__
+        assert "prepare_for_agent" in exc.args[0]
+        assert exc.hint is not None
+        assert str(exc).count("hint:") == 1
+        # ...without corrupting the server's own payload
+        assert exc.message == "missing end-user claims"
+        assert exc.detail == "missing end-user claims"
+        assert exc.problem.detail == "missing end-user claims"
 
     async def test_versioning_methods_happy_path(
         self, client: MagickMind, mock_auth: HTTPXMock
@@ -106,13 +266,6 @@ class TestPersonaResource:
             id="pv-2",
             persona_id="p-2",
             version="2.0",
-            is_active=False,
-        )
-        persona = PersonaFactory.build(
-            id="p-2",
-            name="Test",
-            role="assistant",
-            active_version="pv-2",
         )
         mock_auth.add_response(
             url=f"{BASE_URL}/v1/persona/p-2/version",
@@ -129,16 +282,6 @@ class TestPersonaResource:
             method="GET",
             json=version.model_dump(mode="json"),
         )
-        mock_auth.add_response(
-            url=f"{BASE_URL}/v1/persona/p-2/version/active",
-            method="GET",
-            json=version.model_dump(mode="json"),
-        )
-        mock_auth.add_response(
-            url=f"{BASE_URL}/v1/persona/p-2/version/2.0/activate",
-            method="POST",
-            json=persona.model_dump(mode="json"),
-        )
 
         created = await client.v1.persona.create_version(
             persona_id="p-2", version="2.0"
@@ -151,15 +294,39 @@ class TestPersonaResource:
         got = await client.v1.persona.get_version("p-2", "2.0")
         assert got.persona_id == "p-2"
 
-        active = await client.v1.persona.get_active_version("p-2")
-        assert active.id == "pv-2"
+    def test_version_parses_source_blueprint_fields(self):
+        version = PersonaVersion.model_validate(
+            {
+                "id": "pv-1",
+                "persona_id": "p-1",
+                "version": "1.0",
+                "source_blueprint_id": "bp-1",
+                "source_blueprint_revision": 3,
+                "meanings_blueprint_revision": 3,
+            }
+        )
+        persona = Persona.model_validate(
+            {
+                "id": "p-1",
+                "name": "Aria",
+                "role": "assistant",
+                "source_blueprint_id": "bp-1",
+                "source_blueprint_revision": 3,
+            }
+        )
 
-        set_active = await client.v1.persona.set_active_version("p-2", "2.0")
-        assert set_active.id == "p-2"
-        assert set_active.active_version == "pv-2"
-        last_request = mock_auth.get_requests()[-1]
-        assert last_request.method == "POST"
-        assert last_request.url.path == "/v1/persona/p-2/version/2.0/activate"
+        assert version.source_blueprint_id == persona.source_blueprint_id == "bp-1"
+        assert version.source_blueprint_revision == 3
+        assert persona.source_blueprint_revision == 3
+
+    @pytest.mark.httpx_mock(assert_all_responses_were_requested=False)
+    async def test_create_from_blueprint_takes_version_by_keyword_only(
+        self, client: MagickMind
+    ):
+        with pytest.raises(TypeError):
+            await client.v1.persona.create_from_blueprint(  # type: ignore[misc]
+                "bp-1", "Aria", "support agent", "Aria handles EMEA."
+            )
 
     async def test_get_500_raises_problem_details(
         self, client: MagickMind, mock_auth: HTTPXMock

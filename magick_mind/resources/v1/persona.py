@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Optional
 
+from magick_mind.exceptions import MagickMindError, hint_by_status
 from magick_mind.models.v1.persona import (
     CreatePersonaFromBlueprintRequest,
     CreatePersonaRequest,
@@ -12,6 +13,7 @@ from magick_mind.models.v1.persona import (
     Persona,
     PersonaVersion,
     PersonaWithVersion,
+    PrepareAgentPersonaResponse,
     PreparePersonaRequest,
     PreparePersonaResponse,
     UpdatePersonaRequest,
@@ -46,6 +48,7 @@ class PersonaResourceV1(BaseResource):
             blueprint_id="bp-123",
             name="Aria",
             role="assistant",
+            version="1.0.0",
         )
         print(result.persona.id, result.version.version)
 
@@ -54,7 +57,10 @@ class PersonaResourceV1(BaseResource):
             persona_id="p-123",
             version="1.1",
         )
-        active = await client.v1.persona.get_active_version("p-123")
+        # Which version an agent runs is set on the agent
+        await client.v1.end_user.set_persona_version(
+            "agent-123", version_id=version.id
+        )
     """
 
     # --- Base CRUD ---
@@ -182,6 +188,115 @@ class PersonaResourceV1(BaseResource):
         )
         return PreparePersonaResponse.model_validate(response)
 
+    async def prepare_for_agent(
+        self,
+        agent_id: str,
+        *,
+        user_id: Optional[str] = None,
+    ) -> PrepareAgentPersonaResponse:
+        """
+        Prepare an agent's persona system prompt.
+
+        Resolves the agent's active persona, its version constraints, and optional
+        user-specific context into a complete system prompt. The returned
+        ``system_prompt`` is final -- no client-side assembly is needed or correct.
+
+        This is the service-user path: it identifies the agent by path parameter
+        and is called with service-user credentials. An agent holding its own
+        end-user JWT should call :meth:`prepare_for_own_agent` instead, where the
+        agent is the token subject and no ID is sent.
+
+        Note:
+            ``agent_id`` is an *agent* ID, not a persona ID. A 404 usually means the
+            ID is not an agent (a persona ID reaches here as an unknown agent). A 403
+            means the agent id does not match the token subject or is not visible to
+            these credentials.
+
+        Args:
+            agent_id: Agent ID
+            user_id: Optional user ID for user-specific prompt context
+
+        Returns:
+            PrepareAgentPersonaResponse with the resolved prompt and its metadata
+        """
+        request = PreparePersonaRequest(user_id=user_id)
+        try:
+            response = await self._http.post(
+                Routes.end_user_persona_prepare(agent_id),
+                json=request.model_dump(exclude_none=True),
+            )
+        except MagickMindError as exc:
+            hints = {
+                400: (
+                    f"hint: {agent_id!r} is either not a well-formed id, or names "
+                    f"an end user that is not an agent; this route is keyed by "
+                    f"agent, not persona"
+                ),
+                404: (
+                    f"hint: is {agent_id!r} an agent id? this route is keyed by "
+                    f"agent, not persona"
+                ),
+                409: (
+                    "hint: the agent has no attached persona or no active persona "
+                    "version; attach one before preparing a prompt"
+                ),
+                403: (
+                    "hint: agent id does not match the token subject or is not "
+                    "visible to these credentials; with an end-user JWT use "
+                    "prepare_for_own_agent()"
+                ),
+                401: (
+                    "hint: this route needs service-user credentials; an end-user "
+                    "JWT is signed differently and fails verification here -- use "
+                    "prepare_for_own_agent() with that token"
+                ),
+            }
+            hint_by_status(exc, hints)
+        return PrepareAgentPersonaResponse.model_validate(response)
+
+    async def prepare_for_own_agent(
+        self,
+        *,
+        user_id: Optional[str] = None,
+    ) -> PrepareAgentPersonaResponse:
+        """
+        Prepare the calling agent's own persona system prompt.
+
+        This is the end-user-JWT path. The agent is the token subject, so no agent
+        ID is sent -- the server resolves the agent from the credential. Use this
+        when the client holds an end-user token (e.g. one minted via
+        ``client.v1.end_user.mint_token()``); use :meth:`prepare_for_agent` when
+        calling with service-user credentials on behalf of a named agent.
+
+        Args:
+            user_id: Optional user ID for user-specific prompt context
+
+        Returns:
+            PrepareAgentPersonaResponse with the resolved prompt and its metadata
+        """
+        request = PreparePersonaRequest(user_id=user_id)
+        try:
+            response = await self._http.post(
+                Routes.PERSONA_PREPARE_OWN,
+                json=request.model_dump(exclude_none=True),
+            )
+        except MagickMindError as exc:
+            hints = {
+                401: (
+                    "hint: this route needs a valid, unrevoked end-user JWT; with "
+                    "service-user credentials use prepare_for_agent(agent_id)"
+                ),
+                403: (
+                    "hint: the calling agent is not permitted to prepare this persona"
+                ),
+                409: (
+                    "hint: the agent has no attached persona or no active persona "
+                    "version; attach one before preparing a prompt"
+                ),
+            }
+            hint_by_status(exc, hints)
+        return PrepareAgentPersonaResponse.model_validate(response)
+
     async def create_from_blueprint(
         self,
         blueprint_id: str,
@@ -194,6 +309,8 @@ class PersonaResourceV1(BaseResource):
         remove_traits: Optional[list[str]] = None,
         growth_override: Optional[GrowthConfig] = None,
         dyadic_override: Optional[DyadicConfig] = None,
+        *,
+        version: str,
     ) -> PersonaWithVersion:
         """
         Create a persona from a blueprint with optional overrides.
@@ -209,12 +326,15 @@ class PersonaResourceV1(BaseResource):
             remove_traits: Optional trait refs to remove
             growth_override: Optional growth config override
             dyadic_override: Optional dyadic config override
+            version: Label of the persona's initial version, e.g. "1.0.0";
+                keyword-only
 
         Returns:
             PersonaWithVersion containing both the persona and its initial version
         """
         request = CreatePersonaFromBlueprintRequest(
             blueprint_id=blueprint_id,
+            version=version,
             name=name,
             role=role,
             background_story=background_story,
@@ -308,32 +428,3 @@ class PersonaResourceV1(BaseResource):
         """
         response = await self._http.get(Routes.persona_version(persona_id, version))
         return PersonaVersion.model_validate(response)
-
-    async def get_active_version(self, persona_id: str) -> PersonaVersion:
-        """
-        Get the currently active version.
-
-        Args:
-            persona_id: Persona ID
-
-        Returns:
-            PersonaVersion (the active one)
-        """
-        response = await self._http.get(Routes.persona_active_version(persona_id))
-        return PersonaVersion.model_validate(response)
-
-    async def set_active_version(self, persona_id: str, version: str) -> Persona:
-        """
-        Set a version as active.
-
-        Args:
-            persona_id: Persona ID
-            version: Version ID to activate
-
-        Returns:
-            Persona with updated active_version
-        """
-        response = await self._http.post(
-            Routes.persona_activate_version(persona_id, version),
-        )
-        return Persona.model_validate(response)

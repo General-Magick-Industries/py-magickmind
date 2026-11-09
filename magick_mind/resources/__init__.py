@@ -14,13 +14,13 @@ if TYPE_CHECKING:
     from magick_mind.resources.v1.chat import ChatResourceV1
     from magick_mind.resources.v1.corpus import CorpusResourceV1
     from magick_mind.resources.v1.end_user import EndUserResourceV1
+    from magick_mind.resources.v1.episode import EpisodeResourceV1
     from magick_mind.resources.v1.history import HistoryResourceV1
     from magick_mind.resources.v1.magickspaces import MagickspacesResourceV1
     from magick_mind.resources.v1.mindspace import MindspaceResourceV1
     from magick_mind.resources.v1.persona import PersonaResourceV1
     from magick_mind.resources.v1.project import ProjectResourceV1
     from magick_mind.resources.v1.runtime import RuntimeResourceV1
-    from magick_mind.resources.v1.trait import TraitResourceV1
     from magick_mind.resources.v2.reason import ReasonResourceV2
 
 
@@ -33,13 +33,13 @@ class V1Resources:
     chat: ChatResourceV1
     corpus: CorpusResourceV1
     end_user: EndUserResourceV1
+    episode: EpisodeResourceV1
     history: HistoryResourceV1
     magickspaces: MagickspacesResourceV1
     mindspace: MindspaceResourceV1
     persona: PersonaResourceV1
     project: ProjectResourceV1
     runtime: RuntimeResourceV1
-    trait: TraitResourceV1
 
     def __init__(self, http_client: HTTPClient) -> None:
         """
@@ -54,12 +54,12 @@ class V1Resources:
         from magick_mind.resources.v1.chat import ChatResourceV1
         from magick_mind.resources.v1.corpus import CorpusResourceV1
         from magick_mind.resources.v1.end_user import EndUserResourceV1
+        from magick_mind.resources.v1.episode import EpisodeResourceV1
         from magick_mind.resources.v1.history import HistoryResourceV1
         from magick_mind.resources.v1.magickspaces import MagickspacesResourceV1
         from magick_mind.resources.v1.persona import PersonaResourceV1
         from magick_mind.resources.v1.project import ProjectResourceV1
         from magick_mind.resources.v1.runtime import RuntimeResourceV1
-        from magick_mind.resources.v1.trait import TraitResourceV1
 
         self.artifact = ArtifactResourceV1(http_client)
         self.api_keys = ApiKeysResourceV1(http_client)
@@ -67,13 +67,13 @@ class V1Resources:
         self.chat = ChatResourceV1(http_client)
         self.corpus = CorpusResourceV1(http_client)
         self.end_user = EndUserResourceV1(http_client)
+        self.episode = EpisodeResourceV1(http_client)
         self.history = HistoryResourceV1(http_client)
         self.magickspaces = MagickspacesResourceV1(http_client)
         self.mindspace = self.magickspaces
         self.persona = PersonaResourceV1(http_client)
         self.project = ProjectResourceV1(http_client)
         self.runtime = RuntimeResourceV1(http_client)
-        self.trait = TraitResourceV1(http_client)
 
 
 class V2Resources:

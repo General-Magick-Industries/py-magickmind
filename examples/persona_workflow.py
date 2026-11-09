@@ -5,13 +5,13 @@ Demonstrates the full persona lifecycle using the Magick Mind SDK:
 
   1. Create a persona (name, role, traits, tones, background story)
   2. Create a version (trait constraints, growth config, dyadic config)
-  3. Set the version as active
-  4. Prepare the system prompt (requires an active version)
+  3. Prepare the system prompt (requires a version)
 
-The flow is strictly sequential — you MUST have an active version before
-calling `prepare`. The prepare endpoint resolves the active version's trait
+The flow is strictly sequential — you MUST create a version before calling
+`prepare`. The prepare endpoint resolves the newest version's trait
 constraints, growth rules, and optional user context into a system prompt
-string ready for any LLM chat call.
+string ready for any LLM chat call. An agent instead runs the version set on
+it with `end_user.attach_persona()` / `end_user.set_persona_version()`.
 """
 
 import asyncio
@@ -74,7 +74,7 @@ async def main():
         # ==================================================================
         # A version is a snapshot of the persona's trait constraints, growth
         # configuration, and dyadic settings. You can create multiple
-        # versions, but only one can be active at a time.
+        # versions; an agent runs whichever one is set on the agent.
         #
         # - constraints: pin traits to values or ranges with locks
         # - growth: controls how traits evolve (FIXED = no change)
@@ -122,55 +122,34 @@ async def main():
             ),
         )
         print(f"Created version: {version.version} (ID: {version.id})")
-        print(f"  Is active:   {version.is_active}")
         print(f"  Constraints: {len(version.constraints)} constraint(s)")
         for c in version.constraints:
             val = c.value.numeric_value if c.value else None
             print(f"    - {c.trait_ref}: {val} (lock={c.lock})")
 
         # ==================================================================
-        # STEP 3: SET ACTIVE VERSION
+        # STEP 3: PREPARE THE SYSTEM PROMPT
         # ==================================================================
-        # Activate the version so the prepare endpoint knows which trait
-        # configuration to resolve. Pass the version's ID (not the label).
+        # The prepare endpoint resolves the persona's traits, its newest
+        # version's constraints, and optional user context into a system
+        # prompt string. Without a version, prepare will fail.
         #
-        # Returns the updated Persona object with active_version set.
+        # An agent runs the version set on it instead; attach one with
+        # client.v1.end_user.attach_persona(agent_id, persona_id=...,
+        # version_id=version.id) and use prepare_for_agent(agent_id).
         # ==================================================================
-        print("\n--- Step 3: Set Active Version ---")
+        print("\n--- Step 3: Prepare System Prompt ---")
 
-        updated_persona = await client.v1.persona.set_active_version(
-            persona.id, version.id
-        )
-        print(f"Active version set: {updated_persona.active_version}")
-
-        # ==================================================================
-        # STEP 4: PREPARE THE SYSTEM PROMPT
-        # ==================================================================
-        # Now that an active version exists, the prepare endpoint resolves
-        # the persona's traits, active version constraints, and optional
-        # user context into a system prompt string.
-        #
-        # Without an active version, prepare will fail.
-        #
-        # Global mode (no user_id):
-        #   Returns a prompt based on the persona + active version only.
-        #
-        # Per-user mode (with user_id):
-        #   Incorporates dyadic/relationship-specific context if dyadic
-        #   is enabled on the active version.
-        # ==================================================================
-        print("\n--- Step 4: Prepare System Prompt ---")
-
-        # 4a. Global mode — no user context
-        print("\n4a. Preparing (global mode)...")
+        # 3a. Global mode — no user context
+        print("\n3a. Preparing (global mode)...")
         result = await client.v1.persona.prepare(persona.id)
         print(f"System prompt ({len(result.system_prompt)} chars):")
         print("-" * 40)
         print(result.system_prompt)
         print("-" * 40)
 
-        # 4b. Per-user mode — with user context
-        print("\n4b. Preparing (per-user mode, user_id='user-demo-001')...")
+        # 3b. Per-user mode — with user context
+        print("\n3b. Preparing (per-user mode, user_id='user-demo-001')...")
         user_result = await client.v1.persona.prepare(
             persona.id, user_id="user-demo-001"
         )
@@ -205,13 +184,7 @@ async def main():
         versions_resp = await client.v1.persona.list_versions(persona.id)
         print(f"Found {len(versions_resp.data)} version(s):")
         for v in versions_resp.data:
-            marker = " <-- active" if v.is_active else ""
-            print(f"  - {v.version} (ID: {v.id}){marker}")
-
-        # Get the active version directly
-        print("\nGetting active version...")
-        active = await client.v1.persona.get_active_version(persona.id)
-        print(f"Active: {active.version} (ID: {active.id})")
+            print(f"  - {v.version} (ID: {v.id})")
 
         # ==================================================================
         # CLEANUP

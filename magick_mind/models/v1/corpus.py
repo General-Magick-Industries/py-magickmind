@@ -192,6 +192,11 @@ class QueryMetadata(BaseModel):
         description="True if reranking actually ran. False on failure or when disabled.",
     )
 
+    @field_validator("high_level_keywords", "low_level_keywords", mode="before")
+    @classmethod
+    def _coerce_null_list(cls, v: object) -> object:
+        return v if v is not None else []
+
 
 class QueryCorpusResponse(BaseModel):
     """Response for querying a corpus.
@@ -217,6 +222,11 @@ class QueryCorpusResponse(BaseModel):
         None, description="Query execution metadata"
     )
     llm_response: str = Field(default="", description="LLM synthesis response text")
+
+    @field_validator("entities", "relationships", "chunks", "references", mode="before")
+    @classmethod
+    def _coerce_null_list(cls, v: object) -> object:
+        return v if v is not None else []
 
 
 class IngestionStatus(BaseModel):

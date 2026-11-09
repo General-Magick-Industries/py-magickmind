@@ -699,3 +699,16 @@ Query a corpus using semantic search (RAG).
 
 - [Artifact Resource Guide](./artifact.md) - Uploading and managing files
 - [Mindspace Resource Guide](./mindspace.md) - Attaching corpus to conversations
+
+## Querying as the agent (end-user JWT)
+
+```python
+hit = await agent.v1.corpus.query_own(
+    corpus_id, query="leave policy", enable_rerank=True, api_key=LITELLM_KEY
+)
+```
+
+`POST /v1/end-user/corpus/{id}/query`, tenant-scoped -- an unknown or
+cross-tenant corpus answers 404. The corpus ids an agent may reach arrive in
+`prepare_own_context(...).corpora`; validate a model-supplied id against that
+catalog before querying. `x-api-key` funds the retrieval.

@@ -68,13 +68,13 @@ class TestRuntimeResource:
             json={},
         )
 
-        await client.v1.runtime.invalidate_cache("p-1")
+        await client.v1.runtime.invalidate_cache("agent-1")
         body = json.loads(mock_auth.get_requests()[-1].content)
-        assert body == {"persona_id": "p-1"}
+        assert body == {"agent_id": "agent-1"}
 
-        await client.v1.runtime.invalidate_cache("p-1", user_id="u-1")
+        await client.v1.runtime.invalidate_cache("agent-1", user_id="u-1")
         body2 = json.loads(mock_auth.get_requests()[-1].content)
-        assert body2 == {"persona_id": "p-1", "user_id": "u-1"}
+        assert body2 == {"agent_id": "agent-1", "user_id": "u-1"}
 
     async def test_get_effective_personality_404_raises_problem_details(
         self, client: MagickMind, mock_auth: HTTPXMock
