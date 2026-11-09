@@ -30,9 +30,10 @@ minted = await admin.v1.end_user.mint_token(agent.id, ttl_seconds=3600)
 ```
 
 Pass `supervised=True` if your control plane will rotate the token itself.
-A supervised token is barred from the self-refresh route, so the agent must
-then be built with `refresh=False` (the default) and given replacements out
-of band.
+A supervised token is barred from the self-refresh route. `from_token()`
+reads that from the token's audience and holds it as given (its default
+`refresh=None`); a supervised client cannot take a replacement in place, so
+build a new client from each token the control plane delivers.
 
 ## 2. Build the agent client
 
@@ -48,6 +49,10 @@ that rotates it before it expires (pass `refresh=False` / `True` to
 override). Rotation revokes the token it replaces, so never copy the token
 elsewhere; ask `await aria.auth.get_token_async()` when you need the
 current one.
+
+Only an agent's token can rotate. Bifrost mints the same kind of token for a
+human end user but refuses to refresh it with a 401, which ends the
+credential early; build a human's client with `refresh=False`.
 
 Rotation happens lazily on each request. An agent that only listens on the
 websocket never makes one, so run the rotation loop alongside it, and keep

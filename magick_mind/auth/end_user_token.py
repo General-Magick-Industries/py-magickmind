@@ -26,10 +26,23 @@ RotationListener = Callable[[str], None]
 PROBLEM_CREDENTIAL_SUPERVISED = "https://bifrost.gmi/problems/credential-supervised"
 PROBLEM_CREDENTIAL_REVOKED = "https://bifrost.gmi/problems/credential-revoked"
 PROBLEM_CHAIN_REVOKED = "https://bifrost.gmi/problems/chain-revoked"
+PROBLEM_CREDENTIAL_EXHAUSTED = "https://bifrost.gmi/problems/credential-exhausted"
 
-# Retry pacing for a rotation that failed without a verdict on the credential.
-# The server budgets refresh attempts per hour and counts rejected ones, so an
-# unpaced retry loop would spend the whole allowance on one outage.
+_REJECTION_REASONS: dict[str, str] = {
+    PROBLEM_CREDENTIAL_REVOKED: (
+        "the token was revoked, or its end user was deleted, moved to another "
+        "tenant, or is not an agent (only agents may rotate)"
+    ),
+    PROBLEM_CHAIN_REVOKED: "the token's refresh chain was revoked",
+    PROBLEM_CREDENTIAL_EXHAUSTED: (
+        "the token's refresh chain reached its lifetime or idle limit"
+    ),
+}
+
+# Retry pacing for a rotation that failed without a verdict on the credential,
+# shared by keep_fresh and the request path. The server budgets refresh
+# attempts per chain and counts rejected ones, so an unpaced retry loop would
+# spend the whole allowance on one outage.
 ROTATION_BACKOFF_BASE = 1.0
 ROTATION_BACKOFF_MAX = 120.0
 
@@ -57,8 +70,8 @@ class EndUserTokenAuth(AuthProvider):
     Rotation goes through ``POST /v1/end-user/tokens/refresh``, which issues a
     fresh token and revokes the presented one. A supervised token (minted with
     ``supervised=True``) is barred from that route; hold one with
-    :class:`~magick_mind.auth.static_token.StaticTokenAuth` instead, and let the
-    supervisor deliver replacements through :meth:`replace_token`.
+    :class:`~magick_mind.auth.static_token.StaticTokenAuth` instead, and build
+    a new client from each replacement the supervisor delivers.
 
     Expiry is read from the token's ``exp`` claim, from ``expires_in`` passed at
     construction, or from ``expires_in`` on a refresh response. Rotation happens
@@ -72,6 +85,10 @@ class EndUserTokenAuth(AuthProvider):
     mint from the control plane (delivered with :meth:`replace_token`) recovers
     it.
 
+    Only an agent's token can rotate: the server refuses to refresh a human
+    end user's token with a 401, which latches the provider terminal. Hold a
+    human's token with ``MagickMind.from_token(..., refresh=False)``.
+
     Failure taxonomy:
 
     - ``401``, a ``403`` the server explains (supervised token), or a refresh
@@ -80,8 +97,11 @@ class EndUserTokenAuth(AuthProvider):
       :meth:`replace_token` supplies a new token. :attr:`terminal_reason`
       carries the server's explanation.
     - Any other failure is retried while the current token is still valid,
-      with exponential backoff inside :meth:`keep_fresh`, and raised only once
-      the token has actually expired.
+      with exponential backoff shared by every caller, and raised only once
+      the token has actually expired. Requests made while a retry is backed
+      off present the current token without attempting a rotation.
+    - A rotation that was in flight when :meth:`replace_token` ran is
+      discarded, whatever its outcome.
     """
 
     def __init__(
@@ -120,6 +140,9 @@ class EndUserTokenAuth(AuthProvider):
             time.time() + expires_in if expires_in is not None else jwt_expiry(token)
         )
         self._terminal: Optional[tuple[type[AuthenticationError], str, int]] = None
+        self._generation = 0
+        self._failures = 0
+        self._retry_at = 0.0
         self._lock = asyncio.Lock()
         self._listeners: list[RotationListener] = []
         if self._expires_at is None:
@@ -156,11 +179,13 @@ class EndUserTokenAuth(AuthProvider):
         """Adopt a token minted out of band, clearing any terminal state."""
         if not token:
             raise ValueError("token is required")
+        self._generation += 1
         self._token = token
         self._expires_at = (
             time.time() + expires_in if expires_in is not None else jwt_expiry(token)
         )
         self._terminal = None
+        self._clear_backoff()
         self._notify()
 
     def is_authenticated(self) -> bool:
@@ -175,6 +200,16 @@ class EndUserTokenAuth(AuthProvider):
             return False
         return now >= self._expires_at - self.refresh_window_seconds
 
+    def _rotation_due(self, now: float) -> bool:
+        if not self._needs_rotation(now):
+            return False
+        expired = self._expires_at is not None and now >= self._expires_at
+        return expired or now >= self._retry_at
+
+    def _clear_backoff(self) -> None:
+        self._failures = 0
+        self._retry_at = 0.0
+
     def _raise_terminal(self) -> None:
         if self._terminal is not None:
             error_type, message, status = self._terminal
@@ -182,11 +217,11 @@ class EndUserTokenAuth(AuthProvider):
 
     async def refresh_if_needed_async(self) -> None:
         self._raise_terminal()
-        if not self._needs_rotation(time.time()):
+        if not self._rotation_due(time.time()):
             return
         async with self._lock:
             self._raise_terminal()
-            if not self._needs_rotation(time.time()):
+            if not self._rotation_due(time.time()):
                 return
             await self._rotate()
 
@@ -211,25 +246,18 @@ class EndUserTokenAuth(AuthProvider):
                 "Token expiry is unknown; keep_fresh cannot schedule rotation"
             )
             return
-        failures = 0
         while stop is None or not stop.is_set():
             if self._expires_at is None:
                 return
+            now = time.time()
             delay = max(
-                self._expires_at - self.refresh_window_seconds - time.time(), 0.0
+                self._expires_at - self.refresh_window_seconds - now,
+                self._retry_at - now,
+                0.0,
             )
-            if failures:
-                backoff = min(
-                    ROTATION_BACKOFF_BASE * 2 ** (failures - 1), ROTATION_BACKOFF_MAX
-                )
-                delay = max(delay, backoff)
             if await self._sleep_or_stop(stop, delay):
                 return
-            if not self._needs_rotation(time.time()):
-                continue
-            expiry_before = self._expires_at
             await self.refresh_if_needed_async()
-            failures = 0 if self._expires_at != expiry_before else failures + 1
 
     @staticmethod
     async def _sleep_or_stop(stop: Optional[asyncio.Event], delay: float) -> bool:
@@ -248,13 +276,18 @@ class EndUserTokenAuth(AuthProvider):
             exclude_none=True
         )
         headers = {"Authorization": f"Bearer {self._token}"}
+        generation = self._generation
         try:
             async with httpx.AsyncClient(timeout=self.timeout) as client:
                 response = await client.post(url, json=body, headers=headers)
         except httpx.RequestError as e:
-            self._defer_or_raise(
-                AuthenticationError(f"Network error during token rotation: {e}")
-            )
+            if generation == self._generation:
+                self._defer_or_raise(
+                    AuthenticationError(f"Network error during token rotation: {e}")
+                )
+            return
+        if generation != self._generation:
+            logger.info("Discarding a rotation that finished after replace_token()")
             return
 
         status = response.status_code
@@ -275,13 +308,18 @@ class EndUserTokenAuth(AuthProvider):
                 if minted.expires_in is not None
                 else jwt_expiry(minted.token)
             )
+            self._clear_backoff()
             self._notify()
             return
 
         detail, problem_type = _problem(response)
         if status == 401:
+            reason = _REJECTION_REASONS.get(problem_type or "")
             self._latch(
-                TokenExpiredError, f"End-user token rejected on rotation: {detail}", 401
+                TokenExpiredError,
+                f"End-user token rejected on rotation: {detail}"
+                + (f" ({reason})" if reason else ""),
+                401,
             )
         if status == 403 and problem_type is not None:
             message = (
@@ -303,6 +341,10 @@ class EndUserTokenAuth(AuthProvider):
         raise error_type(message, status_code=status)
 
     def _defer_or_raise(self, error: AuthenticationError) -> None:
+        self._failures += 1
+        self._retry_at = time.time() + min(
+            ROTATION_BACKOFF_BASE * 2 ** (self._failures - 1), ROTATION_BACKOFF_MAX
+        )
         if self._expires_at is not None and time.time() < self._expires_at:
             logger.warning("%s; retrying on the next call", error)
             return

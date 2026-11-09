@@ -151,8 +151,11 @@ agent = MagickMind.from_token(BASE_URL, minted.token)
 prepared = await agent.v1.persona.prepare_for_own_agent()
 ```
 
-`from_token()` does not inspect or refresh the token — only the server judges
-it, so an expired or wrong-kind token surfaces as a 401 on the first call.
+`from_token()` never verifies the token — only the server judges it, so a
+wrong-kind or revoked token surfaces as a 401 on the first call. It does read
+the token's claims: an agent's token is rotated ahead of expiry, and a
+supervised one is held as given (see the
+[agent client guide](agent_client.md)).
 
 To mint the end-user JWT an agent needs, use `client.v1.end_user.mint_token()`:
 

@@ -172,8 +172,9 @@ class MagickMind:
                 :class:`~magick_mind.auth.EndUserTokenAuth`). ``None`` (the
                 default) reads the token's audience: a token minted with
                 ``supervised=True`` is barred from that route and is used as
-                given, any other token rotates. Pass ``False`` to hold a
-                refreshable token static anyway, or ``True`` to force
+                given, any other token rotates. Only an agent's token can
+                rotate: pass ``False`` for a human end user's token, which
+                the server refuses to refresh, or ``True`` to force
                 rotation.
             refresh_window_seconds: When rotating, rotate once this close to
                 expiry
