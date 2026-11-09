@@ -762,7 +762,7 @@ class TestArtifact:
         mock_auth.add_response(
             url=f"{BASE_URL}/v1/artifacts/art-123",
             method="GET",
-            json={"artifact": ARTIFACT_PAYLOAD},
+            json=ARTIFACT_PAYLOAD,
         )
 
         from magick_mind.models.v1.artifact import Artifact
