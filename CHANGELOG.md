@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.5.0] - 2026-11-09
 
 The end-user (agent) surface. A service user creates an agent, binds its
 persona and mints its credential; the agent process holds that end-user JWT
@@ -39,14 +39,19 @@ Bifrost, without the SDK taking on any runtime of its own.
   `POST /v1/end-user/tokens/refresh` ahead of expiry (read from the token's
   `exp`, an `expires_in` given at construction, or `expires_in` on the
   refresh response). Rotation is single-flight and lazy on each request;
-  `keep_fresh()` drives it for an agent that only listens, with exponential
-  backoff (1 s → 120 s) after a transient failure so an outage cannot drain
-  the server's per-hour refresh budget. A `401`, a `403` Bifrost explains
+  `keep_fresh()` drives it for an agent that only listens. After a transient
+  failure, requests and `keep_fresh()` share one exponential backoff
+  (1 s → 120 s), so an outage cannot drain the server's per-chain refresh
+  budget. Only an agent's token rotates: Bifrost refuses to refresh a human
+  end user's token, so build a human's client with `refresh=False`. A `401`,
+  a `403` Bifrost explains
   (`credential-supervised`), or an unreadable refresh response latch the
   credential terminal (`is_terminal`, `terminal_reason` carries the server's
-  detail: chain exhausted, idle too long, revoked); an unexplained `403`
+  detail and, from its problem type, the cause: revoked or not an agent,
+  chain revoked, chain exhausted); an unexplained `403`
   and every other failure are retried while the current token is valid.
-  `replace_token()` adopts a token minted out of band.
+  `replace_token()` adopts a token minted out of band, and a rotation still
+  in flight when it runs is discarded.
   `MagickMind.from_token` picks the provider from the token's `aud` claim:
   a `supervised=True` token (`end_user_supervised`) is held static, any
   other rotates; `refresh=True/False` overrides. `MagickMind.end_user_auth`
@@ -95,6 +100,8 @@ Bifrost, without the SDK taking on any runtime of its own.
 - `docs/guides/agent_client.md` — how an agent process uses this surface.
 
 ### Breaking
+Removals in this release are outright, with no deprecation period.
+
 - **`artifact.list()` returns the page, not a bare list.** Bifrost pages
   `GET /v1/artifacts` with `page_size`/`page_token` and answers
   `{artifacts, next_page_token}`; the previous `list[Artifact]` return
@@ -128,13 +135,38 @@ Bifrost, without the SDK taking on any runtime of its own.
   (`NUMERIC`/`CATEGORICAL`/`MULTILABEL`) and carries `display_name`,
   `description` and `category`, matching what the server validates.
 - **Removed `blueprint.validate()`, `blueprint.hydrate()` and the `trait`
-  resource** with their models (`ValidateBlueprint*`, `HydratedBlueprint*`,
-  `Trait*`, `Namespace`). Bifrost no longer serves `/v1/blueprints/validate`,
+  resource.** Bifrost no longer serves `/v1/blueprints/validate`,
   `/v1/blueprints/{id}/hydrate` or `/v1/traits`; blueprints are
-  self-contained. `TraitType` and `LockType` now come from
+  self-contained. Removed names:
+  - from `magick_mind.models.v1`: `ValidateBlueprintRequest`,
+    `ValidateBlueprintResponse`, `BlueprintValidationError`,
+    `HydratedBlueprint`, `HydratedBlueprintTrait`, `Trait`,
+    `CreateTraitRequest`, `UpdateTraitRequest`, `PatchTraitRequest`,
+    `ListTraitsResponse`, `TraitNamespace`, `TraitVisibility`, `Namespace`,
+    `NumericConfig`, `CategoricalConfig`, `MultilabelConfig`;
+  - `magick_mind.resources.v1.TraitResourceV1` and `client.v1.trait`;
+  - `Routes.BLUEPRINTS_VALIDATE`, `Routes.blueprint_hydrate`,
+    `Routes.TRAITS` and `Routes.trait`.
+
+  `TraitType` and `LockType` now come from
   `magick_mind.models.v1.personality`.
+- **Removed `persona.get_active_version()` and
+  `persona.set_active_version()`**, with `Routes.persona_active_version` and
+  `Routes.persona_activate_version`. Bifrost no longer serves
+  `.../version/active` or `.../version/{v}/activate`: the version an agent
+  runs is set on the agent, with `end_user.attach_persona()` and
+  `end_user.set_persona_version()`. `Persona.active_version` and
+  `PersonaVersion.is_active`, which the server no longer sends, are removed
+  too.
 - `persona.create_from_blueprint()` requires `version=`, the label of the
-  persona's initial version. Bifrost rejects the request without it.
+  persona's initial version, as a keyword-only argument. Bifrost rejects
+  the request without it. A 0.4 positional call now raises `TypeError`
+  instead of binding its arguments to the wrong parameters.
+- `runtime.get_effective_personality()` and `runtime.invalidate_cache()`
+  take `agent_id` instead of `persona_id`, matching the agent-keyed server
+  routes; keyword callers must rename the argument.
+- `DomainRates.identity`, `narrative` and `behavior` are `Optional[float]`:
+  Bifrost omits a rate that is not set.
 
 ### Changed
 - `ChatHistoryItem`, `ChatHistoryMessage`, `ContextPrepareResponse` and
@@ -149,8 +181,9 @@ Bifrost, without the SDK taking on any runtime of its own.
 - `MintEndUserTokenResponse` redacts `token` in `repr`.
 - `RealtimeClient.connect()` wraps a failed handshake in `MagickMindError`
   and leaves the client unset, so `replace_token()` followed by `connect()`
-  is a real reconnect rather than a no-op; `disconnect()` forgets the
-  connect-frame token.
+  is a real reconnect rather than a no-op, as is `connect()` after the
+  server refused an automatic reconnect with 4501; `disconnect()` forgets
+  the connect-frame token.
 - `Artifact.created_at` / `updated_at` accept RFC 3339 strings as well as
   unix seconds; `ListArtifactsResponse` reads Bifrost's `artifacts` key and
   `next_page_token`; `DeleteArtifactResponse.message` is optional and
@@ -162,8 +195,23 @@ Bifrost, without the SDK taking on any runtime of its own.
 - `Routes.runtime_effective_personality` is keyed by agent id, matching the
   server route (the parameter was misnamed `persona_id`).
 - `repr(MagickMind)` reports the auth provider in use.
+- `Persona` and `PersonaVersion` expose `source_blueprint_id` and
+  `source_blueprint_revision`; `PersonaVersion` also exposes
+  `meanings_blueprint_revision`.
 
 ### Fixed
+- **`artifact.get()` always failed to parse.** `GET /v1/artifacts/{id}`
+  returns the artifact itself, not an `{"artifact": ...}` envelope.
+- **A growth config with only some domain rates set failed to parse**, on
+  blueprint and persona version responses alike.
+- **A corpus query that found nothing failed to parse.** Bifrost sends
+  `null` for an empty `entities`, `relationships`, `chunks`, `references`
+  or keyword list; `query()` and `query_own()` now read it as `[]`.
+- **`runtime.invalidate_cache()` sent `persona_id`**, which the server
+  rejects; it now sends `agent_id`.
+- **`send_own_message(message_type="TOOL_MANIFEST")` without `tools`** is
+  refused by Bifrost; the SDK now raises `ValueError` before sending.
+  `tools=[]` revokes, and a manifest needs no content.
 - **`artifact.list()` sent `cursor` / `limit`, which the server ignores** —
   its route pages with `page_token` / `page_size`, so every call returned
   the default page of 20. The parameters are now mapped to the wire names.
