@@ -256,7 +256,7 @@ result = await client.v1.persona.create_from_blueprint(
 
 ## Version Management
 
-Versions are snapshots of a persona's trait constraints. The **active version** is what `prepare()` uses. If no version is active, `prepare()` falls back to the persona's base traits.
+Versions are snapshots of a persona's trait constraints. A persona has no active version of its own: which version runs is set **on the agent** the persona is attached to, with `end_user.attach_persona()` and `end_user.set_persona_version()`, and `prepare_for_agent()` uses that one. The persona-keyed `prepare()` always uses the persona's newest version.
 
 ### Creating a version
 
@@ -284,25 +284,26 @@ async with MagickMind(...) as client:
         ],
     )
     print(version.id)
-    print(version.is_active)  # False — not active yet
 ```
 
-### Activating a version
+### Choosing an agent's version
+
+`version_id` is the version's `id`, not its label:
 
 ```python
 async with MagickMind(...) as client:
-    # Set version "1.0" as active
-    active = await client.v1.persona.set_active_version("p-abc-123", "1.0")
-    print(active.is_active)  # True
+    # First attachment, at a given version
+    await client.v1.end_user.attach_persona(
+        "agent-1", persona_id="p-abc-123", version_id=version.id
+    )
 
-    # Confirm which version is active
-    current = await client.v1.persona.get_active_version("p-abc-123")
-    print(current.version)  # "1.0"
+    # Later, move the agent to another version of the same persona
+    await client.v1.end_user.set_persona_version("agent-1", version_id=v2.id)
 ```
 
 ### How versions affect prepare output
 
-Once a version is active, `prepare()` applies its constraints on top of the persona's base traits. A `HARD` lock fixes a trait value; a `SOFT` lock sets a default that can drift with learning. Constraints narrow the range within which a trait can evolve.
+The version in use applies its constraints on top of the persona's base traits. A `HARD` lock fixes a trait value; a `SOFT` lock sets a default that can drift with learning. Constraints narrow the range within which a trait can evolve.
 
 ```python
 from magick_mind.models.v1.personality import Constraint, LockType
@@ -323,10 +324,10 @@ version = await client.v1.persona.create_version(
         ),
     ],
 )
-await client.v1.persona.set_active_version("p-abc-123", "2.0")
+await client.v1.end_user.set_persona_version("agent-1", version_id=version.id)
 
-# prepare() now reflects the v2.0 constraints
-result = await client.v1.persona.prepare("p-abc-123")
+# The agent's prompt now reflects the v2.0 constraints
+result = await client.v1.persona.prepare_for_agent("agent-1")
 ```
 
 ### Listing versions
@@ -335,8 +336,7 @@ result = await client.v1.persona.prepare("p-abc-123")
 async with MagickMind(...) as client:
     response = await client.v1.persona.list_versions("p-abc-123")
     for v in response.data:
-        status = "✓ active" if v.is_active else ""
-        print(f"  {v.version} {status}")
+        print(f"  {v.version} ({v.id})")
 ```
 
 ## Common Patterns
@@ -417,14 +417,16 @@ async def setup_adaptive_persona(client):
             confidence_threshold=10,  # Interactions before dyadic weight kicks in
         ),
     )
-    await client.v1.persona.set_active_version(persona.id, "1.0")
+    await client.v1.end_user.attach_persona(
+        "agent-nova", persona_id=persona.id, version_id=version.id
+    )
 
     return persona.id
 
 
-async def get_prompt_for_user(client, persona_id: str, user_id: str):
+async def get_prompt_for_user(client, agent_id: str, user_id: str):
     # Each user gets a personalised system prompt
-    result = await client.v1.persona.prepare(persona_id, user_id=user_id)
+    result = await client.v1.persona.prepare_for_agent(agent_id, user_id=user_id)
     return result.system_prompt
 ```
 
@@ -466,7 +468,7 @@ async def handle_chat_request(
     return response.choices[0].message.content
 ```
 
-> **Caching tip:** `prepare()` is a network call. In high-throughput scenarios, cache `system_prompt` per `(persona_id, user_id)` pair and invalidate when the active version changes or when you explicitly call `client.v1.runtime.invalidate_cache(persona_id)`.
+> **Caching tip:** `prepare()` is a network call. In high-throughput scenarios, cache `system_prompt` per `(agent_id, user_id)` pair and invalidate when the agent's persona version changes or when you explicitly call `client.v1.runtime.invalidate_cache(agent_id)`.
 >
 > This key is correct **only for `prepare()`**, which is genuinely keyed by persona. Results from `prepare_for_agent()` / `prepare_for_own_agent()` must be keyed by `agent_id` instead — two agents can share a persona, so a persona-keyed entry would serve one agent's prompt to another.
 
@@ -542,7 +544,6 @@ Create a persona and its initial version from a blueprint template.
 
 **Parameters:**
 - `blueprint_id` (str, required): Source blueprint ID
-- `version` (str, required): Label of the persona's initial version, e.g. `"1.0"`
 - `name` (str, required): Persona name
 - `role` (str, required): Persona role
 - `background_story` (str, optional): Background narrative
@@ -552,6 +553,7 @@ Create a persona and its initial version from a blueprint template.
 - `remove_traits` (list[str], optional): Remove trait refs from the blueprint
 - `growth_override` (GrowthConfig, optional): Override the blueprint's growth config
 - `dyadic_override` (DyadicConfig, optional): Override the blueprint's dyadic config
+- `version` (str, required, keyword-only): Label of the persona's initial version, e.g. `"1.0"`
 
 **Returns:** `PersonaWithVersion` (`persona`, `version`)
 
@@ -567,29 +569,6 @@ Create a new version snapshot for a persona.
 - `constraints` (list[TraitConstraint], optional): Trait constraints for this version
 - `growth` (GrowthConfig, optional): Growth configuration
 - `dyadic` (DyadicConfig, optional): Dyadic learning configuration
-
-**Returns:** `PersonaVersion`
-
----
-
-### `set_active_version()`
-
-Activate a version. `prepare()` will use this version from now on.
-
-**Parameters:**
-- `persona_id` (str, required): Persona ID
-- `version` (str, required): Version string to activate
-
-**Returns:** `PersonaVersion`
-
----
-
-### `get_active_version()`
-
-Get the currently active version.
-
-**Parameters:**
-- `persona_id` (str, required): Persona ID
 
 **Returns:** `PersonaVersion`
 

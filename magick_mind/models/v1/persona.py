@@ -26,7 +26,8 @@ class Persona(BaseModel):
     background_story: str = ""
     created_by: str = ""
     updated_by: str = ""
-    active_version: Optional[str] = None
+    source_blueprint_id: Optional[str] = None
+    source_blueprint_revision: Optional[int] = None
 
     @field_validator("traits", "tones", mode="before")
     @classmethod
@@ -83,7 +84,9 @@ class PersonaVersion(BaseModel):
     growth: Optional[GrowthConfig] = None
     dyadic: Optional[DyadicConfig] = None
     created_at: str = ""
-    is_active: bool = False
+    source_blueprint_id: Optional[str] = None
+    source_blueprint_revision: Optional[int] = None
+    meanings_blueprint_revision: Optional[int] = None
 
     @field_validator("constraints", mode="before")
     @classmethod

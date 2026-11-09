@@ -154,16 +154,6 @@ class Routes:
         """
         return f"/v1/persona/{_seg(persona_id)}/prepare"
 
-    @staticmethod
-    def persona_active_version(persona_id: str) -> str:
-        """Get path for persona active version."""
-        return f"/v1/persona/{_seg(persona_id)}/version/active"
-
-    @staticmethod
-    def persona_activate_version(persona_id: str, version: str) -> str:
-        """Get path for activating a specific persona version."""
-        return f"/v1/persona/{_seg(persona_id)}/version/{_seg(version)}/activate"
-
     # Episode endpoints
     EPISODES_PROCESS = "/v1/episodes/process"
     EPISODES_PROCESS_OWN = "/v1/end-user/episodes/process"

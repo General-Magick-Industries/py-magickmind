@@ -88,6 +88,22 @@ class TestBlueprintResource:
         assert result.revision == 3
         assert result.visibility == "PUBLIC"
 
+    async def test_get_parses_a_growth_config_with_some_rates_unset(
+        self, client: MagickMind, mock_auth: HTTPXMock
+    ):
+        payload = _blueprint().model_dump(mode="json")
+        payload["default_growth"] = {"type": "FIXED", "domain_rates": {"identity": 0.5}}
+        mock_auth.add_response(
+            url=f"{BASE_URL}/v1/blueprints/bp-1", method="GET", json=payload
+        )
+
+        result = await client.v1.blueprint.get("bp-1")
+
+        assert result.default_growth is not None
+        rates = result.default_growth.domain_rates
+        assert rates is not None
+        assert (rates.identity, rates.narrative, rates.behavior) == (0.5, None, None)
+
     async def test_get_by_key_defaults_to_the_caller(
         self, client: MagickMind, mock_auth: HTTPXMock
     ):

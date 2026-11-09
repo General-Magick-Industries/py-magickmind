@@ -459,8 +459,8 @@ class MindspaceResourceV1(BaseResource):
 
         Args:
             magickspace_id: Magickspace to send to
-            content: Message text (max 32 KiB). ``SIGNAL_*`` sends may be
-                empty; every other type -- ``TOOL_MANIFEST`` included -- needs
+            content: Message text (max 32 KiB). ``SIGNAL_*`` and
+                ``TOOL_MANIFEST`` sends may be empty; every other type needs
                 content or ``artifact_ids``, or the server rejects it
             reply_to_message_id: Optional ID of the message being replied to
             artifact_ids: Optional artifact IDs to attach (max 64)
@@ -471,8 +471,8 @@ class MindspaceResourceV1(BaseResource):
             broadcast: Whether to fan out via Centrifugo (default: True)
             tools: The sender's live tool manifest for this turn, one
                 ``{name, description, schema}`` per tool (max 32). Fan-out
-                only; never persisted. Ride it on a real turn rather than a
-                bare ``TOOL_MANIFEST`` send, which still needs content
+                only; never persisted. Required on a ``TOOL_MANIFEST`` send,
+                where ``[]`` revokes every tool the sender advertised
             context: Per-turn key/value context replayed into the receiving
                 agent's prompt (max 32 entries). Fan-out only
 
@@ -480,10 +480,14 @@ class MindspaceResourceV1(BaseResource):
             ChatHistoryItem for the created message
 
         Raises:
+            ValueError: If ``message_type`` is ``TOOL_MANIFEST`` and ``tools``
+                is ``None``
             MagickMindError: 401 with service-user credentials or a revoked
                 token, 403 if the agent is not a participant, 404 if the
                 magickspace does not exist
         """
+        if message_type == "TOOL_MANIFEST" and tools is None:
+            raise ValueError("tools is required for a TOOL_MANIFEST; send [] to revoke")
         request = EndUserSendMessageRequest(
             content=content,
             reply_to_message_id=reply_to_message_id,

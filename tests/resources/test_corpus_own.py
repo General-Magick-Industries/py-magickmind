@@ -46,6 +46,38 @@ class TestQueryOwn:
         }
         await agent.close()
 
+    async def test_query_own_parses_null_result_lists(self, httpx_mock: HTTPXMock):
+        httpx_mock.add_response(
+            url=f"{BASE_URL}/v1/end-user/corpus/c-1/query",
+            method="POST",
+            json={
+                "result": "",
+                "entities": None,
+                "relationships": None,
+                "chunks": None,
+                "references": None,
+                "metadata": {
+                    "query_mode": "mix",
+                    "high_level_keywords": None,
+                    "low_level_keywords": None,
+                },
+            },
+        )
+        agent = MagickMind.from_token(BASE_URL, "jwt-agent")
+
+        result = await agent.v1.corpus.query_own("c-1", query="nothing matches")
+
+        assert (
+            result.entities,
+            result.relationships,
+            result.chunks,
+            result.references,
+        ) == ([], [], [], [])
+        assert result.metadata is not None
+        assert result.metadata.high_level_keywords == []
+        assert result.metadata.low_level_keywords == []
+        await agent.close()
+
     async def test_query_own_omits_api_key_header_when_unset(
         self, httpx_mock: HTTPXMock
     ):

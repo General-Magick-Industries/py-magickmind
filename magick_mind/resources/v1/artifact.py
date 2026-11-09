@@ -16,7 +16,6 @@ from magick_mind.models.v1.artifact import (
     DownloadUrlResponse,
     FinalizeArtifactRequest,
     FinalizeArtifactResponse,
-    GetArtifactResponse,
     ListArtifactsResponse,
     PresignArtifactRequest,
     PresignArtifactResponse,
@@ -175,8 +174,7 @@ class ArtifactResourceV1(BaseResource):
             print(f"S3 URL: {artifact.s3_url}")
         """
         response = await self._http.get(Routes.artifact(artifact_id))
-        get_response = GetArtifactResponse(**response)
-        return get_response.artifact
+        return Artifact.model_validate(response)
 
     async def list(
         self,

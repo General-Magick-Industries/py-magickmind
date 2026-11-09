@@ -146,6 +146,32 @@ class TestOwnMagickspaces:
         assert "content" not in body
         assert "sender_id" not in body
 
+    async def test_send_own_manifest_requires_tools(
+        self, agent: MagickMind, httpx_mock: HTTPXMock
+    ):
+        with pytest.raises(ValueError, match="tools is required"):
+            await agent.v1.magickspaces.send_own_message(
+                "ms-1", message_type="TOOL_MANIFEST", content="manifest"
+            )
+        assert httpx_mock.get_requests() == []
+
+    async def test_send_own_empty_manifest_revokes(
+        self, agent: MagickMind, httpx_mock: HTTPXMock
+    ):
+        httpx_mock.add_response(
+            url=f"{BASE_URL}/v1/end-user/magickspaces/ms-1/messages",
+            method="POST",
+            json={**MESSAGE_PAYLOAD, "message_type": "TOOL_MANIFEST", "content": ""},
+        )
+
+        await agent.v1.magickspaces.send_own_message(
+            "ms-1", message_type="TOOL_MANIFEST", tools=[]
+        )
+
+        body = json.loads(httpx_mock.get_requests()[-1].content)
+        assert body["tools"] == []
+        assert "content" not in body
+
     async def test_send_own_message_hints_on_403(
         self, agent: MagickMind, httpx_mock: HTTPXMock
     ):

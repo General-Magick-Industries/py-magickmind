@@ -604,8 +604,10 @@ await agent.v1.magickspaces.send_own_message("ms-1", message_type="SIGNAL_START"
 participant's `user:` channel. `message_type` is constrained to `TEXT`,
 `VOICE_TRANSCRIPTION`, `TOOL_CALL` / `TOOL_RESULT` / `TOOL_MANIFEST`, and the
 `SIGNAL_START` / `SIGNAL_END` / `SIGNAL_ERROR` turn indicators; only signals
-may be sent without content or artifacts. `tools` and `context` ride the
-fan-out and are never persisted.
+and `TOOL_MANIFEST` may be sent without content or artifacts. A
+`TOOL_MANIFEST` requires `tools` (`[]` revokes), and the SDK raises
+`ValueError` when it is missing. `tools` and `context` ride the fan-out and
+are never persisted.
 
 Service-user additions: `send_message(client_message_id=, record_neutral_memory=)`
 and `prepare_context(catalog_corpus_ids=)`.

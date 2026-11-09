@@ -9,6 +9,7 @@ from pytest_httpx import HTTPXMock
 
 from magick_mind import MagickMind
 from magick_mind.exceptions import ProblemDetailsException
+from magick_mind.models.v1.persona import Persona, PersonaVersion
 
 from tests.factories import (
     PersonaFactory,
@@ -36,7 +37,6 @@ class TestPersonaResource:
             id="pv-1",
             persona_id="p-1",
             version="1.0",
-            is_active=True,
         )
 
         mock_auth.add_response(
@@ -266,13 +266,6 @@ class TestPersonaResource:
             id="pv-2",
             persona_id="p-2",
             version="2.0",
-            is_active=False,
-        )
-        persona = PersonaFactory.build(
-            id="p-2",
-            name="Test",
-            role="assistant",
-            active_version="pv-2",
         )
         mock_auth.add_response(
             url=f"{BASE_URL}/v1/persona/p-2/version",
@@ -289,16 +282,6 @@ class TestPersonaResource:
             method="GET",
             json=version.model_dump(mode="json"),
         )
-        mock_auth.add_response(
-            url=f"{BASE_URL}/v1/persona/p-2/version/active",
-            method="GET",
-            json=version.model_dump(mode="json"),
-        )
-        mock_auth.add_response(
-            url=f"{BASE_URL}/v1/persona/p-2/version/2.0/activate",
-            method="POST",
-            json=persona.model_dump(mode="json"),
-        )
 
         created = await client.v1.persona.create_version(
             persona_id="p-2", version="2.0"
@@ -311,15 +294,39 @@ class TestPersonaResource:
         got = await client.v1.persona.get_version("p-2", "2.0")
         assert got.persona_id == "p-2"
 
-        active = await client.v1.persona.get_active_version("p-2")
-        assert active.id == "pv-2"
+    def test_version_parses_source_blueprint_fields(self):
+        version = PersonaVersion.model_validate(
+            {
+                "id": "pv-1",
+                "persona_id": "p-1",
+                "version": "1.0",
+                "source_blueprint_id": "bp-1",
+                "source_blueprint_revision": 3,
+                "meanings_blueprint_revision": 3,
+            }
+        )
+        persona = Persona.model_validate(
+            {
+                "id": "p-1",
+                "name": "Aria",
+                "role": "assistant",
+                "source_blueprint_id": "bp-1",
+                "source_blueprint_revision": 3,
+            }
+        )
 
-        set_active = await client.v1.persona.set_active_version("p-2", "2.0")
-        assert set_active.id == "p-2"
-        assert set_active.active_version == "pv-2"
-        last_request = mock_auth.get_requests()[-1]
-        assert last_request.method == "POST"
-        assert last_request.url.path == "/v1/persona/p-2/version/2.0/activate"
+        assert version.source_blueprint_id == persona.source_blueprint_id == "bp-1"
+        assert version.source_blueprint_revision == 3
+        assert persona.source_blueprint_revision == 3
+
+    @pytest.mark.httpx_mock(assert_all_responses_were_requested=False)
+    async def test_create_from_blueprint_takes_version_by_keyword_only(
+        self, client: MagickMind
+    ):
+        with pytest.raises(TypeError):
+            await client.v1.persona.create_from_blueprint(  # type: ignore[misc]
+                "bp-1", "Aria", "support agent", "Aria handles EMEA."
+            )
 
     async def test_get_500_raises_problem_details(
         self, client: MagickMind, mock_auth: HTTPXMock

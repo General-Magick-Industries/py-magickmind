@@ -48,6 +48,7 @@ class PersonaResourceV1(BaseResource):
             blueprint_id="bp-123",
             name="Aria",
             role="assistant",
+            version="1.0.0",
         )
         print(result.persona.id, result.version.version)
 
@@ -56,7 +57,10 @@ class PersonaResourceV1(BaseResource):
             persona_id="p-123",
             version="1.1",
         )
-        active = await client.v1.persona.get_active_version("p-123")
+        # Which version an agent runs is set on the agent
+        await client.v1.end_user.set_persona_version(
+            "agent-123", version_id=version.id
+        )
     """
 
     # --- Base CRUD ---
@@ -296,7 +300,6 @@ class PersonaResourceV1(BaseResource):
     async def create_from_blueprint(
         self,
         blueprint_id: str,
-        version: str,
         name: str,
         role: str,
         background_story: Optional[str] = None,
@@ -306,13 +309,14 @@ class PersonaResourceV1(BaseResource):
         remove_traits: Optional[list[str]] = None,
         growth_override: Optional[GrowthConfig] = None,
         dyadic_override: Optional[DyadicConfig] = None,
+        *,
+        version: str,
     ) -> PersonaWithVersion:
         """
         Create a persona from a blueprint with optional overrides.
 
         Args:
             blueprint_id: Source blueprint ID
-            version: Label of the persona's initial version, e.g. "1.0.0"
             name: Persona name
             role: Persona role
             background_story: Optional background story
@@ -322,6 +326,8 @@ class PersonaResourceV1(BaseResource):
             remove_traits: Optional trait refs to remove
             growth_override: Optional growth config override
             dyadic_override: Optional dyadic config override
+            version: Label of the persona's initial version, e.g. "1.0.0";
+                keyword-only
 
         Returns:
             PersonaWithVersion containing both the persona and its initial version
@@ -422,32 +428,3 @@ class PersonaResourceV1(BaseResource):
         """
         response = await self._http.get(Routes.persona_version(persona_id, version))
         return PersonaVersion.model_validate(response)
-
-    async def get_active_version(self, persona_id: str) -> PersonaVersion:
-        """
-        Get the currently active version.
-
-        Args:
-            persona_id: Persona ID
-
-        Returns:
-            PersonaVersion (the active one)
-        """
-        response = await self._http.get(Routes.persona_active_version(persona_id))
-        return PersonaVersion.model_validate(response)
-
-    async def set_active_version(self, persona_id: str, version: str) -> Persona:
-        """
-        Set a version as active.
-
-        Args:
-            persona_id: Persona ID
-            version: Version ID to activate
-
-        Returns:
-            Persona with updated active_version
-        """
-        response = await self._http.post(
-            Routes.persona_activate_version(persona_id, version),
-        )
-        return Persona.model_validate(response)

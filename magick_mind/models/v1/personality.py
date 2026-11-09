@@ -55,11 +55,11 @@ class TraitConstraint(BaseModel):
 
 # --- Growth config ---
 class DomainRates(BaseModel):
-    """Growth rates per personality domain."""
+    """Growth rates per personality domain; the server omits an unset rate."""
 
-    identity: float
-    narrative: float
-    behavior: float
+    identity: Optional[float] = None
+    narrative: Optional[float] = None
+    behavior: Optional[float] = None
 
 
 class GrowthTrigger(BaseModel):

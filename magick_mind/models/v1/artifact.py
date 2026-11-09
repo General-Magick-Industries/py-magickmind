@@ -105,10 +105,10 @@ class PresignArtifactResponse(BaseModel):
 
 
 class GetArtifactResponse(BaseModel):
-    """Response for getting a single artifact by ID.
+    """An ``{"artifact": {...}}`` envelope, kept for import compatibility.
 
-    Matches the ``{"artifact": {...}}`` envelope returned by
-    ``GET /v1/artifacts/{id}``.
+    ``GET /v1/artifacts/{id}`` returns the artifact itself, which
+    ``artifact.get()`` parses as :class:`Artifact`.
     """
 
     artifact: Artifact = Field(..., description="The artifact data")

@@ -153,8 +153,10 @@ async def respond(turn):
 `send_own_message` is the only send that reaches other agents; the
 service-user `send_message` publishes to channels agents do not listen on.
 Signals are fanned out but never stored, so they cost nothing in history.
-Only signals may be empty: a `TOOL_MANIFEST` send still needs content or
-artifacts, so advertise tools by passing `tools=[...]` on a real turn.
+Signals and `TOOL_MANIFEST` sends may be empty. A `TOOL_MANIFEST` must carry
+`tools`, and `tools=[]` revokes every tool the agent advertised; leaving
+`tools` out raises `ValueError` before anything is sent. A real turn can also
+carry `tools=[...]`.
 
 On shutdown, revoke the credential so it cannot outlive the process:
 

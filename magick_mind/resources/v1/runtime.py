@@ -20,29 +20,30 @@ class RuntimeResourceV1(BaseResource):
 
     Example:
         # Get effective personality (global)
-        personality = await client.v1.runtime.get_effective_personality("persona-123")
+        personality = await client.v1.runtime.get_effective_personality("agent-123")
 
         # Get effective personality (dyadic — for a specific user)
         personality = await client.v1.runtime.get_effective_personality(
-            "persona-123", user_id="user-456"
+            "agent-123", user_id="user-456"
         )
 
         # Invalidate cached personality
-        await client.v1.runtime.invalidate_cache("persona-123")
+        await client.v1.runtime.invalidate_cache("agent-123")
     """
 
     async def get_effective_personality(
         self,
-        persona_id: str,
+        agent_id: str,
         user_id: Optional[str] = None,
     ) -> EffectivePersonality:
         """
-        Get the effective (blended) personality of a persona.
+        Get the effective (blended) personality of an agent.
 
-        Merges authored traits with globally and dyadically learned values.
+        Merges the authored traits of the agent's persona version with
+        globally and dyadically learned values.
 
         Args:
-            persona_id: Persona ID
+            agent_id: Agent (end user) ID
             user_id: Optional user ID for dyadic mode
 
         Returns:
@@ -53,24 +54,24 @@ class RuntimeResourceV1(BaseResource):
             params["user_id"] = user_id
 
         response = await self._http.get(
-            Routes.runtime_effective_personality(persona_id),
+            Routes.runtime_effective_personality(agent_id),
             params=params if params else None,
         )
         return EffectivePersonality.model_validate(response)
 
     async def invalidate_cache(
         self,
-        persona_id: str,
+        agent_id: str,
         user_id: Optional[str] = None,
     ) -> None:
         """
-        Invalidate the cached effective personality for a persona.
+        Invalidate the cached effective personality for an agent.
 
         Args:
-            persona_id: Persona ID
+            agent_id: Agent (end user) ID
             user_id: Optional user ID to invalidate a specific dyad cache
         """
-        body: dict[str, str] = {"persona_id": persona_id}
+        body: dict[str, str] = {"agent_id": agent_id}
         if user_id is not None:
             body["user_id"] = user_id
 
