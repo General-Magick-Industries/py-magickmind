@@ -148,9 +148,16 @@ class RealtimeClient:
             )
 
     async def connect(self) -> None:
-        """Connect to the realtime service."""
+        """Connect to the realtime service.
+
+        After the server refused a reconnect (:attr:`terminally_disconnected`),
+        this drops the dead connection and connects afresh.
+        """
         if self._client:
-            return
+            if not self.terminally_disconnected:
+                return
+            await self._client.disconnect()
+            self._client = None
 
         ws_url = self.ws_url
         if not ws_url:

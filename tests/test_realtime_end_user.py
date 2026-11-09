@@ -14,7 +14,7 @@ from pytest_httpx import HTTPXMock
 from magick_mind import MagickMind
 from magick_mind.auth import EndUserTokenAuth, StaticTokenAuth
 from magick_mind.exceptions import MagickMindError
-from magick_mind.realtime.client import DISCONNECT_UNAUTHORIZED, RealtimeClient
+from magick_mind.realtime.client import RealtimeClient
 from magick_mind.realtime.events import (
     MAGICKSPACE_MESSAGE,
     ChatMessageEvent,
@@ -200,9 +200,7 @@ class TestEndUserConnection:
         with pytest.raises(MagickMindError, match="nothing to subscribe"):
             await rt.subscribe("someone")
 
-    @pytest.mark.parametrize(
-        ("code", "terminal"), [(DISCONNECT_UNAUTHORIZED, True), (3000, False)]
-    )
+    @pytest.mark.parametrize(("code", "terminal"), [(4501, True), (3000, False)])
     async def test_only_4501_is_terminal(self, code: int, terminal: bool):
         rt = RealtimeClient(StaticTokenAuth("jwt-agent"), WS_URL, end_user=True)
 
@@ -229,6 +227,26 @@ class TestEndUserConnection:
             await rt.connect()
             assert rt.client is not None
             assert MockClient.call_args.args[0] == WS_URL
+
+    async def test_connect_after_a_refused_reconnect_is_a_real_attempt(self):
+        """An established connection whose reconnect was refused with 4501
+        must not leave connect() as a silent no-op."""
+        rt = RealtimeClient(StaticTokenAuth("jwt-agent"), WS_URL, end_user=True)
+        with patch("magick_mind.realtime.client.Client") as MockClient:
+            dropped = AsyncMock()
+            MockClient.return_value = dropped
+            await rt.connect()
+            await rt._router.on_disconnected(
+                DisconnectedContext(code=4501, reason="token revoked")
+            )
+
+            MockClient.return_value = AsyncMock()
+            await rt.connect()
+
+            dropped.disconnect.assert_awaited_once()
+            assert MockClient.call_count == 2
+            assert rt.client is MockClient.return_value
+            assert not rt.terminally_disconnected
 
     async def test_disconnect_forgets_the_connect_token(self):
         rt = RealtimeClient(StaticTokenAuth("jwt-agent"), WS_URL, end_user=True)
