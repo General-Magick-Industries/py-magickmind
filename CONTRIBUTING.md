@@ -1,5 +1,9 @@
 # Contributing to Magick Mind SDK
 
+## Writing PRs, commits and docs
+
+Write PR descriptions, commit messages and docs for people who use the SDK: what they would see, what changed, and how to use it.
+
 ## Development Setup
 
 ```bash
