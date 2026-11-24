@@ -10,11 +10,11 @@ The persona system gives your AI a stable, configurable identity. Four resources
 
 **Blueprint** (`client.v1.blueprint`) — Reusable trait templates. A blueprint defines a set of trait slots with defaults and constraints that multiple personas can share. Use blueprints when you want consistent personality foundations across many personas.
 
-**PersonaVersion** — A snapshot of a persona's trait constraints, growth configuration, and dyadic settings. Versions let you evolve a persona's behaviour over time without losing history. The active version is what `prepare()` uses.
+**PersonaVersion** — A snapshot of a persona's trait constraints, growth configuration, and dyadic settings. Versions let you evolve a persona's behaviour over time without losing history. The version in use is set on the agent the persona is attached to, and `prepare_for_agent()` applies it; the persona-keyed `prepare()` uses the newest version.
 
 **Runtime** (`client.v1.runtime`) — The effective (blended) personality at runtime, merging authored traits with learned values. Useful for inspection and debugging.
 
-**`prepare()`** is the key operation: given a `persona_id` (and optionally a `user_id`), it resolves the persona's traits, active version constraints, and any user-specific context into a single `system_prompt` string — ready to inject directly into a chat API call.
+**`prepare()`** is the key operation: given a `persona_id`, it resolves the persona's authored traits and its newest version's constraints into a single `system_prompt` string — ready to inject directly into a chat API call.
 
 ## Quick Start
 
@@ -62,23 +62,10 @@ asyncio.run(main())
 When you call `prepare()`, the API:
 
 1. Loads the persona's name, role, traits, tones, and background story
-2. Fetches the **active version** and applies its `constraints` (trait locks, value overrides, allowed ranges)
-3. If `user_id` is provided, incorporates **dyadic** (per-user) learned values from the active version's `DyadicConfig`
-4. Renders everything into a single coherent `system_prompt` string
+2. Fetches the persona's **newest version** and applies its `constraints` (trait locks, value overrides, allowed ranges)
+3. Renders everything into a single coherent `system_prompt` string
 
-### Global mode vs per-user mode
-
-```python
-# Global mode — same prompt for all users
-result = await client.v1.persona.prepare(persona_id)
-
-# Per-user mode — adapts to a specific user's interaction history
-result = await client.v1.persona.prepare(persona_id, user_id="user-abc-123")
-```
-
-Use **global mode** when the persona behaves identically for everyone (e.g. a public-facing bot, a content generation assistant).
-
-Use **per-user mode** when the persona has dyadic learning enabled and should adapt its tone or emphasis based on what it has learned about a specific user.
+The server has deprecated this route. It has no agent to read learned values from, so the prompt carries the authored values only, and the server ignores `user_id`. For learned values and per-user (dyadic) adaptation, attach the persona to an agent and use the agent-keyed prepare below.
 
 ### The response
 
@@ -169,9 +156,9 @@ minted = await client.v1.end_user.mint_token("eu-123", ttl_seconds=3600)
 ```python
 import openai
 
-async def chat_with_persona(client, persona_id: str, user_message: str, user_id: str):
+async def chat_with_persona(client, agent_id: str, user_message: str, user_id: str):
     # Prepare the system prompt for this user
-    prepared = await client.v1.persona.prepare(persona_id, user_id=user_id)
+    prepared = await client.v1.persona.prepare_for_agent(agent_id, user_id=user_id)
 
     # Inject as the system message
     response = openai.chat.completions.create(
@@ -184,7 +171,7 @@ async def chat_with_persona(client, persona_id: str, user_message: str, user_id:
     return response.choices[0].message.content
 ```
 
-> **Tip:** Call `prepare()` once per session (or when the persona version changes) rather than on every message. The system prompt is stable between calls unless you update the persona or switch the active version.
+> **Tip:** Prepare once per session (or when the agent's persona version changes) rather than on every message, and no longer than the response's `ttl_seconds`.
 
 ## Creating Personas
 
@@ -443,7 +430,7 @@ import openai
 from magick_mind import MagickMind
 
 async def handle_chat_request(
-    persona_id: str,
+    agent_id: str,
     user_id: str,
     conversation_history: list[dict],
     new_message: str,
@@ -453,8 +440,8 @@ async def handle_chat_request(
         email=os.getenv("MAGICKMIND_EMAIL"),
         password=os.getenv("MAGICKMIND_PASSWORD"),
     ) as client:
-        # Resolve persona → system prompt (per-user for dyadic adaptation)
-        prepared = await client.v1.persona.prepare(persona_id, user_id=user_id)
+        # Resolve the agent's persona → system prompt (per-user for dyadic adaptation)
+        prepared = await client.v1.persona.prepare_for_agent(agent_id, user_id=user_id)
 
     # Build the message list
     messages = [
@@ -471,7 +458,7 @@ async def handle_chat_request(
     return response.choices[0].message.content
 ```
 
-> **Caching tip:** `prepare()` is a network call. In high-throughput scenarios, cache `system_prompt` per `(agent_id, user_id)` pair and invalidate when the agent's persona version changes or when you explicitly call `client.v1.runtime.invalidate_cache(agent_id)`.
+> **Caching tip:** `prepare_for_agent()` is a network call. In high-throughput scenarios, cache `system_prompt` per `(agent_id, user_id)` pair and invalidate when the agent's persona version changes or when you explicitly call `client.v1.runtime.invalidate_cache(agent_id)`.
 >
 > This key is correct **only for `prepare()`**, which is genuinely keyed by persona. Results from `prepare_for_agent()` / `prepare_for_own_agent()` must be keyed by `agent_id` instead — two agents can share a persona, so a persona-keyed entry would serve one agent's prompt to another.
 
@@ -499,7 +486,7 @@ Resolve a persona into a ready-to-use system prompt.
 
 **Parameters:**
 - `persona_id` (str, required): Persona ID
-- `user_id` (str, optional): User ID for per-user dyadic adaptation
+- `user_id` (str, optional): Accepted by the server and ignored
 
 **Returns:** `PreparePersonaResponse`
 - `system_prompt` (str): The generated system prompt string

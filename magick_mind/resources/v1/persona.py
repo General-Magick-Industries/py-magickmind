@@ -171,12 +171,14 @@ class PersonaResourceV1(BaseResource):
         """
         Prepare a persona's system prompt.
 
-        Resolves the persona's traits, active version constraints, and optional
-        user-specific context into a ready-to-use system prompt string.
+        The server has deprecated this route: it renders the persona's newest
+        version with its authored trait values only. Use
+        :meth:`prepare_for_agent` for an agent's active version and the values
+        it has learned.
 
         Args:
             persona_id: Persona ID
-            user_id: Optional user ID for user-specific prompt context
+            user_id: Accepted by the server and ignored
 
         Returns:
             PreparePersonaResponse with the system_prompt string
