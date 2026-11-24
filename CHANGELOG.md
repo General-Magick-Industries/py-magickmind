@@ -92,7 +92,8 @@ Bifrost, without the SDK taking on any runtime of its own.
   `EventContext.publisher_user_id` carries Centrifugo's own record of the
   publishing connection — the only identity a payload cannot choose.
 - `Routes` percent-encode every path parameter, so an id taken off the wire
-  cannot splice a query string or extra path segment into a request.
+  cannot splice a query string or extra path segment into a request. An id
+  of `.` or `..` raises `ValueError`.
 - `MessageType`, `SIGNAL_MESSAGE_TYPES`, `CONTROL_MESSAGE_TYPES`,
   `is_signal_message()`, `is_control_message()`, `CorpusInfo`.
 - `magickspaces.send_message(client_message_id=, record_neutral_memory=)`,

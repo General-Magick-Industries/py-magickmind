@@ -2,7 +2,15 @@
 
 from __future__ import annotations
 
+import pytest
+
 from magick_mind.routes import Routes
+
+
+@pytest.mark.parametrize("segment", [".", ".."])
+def test_dot_segments_are_refused(segment: str):
+    with pytest.raises(ValueError, match="path segment"):
+        Routes.persona_version("p-1", segment)
 
 
 def test_ids_cannot_splice_query_fragment_or_path():

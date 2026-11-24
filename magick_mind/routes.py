@@ -4,13 +4,15 @@ All API endpoint paths are defined here to ensure consistency
 across the SDK and make updates easier when the API changes.
 """
 
-from functools import partial
 from urllib.parse import quote
 
-# Path segments are percent-encoded so an id taken off the wire cannot splice
-# a query string, fragment, or extra path component into a credential-bearing
-# request.
-_seg = partial(quote, safe="")
+
+def _seg(value: str) -> str:
+    # Keeps an id taken off the wire from reshaping a credential-bearing
+    # request. "." and ".." have no encoded form: URL parsers resolve "%2e%2e".
+    if value in (".", ".."):
+        raise ValueError(f"{value!r} is not a valid path segment")
+    return quote(value, safe="")
 
 
 class Routes:
