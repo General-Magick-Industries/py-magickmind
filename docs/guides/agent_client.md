@@ -74,7 +74,9 @@ is terminal: `rotating.is_terminal` turns true, `rotating.terminal_reason`
 says why, and every call raises `AuthenticationError`. Nothing recovers from
 that except a new mint from the control plane, delivered with
 `rotating.replace_token(new_token, expires_in=...)`. A long-lived agent
-therefore needs a re-mint path, not just `keep_fresh`.
+therefore needs a re-mint path, not just `keep_fresh`. `keep_fresh` ends when
+the credential becomes terminal or expires, so start it again after
+`replace_token`.
 
 ## 3. Find your spaces, prepare the prompt and the context
 

@@ -98,8 +98,13 @@ class EndUserTokenAuth(AuthProvider):
       carries the server's explanation.
     - Any other failure is retried while the current token is still valid,
       with exponential backoff shared by every caller, and raised only once
-      the token has actually expired. Requests made while a retry is backed
-      off present the current token without attempting a rotation.
+      the token has actually expired. No wait is longer than half of the
+      token's remaining life, so an outage that ends before expiry is
+      recovered from. Requests made while a retry is backed off present the
+      current token without attempting a rotation.
+    - A token that expired unrotated raises :class:`TokenExpiredError` with
+      the last refresh failure, without calling the server: it refuses to
+      refresh an expired token. :meth:`replace_token` recovers from that too.
     - A rotation that was in flight when :meth:`replace_token` ran is
       discarded, whatever its outcome.
     """
@@ -143,6 +148,7 @@ class EndUserTokenAuth(AuthProvider):
         self._generation = 0
         self._failures = 0
         self._retry_at = 0.0
+        self._last_error: Optional[AuthenticationError] = None
         self._lock = asyncio.Lock()
         self._listeners: list[RotationListener] = []
         if self._expires_at is None:
@@ -201,14 +207,20 @@ class EndUserTokenAuth(AuthProvider):
         return now >= self._expires_at - self.refresh_window_seconds
 
     def _rotation_due(self, now: float) -> bool:
-        if not self._needs_rotation(now):
-            return False
-        expired = self._expires_at is not None and now >= self._expires_at
-        return expired or now >= self._retry_at
+        return self._needs_rotation(now) and now >= self._retry_at
+
+    def _raise_expired(self, now: float) -> None:
+        if self._expires_at is None or now < self._expires_at:
+            return
+        message = "End-user token expired before it could be rotated"
+        if self._last_error is not None:
+            message += f"; last refresh attempt: {self._last_error}"
+        raise TokenExpiredError(message, status_code=401) from self._last_error
 
     def _clear_backoff(self) -> None:
         self._failures = 0
         self._retry_at = 0.0
+        self._last_error = None
 
     def _raise_terminal(self) -> None:
         if self._terminal is not None:
@@ -216,14 +228,17 @@ class EndUserTokenAuth(AuthProvider):
             raise error_type(message, status_code=status)
 
     async def refresh_if_needed_async(self) -> None:
-        self._raise_terminal()
-        if not self._rotation_due(time.time()):
+        if not self._check_rotation_due():
             return
         async with self._lock:
-            self._raise_terminal()
-            if not self._rotation_due(time.time()):
-                return
-            await self._rotate()
+            if self._check_rotation_due():
+                await self._rotate()
+
+    def _check_rotation_due(self) -> bool:
+        self._raise_terminal()
+        now = time.time()
+        self._raise_expired(now)
+        return self._rotation_due(now)
 
     async def get_token_async(self) -> str:
         await self.refresh_if_needed_async()
@@ -341,11 +356,17 @@ class EndUserTokenAuth(AuthProvider):
         raise error_type(message, status_code=status)
 
     def _defer_or_raise(self, error: AuthenticationError) -> None:
+        now = time.time()
         self._failures += 1
-        self._retry_at = time.time() + min(
+        self._last_error = error
+        wait = min(
             ROTATION_BACKOFF_BASE * 2 ** (self._failures - 1), ROTATION_BACKOFF_MAX
         )
-        if self._expires_at is not None and time.time() < self._expires_at:
+        if self._expires_at is not None:
+            half_life = (self._expires_at - now) / 2
+            wait = min(wait, max(half_life, ROTATION_BACKOFF_BASE))
+        self._retry_at = now + wait
+        if self._expires_at is not None and now < self._expires_at:
             logger.warning("%s; retrying on the next call", error)
             return
         raise error

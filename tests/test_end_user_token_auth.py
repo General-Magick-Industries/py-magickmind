@@ -18,7 +18,6 @@ from magick_mind.auth.end_user_token import (
     PROBLEM_CHAIN_REVOKED,
     PROBLEM_CREDENTIAL_REVOKED,
     PROBLEM_CREDENTIAL_SUPERVISED,
-    ROTATION_BACKOFF_MAX,
 )
 from magick_mind.auth.jwt import (
     AUDIENCE_SUPERVISED,
@@ -184,13 +183,131 @@ class TestEndUserTokenAuth:
             assert len(httpx_mock.get_requests()) == 1, "backed off, not retried"
 
             for attempt in range(2, 10):
-                clock.shift(ROTATION_BACKOFF_MAX + 1)
+                clock.shift(121)
                 await auth.get_token_async()
                 assert len(httpx_mock.get_requests()) == attempt
 
-            clock.shift(ROTATION_BACKOFF_MAX - 1)
+            clock.shift(119)
             await auth.get_token_async()
             assert len(httpx_mock.get_requests()) == 9, "the backoff still applies"
+
+    @pytest.mark.parametrize("recovers_at", [56, 30, 5])
+    async def test_an_outage_that_ends_before_expiry_is_recovered(
+        self, httpx_mock: HTTPXMock, recovers_at: int
+    ):
+        successor = _jwt("successor", exp=2_000_000)
+        with time_machine.travel(1_000_000, tick=False) as clock:
+            expiry = time.time() + 120
+            auth = EndUserTokenAuth(_jwt(exp=expiry), BASE_URL)
+
+            def refresh(request: httpx.Request) -> httpx.Response:
+                if expiry - time.time() > recovers_at:
+                    return httpx.Response(503)
+                return httpx.Response(200, json=_minted(successor))
+
+            httpx_mock.add_callback(
+                refresh, url=REFRESH_URL, method="POST", is_reusable=True
+            )
+            for _ in range(119):
+                await auth.get_token_async()
+                clock.shift(1)
+
+            assert await auth.get_token_async() == successor
+            assert len(httpx_mock.get_requests()) <= 14, "still paced"
+
+    async def test_an_expired_token_raises_locally_with_the_last_error(
+        self, httpx_mock: HTTPXMock
+    ):
+        httpx_mock.add_response(
+            url=REFRESH_URL, method="POST", status_code=503, json={"message": "down"}
+        )
+        with time_machine.travel(1_000_000, tick=False) as clock:
+            auth = EndUserTokenAuth(_jwt(exp=time.time() + 10), BASE_URL)
+            await auth.get_token_async()
+            clock.shift(11)
+
+            with pytest.raises(TokenExpiredError, match="HTTP 503: down"):
+                await auth.get_token_async()
+
+            assert len(httpx_mock.get_requests()) == 1
+            auth.replace_token(_jwt("fresh", exp=time.time() + 3600))
+            assert await auth.get_token_async()
+
+    @pytest.mark.parametrize("recovery", ["rotate", "replace_token"])
+    async def test_recovery_clears_the_backoff(
+        self, httpx_mock: HTTPXMock, recovery: str
+    ):
+        statuses = iter([503, 503, 200, 503, 503])
+
+        def refresh(request: httpx.Request) -> httpx.Response:
+            status = 503 if recovery == "replace_token" else next(statuses)
+            successor = _jwt("successor", exp=time.time() + 100)
+            return httpx.Response(status, json=_minted(successor, expires_in=100))
+
+        httpx_mock.add_callback(
+            refresh, url=REFRESH_URL, method="POST", is_reusable=True
+        )
+        with time_machine.travel(1_000_000, tick=False) as clock:
+            auth = EndUserTokenAuth(_jwt(exp=time.time() + 100), BASE_URL)
+            await auth.get_token_async()
+            clock.shift(1.1)
+            await auth.get_token_async()
+            if recovery == "rotate":
+                clock.shift(2.1)
+                await auth.get_token_async()
+            else:
+                auth.replace_token(_jwt("fresh", exp=time.time() + 100))
+            before = len(httpx_mock.get_requests())
+
+            await auth.get_token_async()
+            clock.shift(1.1)
+            await auth.get_token_async()
+
+            assert len(httpx_mock.get_requests()) == before + 2, "waits 1 s again"
+
+    async def test_a_network_error_after_replace_token_is_discarded(
+        self, httpx_mock: HTTPXMock
+    ):
+        entered = asyncio.Event()
+        release = asyncio.Event()
+
+        async def held_refresh(request: httpx.Request) -> httpx.Response:
+            entered.set()
+            await release.wait()
+            raise httpx.ConnectError("down")
+
+        httpx_mock.add_callback(held_refresh, url=REFRESH_URL, method="POST")
+        auth = EndUserTokenAuth(_jwt(exp=time.time() + 10), BASE_URL)
+        rotation = asyncio.create_task(auth.get_token_async())
+        await asyncio.wait_for(entered.wait(), timeout=1)
+
+        fresh = _jwt("fresh", exp=time.time() + 60)
+        auth.replace_token(fresh)
+        release.set()
+        assert await rotation == fresh
+
+        httpx_mock.add_response(
+            url=REFRESH_URL, method="POST", json=_minted(_jwt("next"))
+        )
+        await auth.get_token_async()
+        assert len(httpx_mock.get_requests()) == 2, "the fresh token is not backed off"
+
+    async def test_keep_fresh_sleeps_through_the_backoff(
+        self, httpx_mock: HTTPXMock, monkeypatch: pytest.MonkeyPatch
+    ):
+        httpx_mock.add_response(url=REFRESH_URL, method="POST", status_code=503)
+        auth = EndUserTokenAuth(_jwt(exp=time.time() + 60), BASE_URL)
+        delays: list[float] = []
+
+        async def record(stop: asyncio.Event | None, delay: float) -> bool:
+            delays.append(delay)
+            return len(delays) == 2
+
+        monkeypatch.setattr(auth, "_sleep_or_stop", record)
+        await auth.keep_fresh()
+
+        assert delays[0] == 0
+        assert 0.5 < delays[1] <= 1
 
     @pytest.mark.parametrize(
         ("status", "body", "error", "reason"),
@@ -333,15 +450,21 @@ class TestEndUserTokenAuth:
         assert await auth.get_token_async() == old
         assert not auth.is_terminal
 
-    async def test_transient_failure_raises_once_expired(self, httpx_mock: HTTPXMock):
-        httpx_mock.add_response(
-            url=REFRESH_URL, method="POST", status_code=503, is_reusable=True
-        )
-        auth = EndUserTokenAuth(_jwt(exp=time.time() - 1), BASE_URL)
+    async def test_a_failure_that_outlives_the_token_raises(
+        self, httpx_mock: HTTPXMock
+    ):
+        with time_machine.travel(1_000_000, tick=False) as clock:
 
-        with pytest.raises(AuthenticationError):
-            await auth.get_token_async()
-        assert not auth.is_terminal
+            def slow_refresh(request: httpx.Request) -> httpx.Response:
+                clock.shift(20)
+                return httpx.Response(503)
+
+            httpx_mock.add_callback(slow_refresh, url=REFRESH_URL, method="POST")
+            auth = EndUserTokenAuth(_jwt(exp=time.time() + 10), BASE_URL)
+
+            with pytest.raises(AuthenticationError, match="HTTP 503"):
+                await auth.get_token_async()
+            assert not auth.is_terminal
 
     async def test_replace_token_clears_terminal_state(self, httpx_mock: HTTPXMock):
         httpx_mock.add_response(url=REFRESH_URL, method="POST", status_code=401)
@@ -397,7 +520,7 @@ class TestEndUserTokenAuth:
         new = _jwt(exp=time.time() + 3600)
         httpx_mock.add_response(url=REFRESH_URL, method="POST", json=_minted(new))
         auth = EndUserTokenAuth(
-            _jwt(exp=time.time() + 0.2), BASE_URL, refresh_window_seconds=0.1
+            _jwt(), BASE_URL, refresh_window_seconds=0.1, expires_in=0.2
         )
         stop = asyncio.Event()
         task = asyncio.create_task(auth.keep_fresh(stop))
