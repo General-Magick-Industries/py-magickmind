@@ -78,6 +78,11 @@ therefore needs a re-mint path, not just `keep_fresh`. `keep_fresh` ends when
 the credential becomes terminal or expires, so start it again after
 `replace_token`.
 
+A token that expires before it was rotated raises `TokenExpiredError` and leaves
+`is_terminal` false, because the server never refused it. Only `replace_token`
+recovers, so a supervisor must re-mint on `TokenExpiredError` as well as when
+`is_terminal` turns true.
+
 ## 3. Find your spaces, prepare the prompt and the context
 
 ```python

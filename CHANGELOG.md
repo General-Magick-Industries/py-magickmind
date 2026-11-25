@@ -93,7 +93,7 @@ Bifrost, without the SDK taking on any runtime of its own.
   publishing connection — the only identity a payload cannot choose.
 - `Routes` percent-encode every path parameter, so an id taken off the wire
   cannot splice a query string or extra path segment into a request. An id
-  of `.` or `..` raises `ValueError`.
+  that is empty, `.` or `..`, or that contains `/` or `\`, raises `ValueError`.
 - `MessageType`, `SIGNAL_MESSAGE_TYPES`, `CONTROL_MESSAGE_TYPES`,
   `is_signal_message()`, `is_control_message()`, `CorpusInfo`.
 - `magickspaces.send_message(client_message_id=, record_neutral_memory=)`,

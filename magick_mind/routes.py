@@ -9,8 +9,9 @@ from urllib.parse import quote
 
 def _seg(value: str) -> str:
     # Keeps an id taken off the wire from reshaping a credential-bearing
-    # request. "." and ".." have no encoded form: URL parsers resolve "%2e%2e".
-    if value in (".", ".."):
+    # request. Encoding is not enough for these: URL parsers resolve "%2e%2e", a
+    # server may decode "%2F" before it routes, and an empty id is the list route.
+    if value in ("", ".", "..") or "/" in value or "\\" in value:
         raise ValueError(f"{value!r} is not a valid path segment")
     return quote(value, safe="")
 
