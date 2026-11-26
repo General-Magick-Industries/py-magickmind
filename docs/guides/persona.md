@@ -10,11 +10,11 @@ The persona system gives your AI a stable, configurable identity. Four resources
 
 **Blueprint** (`client.v1.blueprint`) — Reusable trait templates. A blueprint defines a set of trait slots with defaults and constraints that multiple personas can share. Use blueprints when you want consistent personality foundations across many personas.
 
-**PersonaVersion** — A snapshot of a persona's trait constraints, growth configuration, and dyadic settings. Versions let you evolve a persona's behaviour over time without losing history. The active version is what `prepare()` uses.
+**PersonaVersion** — A snapshot of a persona's trait constraints, growth configuration, and dyadic settings. Versions let you evolve a persona's behaviour over time without losing history. The version in use is set on the agent the persona is attached to, and `prepare_for_agent()` applies it; the persona-keyed `prepare()` uses the newest version.
 
 **Runtime** (`client.v1.runtime`) — The effective (blended) personality at runtime, merging authored traits with learned values. Useful for inspection and debugging.
 
-**`prepare()`** is the key operation: given a `persona_id` (and optionally a `user_id`), it resolves the persona's traits, active version constraints, and any user-specific context into a single `system_prompt` string — ready to inject directly into a chat API call.
+**`prepare()`** is the key operation: given a `persona_id`, it resolves the persona's authored traits and its newest version's constraints into a single `system_prompt` string — ready to inject directly into a chat API call.
 
 ## Quick Start
 
@@ -62,23 +62,10 @@ asyncio.run(main())
 When you call `prepare()`, the API:
 
 1. Loads the persona's name, role, traits, tones, and background story
-2. Fetches the **active version** and applies its `constraints` (trait locks, value overrides, allowed ranges)
-3. If `user_id` is provided, incorporates **dyadic** (per-user) learned values from the active version's `DyadicConfig`
-4. Renders everything into a single coherent `system_prompt` string
+2. Fetches the persona's **newest version** and applies its `constraints` (trait locks, value overrides, allowed ranges)
+3. Renders everything into a single coherent `system_prompt` string
 
-### Global mode vs per-user mode
-
-```python
-# Global mode — same prompt for all users
-result = await client.v1.persona.prepare(persona_id)
-
-# Per-user mode — adapts to a specific user's interaction history
-result = await client.v1.persona.prepare(persona_id, user_id="user-abc-123")
-```
-
-Use **global mode** when the persona behaves identically for everyone (e.g. a public-facing bot, a content generation assistant).
-
-Use **per-user mode** when the persona has dyadic learning enabled and should adapt its tone or emphasis based on what it has learned about a specific user.
+The server has deprecated this route. It has no agent to read learned values from, so the prompt carries the authored values only, and the server ignores `user_id`. For learned values and per-user (dyadic) adaptation, attach the persona to an agent and use the agent-keyed prepare below.
 
 ### The response
 
@@ -88,14 +75,90 @@ Use **per-user mode** when the persona has dyadic learning enabled and should ad
 result.system_prompt  # str — inject this directly into your chat call
 ```
 
+## Agent-keyed prepare
+
+`prepare_for_agent()` resolves the prompt for an **agent**, letting the server pick
+which persona that agent currently uses:
+
+```python
+prepared = await client.v1.persona.prepare_for_agent(agent_id, user_id="user-abc-123")
+print(prepared.system_prompt)   # complete — identity, background, traits, tones
+print(prepared.persona_id)      # which persona the agent resolved to
+```
+
+> **The argument is an agent ID, not a persona ID.** The two paths take
+> same-shaped IDs in same-shaped URLs, so a persona ID passed here reaches the
+> server as an agent lookup and fails — **400** if the ID is malformed or names
+> an end user that is not an agent, **404** if it is well-formed but unknown. A
+> **403** means the agent ID does not match the token subject, or is not visible
+> to these credentials; a **409** means the agent has no attached persona or no
+> active version. The SDK appends a hint to each.
+
+Unlike `prepare()`, the response carries the resolution metadata:
+
+| Field | Meaning |
+| --- | --- |
+| `agent_id` | The agent the prompt was prepared for |
+| `persona_id` | The persona that agent resolved to |
+| `active_persona_version_id` | The version whose constraints were applied |
+| `user_id` | Echoes the per-user context, if any |
+| `system_prompt` | The complete prompt — use verbatim |
+| `computed_at` | When the server assembled it |
+| `ttl_seconds` | How long it stays valid |
+
+If you cache these, **key the cache by `agent_id`, not the returned `persona_id`.**
+Two agents can resolve to the same persona, so a persona-keyed cache can serve one
+agent's prompt to another — potentially across tenants.
+
+### Two callers, two routes
+
+`prepare_for_agent()` is the **service-user** path: your backend holds tenant
+credentials and names the agent by ID in the URL. An agent running with **its own
+end-user JWT** uses a different route where the token *is* the subject, so no ID is
+sent:
+
+```python
+# The agent holds its own end-user token; the server resolves it from the credential.
+prepared = await client.v1.persona.prepare_for_own_agent(user_id="user-abc-123")
+```
+
+Both return the same `PrepareAgentPersonaResponse`. Picking the wrong one still
+fails — the two routes verify differently signed tokens, so the call returns 401
+either way — but the SDK attaches a hint naming the method you wanted. The error
+is diagnosed, not prevented.
+
+The agent's client is built from the token rather than from credentials:
+
+```python
+# On your backend, holding service-user credentials:
+minted = await client.v1.end_user.mint_token(agent_id, ttl_seconds=3600)
+
+# In the agent process, holding only that token:
+agent = MagickMind.from_token(BASE_URL, minted.token)
+prepared = await agent.v1.persona.prepare_for_own_agent()
+```
+
+`from_token()` never verifies the token — only the server judges it, so a
+wrong-kind or revoked token surfaces as a 401 on the first call. It does read
+the token's claims: an agent's token is rotated ahead of expiry, and a
+supervised one is held as given (see the
+[agent client guide](agent_client.md)).
+
+To mint the end-user JWT an agent needs, use `client.v1.end_user.mint_token()`:
+
+```python
+minted = await client.v1.end_user.mint_token("eu-123", ttl_seconds=3600)
+# Hand minted.token to the agent process; it then calls prepare_for_own_agent().
+```
+
 ### Using it with chat
 
 ```python
 import openai
 
-async def chat_with_persona(client, persona_id: str, user_message: str, user_id: str):
+async def chat_with_persona(client, agent_id: str, user_message: str, user_id: str):
     # Prepare the system prompt for this user
-    prepared = await client.v1.persona.prepare(persona_id, user_id=user_id)
+    prepared = await client.v1.persona.prepare_for_agent(agent_id, user_id=user_id)
 
     # Inject as the system message
     response = openai.chat.completions.create(
@@ -108,7 +171,7 @@ async def chat_with_persona(client, persona_id: str, user_message: str, user_id:
     return response.choices[0].message.content
 ```
 
-> **Tip:** Call `prepare()` once per session (or when the persona version changes) rather than on every message. The system prompt is stable between calls unless you update the persona or switch the active version.
+> **Tip:** Prepare once per session (or when the agent's persona version changes) rather than on every message, and no longer than the response's `ttl_seconds`.
 
 ## Creating Personas
 
@@ -141,6 +204,7 @@ async with MagickMind(...) as client:
     # Create from an existing blueprint
     result = await client.v1.persona.create_from_blueprint(
         blueprint_id="bp-support-agent",
+        version="1.0",
         name="Aria",
         role="customer support specialist",
         background_story="Aria handles tier-1 support for the EMEA region.",
@@ -165,6 +229,7 @@ from magick_mind.models.v1.personality import TraitConstraint, TraitValue
 
 result = await client.v1.persona.create_from_blueprint(
     blueprint_id="bp-support-agent",
+    version="1.0",
     name="Aria (EMEA)",
     role="customer support specialist",
     # Override a specific trait's value
@@ -181,7 +246,7 @@ result = await client.v1.persona.create_from_blueprint(
 
 ## Version Management
 
-Versions are snapshots of a persona's trait constraints. The **active version** is what `prepare()` uses. If no version is active, `prepare()` falls back to the persona's base traits.
+Versions are snapshots of a persona's trait constraints. A persona has no active version of its own: which version runs is set **on the agent** the persona is attached to, with `end_user.attach_persona()` and `end_user.set_persona_version()`, and `prepare_for_agent()` uses that one. The persona-keyed `prepare()` always uses the persona's newest version.
 
 ### Creating a version
 
@@ -209,25 +274,26 @@ async with MagickMind(...) as client:
         ],
     )
     print(version.id)
-    print(version.is_active)  # False — not active yet
 ```
 
-### Activating a version
+### Choosing an agent's version
+
+`version_id` is the version's `id`, not its label:
 
 ```python
 async with MagickMind(...) as client:
-    # Set version "1.0" as active
-    active = await client.v1.persona.set_active_version("p-abc-123", "1.0")
-    print(active.is_active)  # True
+    # First attachment, at a given version
+    await client.v1.end_user.attach_persona(
+        "agent-1", persona_id="p-abc-123", version_id=version.id
+    )
 
-    # Confirm which version is active
-    current = await client.v1.persona.get_active_version("p-abc-123")
-    print(current.version)  # "1.0"
+    # Later, move the agent to another version of the same persona
+    await client.v1.end_user.set_persona_version("agent-1", version_id=v2.id)
 ```
 
 ### How versions affect prepare output
 
-Once a version is active, `prepare()` applies its constraints on top of the persona's base traits. A `HARD` lock fixes a trait value; a `SOFT` lock sets a default that can drift with learning. Constraints narrow the range within which a trait can evolve.
+The version in use applies its constraints on top of the persona's base traits. A `HARD` lock fixes a trait value; a `SOFT` lock sets a default that can drift with learning. Constraints narrow the range within which a trait can evolve.
 
 ```python
 from magick_mind.models.v1.personality import Constraint, LockType
@@ -248,10 +314,10 @@ version = await client.v1.persona.create_version(
         ),
     ],
 )
-await client.v1.persona.set_active_version("p-abc-123", "2.0")
+await client.v1.end_user.set_persona_version("agent-1", version_id=version.id)
 
-# prepare() now reflects the v2.0 constraints
-result = await client.v1.persona.prepare("p-abc-123")
+# The agent's prompt now reflects the v2.0 constraints
+result = await client.v1.persona.prepare_for_agent("agent-1")
 ```
 
 ### Listing versions
@@ -260,8 +326,7 @@ result = await client.v1.persona.prepare("p-abc-123")
 async with MagickMind(...) as client:
     response = await client.v1.persona.list_versions("p-abc-123")
     for v in response.data:
-        status = "✓ active" if v.is_active else ""
-        print(f"  {v.version} {status}")
+        print(f"  {v.version} ({v.id})")
 ```
 
 ## Common Patterns
@@ -301,6 +366,7 @@ async def create_regional_agents(client, blueprint_id: str):
     for name, role, story in regions:
         result = await client.v1.persona.create_from_blueprint(
             blueprint_id=blueprint_id,
+            version="1.0",
             name=name,
             role=role,
             background_story=story,
@@ -341,14 +407,16 @@ async def setup_adaptive_persona(client):
             confidence_threshold=10,  # Interactions before dyadic weight kicks in
         ),
     )
-    await client.v1.persona.set_active_version(persona.id, "1.0")
+    await client.v1.end_user.attach_persona(
+        "agent-nova", persona_id=persona.id, version_id=version.id
+    )
 
     return persona.id
 
 
-async def get_prompt_for_user(client, persona_id: str, user_id: str):
+async def get_prompt_for_user(client, agent_id: str, user_id: str):
     # Each user gets a personalised system prompt
-    result = await client.v1.persona.prepare(persona_id, user_id=user_id)
+    result = await client.v1.persona.prepare_for_agent(agent_id, user_id=user_id)
     return result.system_prompt
 ```
 
@@ -362,7 +430,7 @@ import openai
 from magick_mind import MagickMind
 
 async def handle_chat_request(
-    persona_id: str,
+    agent_id: str,
     user_id: str,
     conversation_history: list[dict],
     new_message: str,
@@ -372,8 +440,8 @@ async def handle_chat_request(
         email=os.getenv("MAGICKMIND_EMAIL"),
         password=os.getenv("MAGICKMIND_PASSWORD"),
     ) as client:
-        # Resolve persona → system prompt (per-user for dyadic adaptation)
-        prepared = await client.v1.persona.prepare(persona_id, user_id=user_id)
+        # Resolve the agent's persona → system prompt (per-user for dyadic adaptation)
+        prepared = await client.v1.persona.prepare_for_agent(agent_id, user_id=user_id)
 
     # Build the message list
     messages = [
@@ -390,7 +458,9 @@ async def handle_chat_request(
     return response.choices[0].message.content
 ```
 
-> **Caching tip:** `prepare()` is a network call. In high-throughput scenarios, cache `system_prompt` per `(persona_id, user_id)` pair and invalidate when the active version changes or when you explicitly call `client.v1.runtime.invalidate_cache(persona_id)`.
+> **Caching tip:** `prepare_for_agent()` is a network call. In high-throughput scenarios, cache `system_prompt` per `(agent_id, user_id)` pair and invalidate when the agent's persona version changes or when you explicitly call `client.v1.runtime.invalidate_cache(agent_id)`.
+>
+> This key is correct **only for `prepare()`**, which is genuinely keyed by persona. Results from `prepare_for_agent()` / `prepare_for_own_agent()` must be keyed by `agent_id` instead — two agents can share a persona, so a persona-keyed entry would serve one agent's prompt to another.
 
 ## API Reference
 
@@ -416,10 +486,45 @@ Resolve a persona into a ready-to-use system prompt.
 
 **Parameters:**
 - `persona_id` (str, required): Persona ID
-- `user_id` (str, optional): User ID for per-user dyadic adaptation
+- `user_id` (str, optional): Accepted by the server and ignored
 
 **Returns:** `PreparePersonaResponse`
 - `system_prompt` (str): The generated system prompt string
+
+---
+
+### `prepare_for_agent()`
+
+Resolve an **agent's** persona into a ready-to-use system prompt.
+
+**Parameters:**
+- `agent_id` (str, required): Agent ID — *not* a persona ID; passing one fails with 404/403
+- `user_id` (str, optional): User ID for per-user dyadic adaptation
+
+**Returns:** `PrepareAgentPersonaResponse`
+- `agent_id` (str): The agent the prompt was prepared for
+- `persona_id` (str): The persona that agent resolved to
+- `active_persona_version_id` (str): Version whose constraints were applied
+- `user_id` (str | None): Echoed per-user context
+- `system_prompt` (str): The complete system prompt
+- `computed_at` (str): Server assembly timestamp
+- `ttl_seconds` (int): Validity window
+
+---
+
+### `prepare_for_own_agent()`
+
+Resolve the **calling agent's own** persona, for a client holding an end-user JWT.
+The agent is the token subject, so no ID is sent. Use `prepare_for_agent()` instead
+when calling with service-user credentials.
+
+**Parameters:**
+- `user_id` (str, optional): User ID for per-user dyadic adaptation
+
+**Returns:** `PrepareAgentPersonaResponse` (same shape as `prepare_for_agent()`)
+
+Calling this with service-user credentials returns 401; the SDK hint points you to
+`prepare_for_agent()`.
 
 ---
 
@@ -438,6 +543,7 @@ Create a persona and its initial version from a blueprint template.
 - `remove_traits` (list[str], optional): Remove trait refs from the blueprint
 - `growth_override` (GrowthConfig, optional): Override the blueprint's growth config
 - `dyadic_override` (DyadicConfig, optional): Override the blueprint's dyadic config
+- `version` (str, required, keyword-only): Label of the persona's initial version, e.g. `"1.0"`
 
 **Returns:** `PersonaWithVersion` (`persona`, `version`)
 
@@ -453,29 +559,6 @@ Create a new version snapshot for a persona.
 - `constraints` (list[TraitConstraint], optional): Trait constraints for this version
 - `growth` (GrowthConfig, optional): Growth configuration
 - `dyadic` (DyadicConfig, optional): Dyadic learning configuration
-
-**Returns:** `PersonaVersion`
-
----
-
-### `set_active_version()`
-
-Activate a version. `prepare()` will use this version from now on.
-
-**Parameters:**
-- `persona_id` (str, required): Persona ID
-- `version` (str, required): Version string to activate
-
-**Returns:** `PersonaVersion`
-
----
-
-### `get_active_version()`
-
-Get the currently active version.
-
-**Parameters:**
-- `persona_id` (str, required): Persona ID
 
 **Returns:** `PersonaVersion`
 

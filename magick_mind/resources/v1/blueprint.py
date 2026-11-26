@@ -2,31 +2,25 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Optional
+from typing import Optional
 
 from magick_mind.models.v1.blueprint import (
     Blueprint,
     CloneBlueprintRequest,
     CreateBlueprintRequest,
-    HydratedBlueprint,
     ListBlueprintsResponse,
     PatchBlueprintRequest,
+    SetBlueprintVisibilityRequest,
     UpdateBlueprintRequest,
-    ValidateBlueprintRequest,
-    ValidateBlueprintResponse,
 )
 from magick_mind.models.v1.personality import (
     BlueprintTrait,
     DyadicConfig,
     GrowthConfig,
-    Namespace,
     Visibility,
 )
 from magick_mind.resources.base import BaseResource
 from magick_mind.routes import Routes
-
-if TYPE_CHECKING:
-    pass
 
 
 class BlueprintResourceV1(BaseResource):
@@ -34,7 +28,8 @@ class BlueprintResourceV1(BaseResource):
     Blueprint resource client for V1 API.
 
     Blueprints are reusable persona trait templates that define traits,
-    growth behavior, and dyadic learning config.
+    growth behavior, and dyadic learning config. Only the owner can change
+    a blueprint; anyone can read or clone a PUBLIC one.
 
     Example:
         # Create a blueprint
@@ -42,7 +37,6 @@ class BlueprintResourceV1(BaseResource):
             blueprint_id="friendly-bot",
             name="Friendly Bot",
             category="social",
-            namespace="USER",
             visibility="PRIVATE",
         )
 
@@ -57,7 +51,6 @@ class BlueprintResourceV1(BaseResource):
         blueprint_id: str,
         name: str,
         category: str,
-        namespace: Namespace,
         visibility: Visibility,
         description: Optional[str] = None,
         traits: Optional[list[BlueprintTrait]] = None,
@@ -65,14 +58,13 @@ class BlueprintResourceV1(BaseResource):
         default_dyadic: Optional[DyadicConfig] = None,
     ) -> Blueprint:
         """
-        Create a new blueprint.
+        Create a new blueprint owned by the caller.
 
         Args:
-            blueprint_id: Unique blueprint identifier
+            blueprint_id: Blueprint key, unique per owner
             name: Blueprint name
             category: Blueprint category
-            namespace: Namespace (SYSTEM, USER, or ORG)
-            visibility: Visibility (PRIVATE, ORG, or PUBLIC)
+            visibility: PRIVATE or PUBLIC
             description: Optional description
             traits: Optional list of blueprint traits
             default_growth: Optional default growth configuration
@@ -86,7 +78,6 @@ class BlueprintResourceV1(BaseResource):
             name=name,
             description=description,
             category=category,
-            namespace=namespace,
             traits=traits or [],
             default_growth=default_growth,
             default_dyadic=default_dyadic,
@@ -112,26 +103,22 @@ class BlueprintResourceV1(BaseResource):
 
     async def get_by_key(
         self,
-        namespace: str,
-        owner_id: str,
         blueprint_id: str,
+        owner_id: Optional[str] = None,
     ) -> Blueprint:
         """
-        Get a blueprint by its composite key (namespace + owner_id + blueprint_id).
+        Get a blueprint by its key (owner + blueprint_id).
 
         Args:
-            namespace: Blueprint namespace
-            owner_id: Owner ID
-            blueprint_id: Blueprint ID within the namespace
+            blueprint_id: Blueprint key
+            owner_id: Owner ID; defaults to the authenticated caller
 
         Returns:
             Blueprint
         """
-        params = {
-            "namespace": namespace,
-            "owner_id": owner_id,
-            "blueprint_id": blueprint_id,
-        }
+        params = {"blueprint_id": blueprint_id}
+        if owner_id is not None:
+            params["owner_id"] = owner_id
         response = await self._http.get(Routes.BLUEPRINTS_BY_KEY, params=params)
         return Blueprint.model_validate(response)
 
@@ -142,7 +129,7 @@ class BlueprintResourceV1(BaseResource):
         order: Optional[str] = None,
     ) -> ListBlueprintsResponse:
         """
-        List all blueprints with cursor pagination.
+        List blueprints with cursor pagination.
 
         Args:
             cursor: Pagination cursor
@@ -216,7 +203,8 @@ class BlueprintResourceV1(BaseResource):
         traits: Optional[list[BlueprintTrait]] = None,
         default_growth: Optional[GrowthConfig] = None,
         default_dyadic: Optional[DyadicConfig] = None,
-        visibility: Optional[Visibility] = None,
+        clear_default_growth: bool = False,
+        clear_default_dyadic: bool = False,
     ) -> Blueprint:
         """
         Partial update of a blueprint. Only provided fields are updated.
@@ -229,7 +217,8 @@ class BlueprintResourceV1(BaseResource):
             traits: Optional updated traits
             default_growth: Optional updated growth config
             default_dyadic: Optional updated dyadic config
-            visibility: Optional updated visibility
+            clear_default_growth: Remove the default growth config
+            clear_default_dyadic: Remove the default dyadic config
 
         Returns:
             Blueprint
@@ -241,11 +230,32 @@ class BlueprintResourceV1(BaseResource):
             traits=traits,
             default_growth=default_growth,
             default_dyadic=default_dyadic,
-            visibility=visibility,
+            clear_default_growth=clear_default_growth or None,
+            clear_default_dyadic=clear_default_dyadic or None,
         )
         response = await self._http.patch(
             Routes.blueprint(blueprint_id),
             json=request.model_dump(exclude_none=True),
+        )
+        return Blueprint.model_validate(response)
+
+    async def set_visibility(
+        self, blueprint_id: str, visibility: Visibility
+    ) -> Blueprint:
+        """
+        Switch a blueprint between PRIVATE and PUBLIC.
+
+        Args:
+            blueprint_id: Internal blueprint ID
+            visibility: PRIVATE or PUBLIC
+
+        Returns:
+            Blueprint
+        """
+        request = SetBlueprintVisibilityRequest(visibility=visibility)
+        response = await self._http.patch(
+            Routes.blueprint_visibility(blueprint_id),
+            json=request.model_dump(),
         )
         return Blueprint.model_validate(response)
 
@@ -261,91 +271,22 @@ class BlueprintResourceV1(BaseResource):
     async def clone(
         self,
         blueprint_id: str,
-        new_owner_id: str,
-        new_namespace: Namespace,
         new_blueprint_id: Optional[str] = None,
     ) -> Blueprint:
         """
-        Clone a blueprint to a new owner/namespace.
+        Clone a blueprint (your own, or anyone's PUBLIC one) into a new
+        PRIVATE blueprint owned by the caller.
 
         Args:
             blueprint_id: Source blueprint internal ID
-            new_owner_id: New owner ID
-            new_namespace: New namespace
-            new_blueprint_id: Optional new blueprint ID (auto-generated if omitted)
+            new_blueprint_id: Optional key for the copy (generated if omitted)
 
         Returns:
             Blueprint (the cloned copy)
         """
-        request = CloneBlueprintRequest(
-            new_owner_id=new_owner_id,
-            new_namespace=new_namespace,
-            new_blueprint_id=new_blueprint_id,
-        )
+        request = CloneBlueprintRequest(new_blueprint_id=new_blueprint_id)
         response = await self._http.post(
             Routes.blueprint_clone(blueprint_id),
             json=request.model_dump(exclude_none=True),
         )
         return Blueprint.model_validate(response)
-
-    async def validate(
-        self,
-        blueprint_id: str,
-        name: str,
-        category: str,
-        namespace: Namespace,
-        visibility: Visibility,
-        description: Optional[str] = None,
-        owner_id: Optional[str] = None,
-        traits: Optional[list[BlueprintTrait]] = None,
-        default_growth: Optional[GrowthConfig] = None,
-        default_dyadic: Optional[DyadicConfig] = None,
-    ) -> ValidateBlueprintResponse:
-        """
-        Validate a blueprint payload without saving.
-
-        Args:
-            blueprint_id: Blueprint identifier
-            name: Blueprint name
-            category: Category
-            namespace: Namespace
-            visibility: Visibility
-            description: Optional description
-            owner_id: Optional owner ID
-            traits: Optional traits
-            default_growth: Optional growth config
-            default_dyadic: Optional dyadic config
-
-        Returns:
-            ValidateBlueprintResponse with valid flag and any errors
-        """
-        request = ValidateBlueprintRequest(
-            blueprint_id=blueprint_id,
-            name=name,
-            description=description,
-            category=category,
-            namespace=namespace,
-            owner_id=owner_id,
-            traits=traits or [],
-            default_growth=default_growth,
-            default_dyadic=default_dyadic,
-            visibility=visibility,
-        )
-        response = await self._http.post(
-            Routes.BLUEPRINTS_VALIDATE,
-            json=request.model_dump(exclude_none=True),
-        )
-        return ValidateBlueprintResponse.model_validate(response)
-
-    async def hydrate(self, blueprint_id: str) -> HydratedBlueprint:
-        """
-        Get a blueprint with full trait definitions from the Trait Registry.
-
-        Args:
-            blueprint_id: Internal blueprint ID
-
-        Returns:
-            HydratedBlueprint with enriched trait data
-        """
-        response = await self._http.get(Routes.blueprint_hydrate(blueprint_id))
-        return HydratedBlueprint.model_validate(response)

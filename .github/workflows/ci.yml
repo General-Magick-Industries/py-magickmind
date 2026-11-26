@@ -13,14 +13,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Pinned to the ruff the dev dependencies resolve to, so CI and the
+      # pre-commit hook judge the same files the same way. An unpinned action
+      # picks up new ruff releases (and their new file types) on its own.
       - name: Check formatting with Ruff
         uses: astral-sh/ruff-action@v3
         with:
+          version: "0.15.11"
           args: "format --check"
 
       - name: Lint with Ruff
         uses: astral-sh/ruff-action@v3
         with:
+          version: "0.15.11"
           args: "check"
 
   test:

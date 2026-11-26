@@ -12,6 +12,7 @@ from typing import IO, Optional
 
 import httpx
 
+from magick_mind.exceptions import MagickMindError, hint_by_status
 from magick_mind.models.v1.corpus import (
     AddArtifactsRequest,
     AddArtifactsResponse,
@@ -423,6 +424,59 @@ class CorpusResourceV1(BaseResource):
 
         data = ListArtifactStatusesResponse(**resp)
         return data.statuses
+
+    async def query_own(
+        self,
+        corpus_id: str,
+        *,
+        query: str,
+        mode: Optional[str] = None,
+        only_need_context: bool = False,
+        enable_rerank: Optional[bool] = None,
+        api_key: Optional[str] = None,
+    ) -> QueryCorpusResponse:
+        """
+        Query a corpus with the calling agent's end-user JWT.
+
+        This is where an agent's knowledge tool queries into one of the
+        corpora listed in its prepared context (``ContextPrepareResponse.corpora``).
+        Tenant-scoped: an unknown or cross-tenant corpus answers 404.
+
+        Args:
+            corpus_id: A corpus id from the agent's catalog
+            query: Natural-language query
+            mode: Retrieval mode (server default if omitted)
+            only_need_context: Return retrieved context without an LLM answer
+            enable_rerank: Override the server's rerank default
+            api_key: API key that funds the retrieval, sent as ``x-api-key``
+
+        Raises:
+            MagickMindError: 401 with service-user credentials, 404 if the
+                corpus is unknown to this tenant
+        """
+        body: dict[str, object] = {
+            "query": query,
+            "only_need_context": only_need_context,
+        }
+        if mode is not None:
+            body["mode"] = mode
+        if enable_rerank is not None:
+            body["enable_rerank"] = enable_rerank
+        headers = {"x-api-key": api_key} if api_key else None
+        try:
+            response = await self._http.post(
+                Routes.end_user_corpus_query(corpus_id), json=body, headers=headers
+            )
+        except MagickMindError as exc:
+            hints = {
+                401: (
+                    "hint: this route needs a valid end-user JWT; with "
+                    "service-user credentials use query()"
+                ),
+                404: f"hint: corpus {corpus_id!r} is unknown to this tenant",
+            }
+            hint_by_status(exc, hints)
+        return QueryCorpusResponse.model_validate(response)
 
     async def query(
         self,

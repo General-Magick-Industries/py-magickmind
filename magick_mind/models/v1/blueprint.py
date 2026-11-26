@@ -11,7 +11,6 @@ from magick_mind.models.v1.personality import (
     BlueprintTrait,
     DyadicConfig,
     GrowthConfig,
-    Namespace,
     Visibility,
 )
 
@@ -24,7 +23,6 @@ class Blueprint(BaseModel):
     name: str
     description: str = ""
     category: str
-    namespace: Namespace
     owner_id: Optional[str] = None
     traits: list[BlueprintTrait] = Field(default_factory=list)
     default_growth: Optional[GrowthConfig] = None
@@ -33,6 +31,7 @@ class Blueprint(BaseModel):
     created_by: str = ""
     created_at: str = ""
     updated_at: str = ""
+    revision: int = 0
 
     @field_validator("traits", mode="before")
     @classmethod
@@ -47,7 +46,6 @@ class CreateBlueprintRequest(BaseModel):
     name: str
     description: Optional[str] = None
     category: str
-    namespace: Namespace
     traits: list[BlueprintTrait] = Field(default_factory=list)
     default_growth: Optional[GrowthConfig] = None
     default_dyadic: Optional[DyadicConfig] = None
@@ -67,7 +65,10 @@ class UpdateBlueprintRequest(BaseModel):
 
 
 class PatchBlueprintRequest(BaseModel):
-    """Request to partially update a blueprint."""
+    """Request to partially update a blueprint.
+
+    Visibility is changed through its own route; see SetBlueprintVisibilityRequest.
+    """
 
     name: Optional[str] = None
     description: Optional[str] = None
@@ -75,73 +76,20 @@ class PatchBlueprintRequest(BaseModel):
     traits: Optional[list[BlueprintTrait]] = None
     default_growth: Optional[GrowthConfig] = None
     default_dyadic: Optional[DyadicConfig] = None
-    visibility: Optional[Visibility] = None
+    clear_default_growth: Optional[bool] = None
+    clear_default_dyadic: Optional[bool] = None
 
 
-class CloneBlueprintRequest(BaseModel):
-    """Request to clone a blueprint."""
+class SetBlueprintVisibilityRequest(BaseModel):
+    """Request to switch a blueprint between PRIVATE and PUBLIC."""
 
-    new_owner_id: str
-    new_namespace: Namespace
-    new_blueprint_id: Optional[str] = None
-
-
-class ValidateBlueprintRequest(BaseModel):
-    """Request to validate a blueprint payload without saving."""
-
-    blueprint_id: str
-    name: str
-    description: Optional[str] = None
-    category: str
-    namespace: Namespace
-    owner_id: Optional[str] = None
-    traits: list[BlueprintTrait] = Field(default_factory=list)
-    default_growth: Optional[GrowthConfig] = None
-    default_dyadic: Optional[DyadicConfig] = None
     visibility: Visibility
 
 
-class ValidationError(BaseModel):
-    """A single validation error."""
+class CloneBlueprintRequest(BaseModel):
+    """Request to clone a blueprint into the caller's own blueprints."""
 
-    field: str
-    message: str
-    trait_ref: Optional[str] = None
-
-
-class ValidateBlueprintResponse(BaseModel):
-    """Response from blueprint validation."""
-
-    valid: bool
-    errors: list[ValidationError] = Field(default_factory=list)
-
-    @field_validator("errors", mode="before")
-    @classmethod
-    def _coerce_null_list(cls, v: object) -> object:
-        return v if v is not None else []
-
-
-class HydratedBlueprintTrait(BaseModel):
-    """A blueprint trait enriched with full trait registry data."""
-
-    blueprint_trait: BlueprintTrait
-    trait_name: str
-    trait_display_name: str
-    trait_description: str
-    trait_type: str
-    trait_category: str
-
-
-class HydratedBlueprint(BaseModel):
-    """A blueprint with hydrated trait definitions."""
-
-    blueprint: Blueprint
-    hydrated_traits: list[HydratedBlueprintTrait] = Field(default_factory=list)
-
-    @field_validator("hydrated_traits", mode="before")
-    @classmethod
-    def _coerce_null_list(cls, v: object) -> object:
-        return v if v is not None else []
+    new_blueprint_id: Optional[str] = None
 
 
 class ListBlueprintsResponse(BaseModel):

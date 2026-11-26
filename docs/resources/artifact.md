@@ -36,7 +36,7 @@ client = MagickMind(
 )
 
 # Upload a file (all-in-one convenience method)
-presign_resp, upload_resp = client.v1.artifact.upload_file(
+presign_resp, upload_resp = await client.v1.artifact.upload_file(
     file_path="./document.pdf",
     content_type="application/pdf",
     corpus_id="corpus-123"
@@ -49,7 +49,7 @@ print(f"Uploaded! Artifact ID: {presign_resp.id}")
 
 ```python
 # Step 1: Get presigned URL
-presign_resp = client.v1.artifact.presign_upload(
+presign_resp = await client.v1.artifact.presign_upload(
     file_name="document.pdf",
     content_type="application/pdf",
     size_bytes=1024000,
@@ -66,7 +66,7 @@ with open("document.pdf", "rb") as f:
 
 # Step 3: Webhook handles completion automatically
 # Or use finalize() in local dev:
-client.v1.artifact.finalize(
+await client.v1.artifact.finalize(
     artifact_id=presign_resp.id,
     bucket=presign_resp.bucket,
     key=presign_resp.key,
@@ -91,7 +91,7 @@ Get a presigned S3 URL for uploading a file.
 
 **Example:**
 ```python
-response = client.v1.artifact.presign_upload(
+response = await client.v1.artifact.presign_upload(
     file_name="report.pdf",
     content_type="application/pdf",
     size_bytes=2048000
@@ -112,7 +112,7 @@ Convenience method that combines presign and upload.
 
 **Example:**
 ```python
-presign_resp, upload_resp = client.v1.artifact.upload_file(
+presign_resp, upload_resp = await client.v1.artifact.upload_file(
     file_path="./data.json",
     content_type="application/json",
     corpus_id="corpus-456"
@@ -130,29 +130,40 @@ Retrieve artifact metadata by ID.
 
 **Example:**
 ```python
-artifact = client.v1.artifact.get(artifact_id="art-123")
+artifact = await client.v1.artifact.get(artifact_id="art-123")
 print(f"Status: {artifact.status}")
 print(f"S3 URL: {artifact.s3_url}")
 ```
 
 ### `list()`
 
-Query artifacts with optional filters.
+List the tenant's artifacts, one page at a time.
 
 **Parameters:**
-- `corpus_id` (str, optional): Filter by corpus
 - `end_user_id` (str, optional): Filter by end user
 - `status` (str, optional): Filter by status (`uploaded`, `processing`, `ready`, `failed`)
+- `cursor` (str, optional): `next_cursor` of the previous page
+- `limit` (int, optional): Page size, 1..100 (server default 20)
 
-**Returns:** `list[Artifact]`
+**Returns:** `ListArtifactsResponse` — the page in `data`, and `next_cursor`
+for the following one (`None` on the last page)
 
 **Example:**
 ```python
-# All artifacts for a corpus
-artifacts = client.v1.artifact.list(corpus_id="corpus-123")
+# Ready artifacts, first page
+page = await client.v1.artifact.list(status="ready")
+for artifact in page.data:
+    print(artifact.id)
 
-# Ready artifacts only
-ready = client.v1.artifact.list(status="ready")
+# Every page
+cursor = None
+while True:
+    page = await client.v1.artifact.list(cursor=cursor, limit=100)
+    for artifact in page.data:
+        print(artifact.id)
+    if page.next_cursor is None:
+        break
+    cursor = page.next_cursor
 ```
 
 ### `delete()`
@@ -166,7 +177,7 @@ Delete an artifact.
 
 **Example:**
 ```python
-client.v1.artifact.delete(artifact_id="art-123")
+await client.v1.artifact.delete(artifact_id="art-123")
 ```
 
 ### `finalize()`
@@ -188,7 +199,7 @@ Client-driven finalize (fallback for local development).
 
 **Example:**
 ```python
-response = client.v1.artifact.finalize(
+response = await client.v1.artifact.finalize(
     artifact_id=presign_resp.id,
     bucket=presign_resp.bucket,
     key=presign_resp.key,
@@ -222,7 +233,7 @@ Canonical artifact model representing an uploaded file.
 The convenience method handles presigning and upload in one call:
 
 ```python
-presign_resp, upload_resp = client.v1.artifact.upload_file(
+presign_resp, upload_resp = await client.v1.artifact.upload_file(
     file_path="./file.pdf",
     content_type="application/pdf"
 )
@@ -248,7 +259,7 @@ In production, S3 Lambda webhooks handle completion automatically. Only use `fin
 After upload, artifacts may be in different states:
 
 ```python
-artifact = client.v1.artifact.get(artifact_id=id)
+artifact = await client.v1.artifact.get(artifact_id=id)
 
 if artifact.status == "ready":
     # Artifact is ready for use
@@ -266,7 +277,7 @@ elif artifact.status == "failed":
 Always associate artifacts with a corpus for organization:
 
 ```python
-presign_resp = client.v1.artifact.presign_upload(
+presign_resp = await client.v1.artifact.presign_upload(
     file_name="doc.pdf",
     content_type="application/pdf",
     size_bytes=1000000,
@@ -280,10 +291,10 @@ When running locally without S3 Lambda webhooks, use the finalize method:
 
 ```python
 # Upload file
-presign_resp, _ = client.v1.artifact.upload_file(...)
+presign_resp, _ = await client.v1.artifact.upload_file(...)
 
 # Manually finalize
-client.v1.artifact.finalize(
+await client.v1.artifact.finalize(
     artifact_id=presign_resp.id,
     bucket=presign_resp.bucket,
     key=presign_resp.key,
@@ -297,7 +308,7 @@ client.v1.artifact.finalize(
 from requests.exceptions import HTTPError
 
 try:
-    presign_resp, upload_resp = client.v1.artifact.upload_file(
+    presign_resp, upload_resp = await client.v1.artifact.upload_file(
         file_path="./file.pdf",
         content_type="application/pdf"
     )
@@ -323,7 +334,7 @@ Artifacts can be attached to chat messages for document analysis, image understa
 
 ```python
 # Step 1: Upload artifact
-presign_resp, upload_resp = client.v1.artifact.upload_file(
+presign_resp, upload_resp = await client.v1.artifact.upload_file(
     file_path="./financial_report.pdf",
     content_type="application/pdf"
 )
@@ -344,12 +355,12 @@ print(chat_response.content.content)  # AI summary
 
 ```python
 # Upload multiple files
-doc1_resp, _ = client.v1.artifact.upload_file(
+doc1_resp, _ = await client.v1.artifact.upload_file(
     file_path="./report1.pdf",
     content_type="application/pdf"
 )
 
-doc2_resp, _ = client.v1.artifact.upload_file(
+doc2_resp, _ = await client.v1.artifact.upload_file(
     file_path="./report2.pdf",
     content_type="application/pdf"
 )
@@ -370,7 +381,7 @@ Artifacts are first-class resources that can be reused across multiple chats:
 
 ```python
 # Upload once
-artifact_resp, _ = client.v1.artifact.upload_file(
+artifact_resp, _ = await client.v1.artifact.upload_file(
     file_path="./company_handbook.pdf",
     content_type="application/pdf"
 )
@@ -401,3 +412,34 @@ response2 = client.v1.chat.send(
 
 - [ADR-004: Upload and Notifications](../../bifrost/docs/adr/ADR-004-upload-and-notifications.md)
 - [Example Code](../examples/artifact_example.py)
+
+## Magickspace-scoped and agent (end-user) operations
+
+Service user, into a space the tenant owns:
+
+```python
+presigned = await client.v1.artifact.presign_upload_to_magickspace(
+    "ms-1", content_type="image/png", size_bytes=2048, end_user_id="agent-1"
+)
+```
+
+As the agent (`MagickMind.from_token`), keyed by the space it participates in:
+
+| Method | Route |
+|---|---|
+| `presign_own_upload(ms, content_type=, size_bytes=, file_name=)` | `POST /v1/end-user/magickspaces/{ms}/artifacts/presign` |
+| `finalize_own(ms, artifact_id=, bucket=, key=, version_id=)` | `POST .../artifacts/finalize` |
+| `list_own(ms, content_type=, status=, cursor=, limit=)` | `GET .../artifacts` -> `ListArtifactsResponse` (`.data`, `.next_cursor`) |
+| `get_own(ms, artifact_id)` / `download_url_own(...)` / `delete_own(...)` | `GET` / `GET .../download` / `DELETE .../artifacts/{id}` |
+
+Owner operations, keyed by artifact alone, keep working after the agent
+leaves the space:
+
+```python
+await agent.v1.artifact.get_uploaded("art-1")
+await agent.v1.artifact.download_url_uploaded("art-1")
+await agent.v1.artifact.delete_uploaded("art-1")
+```
+
+Both `list()` and `list_own()` page the same way the server does (`limit` 1..100,
+`cursor` = the previous page's `next_cursor`) and return the page envelope.

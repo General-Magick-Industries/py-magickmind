@@ -165,9 +165,9 @@ asyncio.run(main())
 
 📖 **Learn more:** [Mindspace Resource Guide](docs/resources/mindspace.md)
 
-### Service Users
+### Service Users and Agents
 
-This SDK is designed for **service-level authentication** (email/password). Your backend authenticates as a service user and acts on behalf of end users.
+The SDK authenticates two ways. Your backend authenticates as a **service user** (email/password) and acts on behalf of end users. An **agent process** holds an end-user token minted for it by the service user (`MagickMind.from_token()`), calls the `*_own` methods as itself, and rotates the token ahead of expiry. See the [Agent Client guide](docs/guides/agent_client.md).
 
 **Common architecture:**
 ```
@@ -190,6 +190,7 @@ For direct device-to-API patterns (robotics/IoT), see [Event-Driven Patterns](do
 - [Error Handling](docs/guides/error_handling.md) - Exception types, retry patterns, production examples
 - [Advanced Usage](docs/guides/advanced_usage.md) - Direct HTTP client access for power users
 - [Persona & Prepare](docs/guides/persona.md) - AI persona creation, versioning, and system prompt generation
+- [Agent Client](docs/guides/agent_client.md) - Building an agent process on an end-user token
 - [Realtime Guide](docs/realtime_guide.md) - Complete WebSocket guide with bulk operations and relay architecture
 
 ### Resources
@@ -198,6 +199,7 @@ For direct device-to-API patterns (robotics/IoT), see [Event-Driven Patterns](do
 - [Corpus](docs/resources/corpus.md) - Knowledge base management
 - [Artifact](docs/resources/artifact.md) - Document/blob storage
 - [End User](docs/resources/end_user.md) - User identity management
+- [Episode](docs/resources/episode.md) - Episodic memory ingest and search
 - [Project](docs/resources/project.md) - Project organization
 
 ### Contributing

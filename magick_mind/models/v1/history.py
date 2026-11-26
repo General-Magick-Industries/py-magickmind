@@ -6,9 +6,10 @@ Mirrors the /v1/magickspaces/messages endpoint response.
 
 from typing import ClassVar, Optional
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import AliasChoices, BaseModel, ConfigDict, Field, field_validator
 
 from magick_mind.models.common import Cursors, PageInfo
+from magick_mind.models.v1.space_type import MindSpaceType, space_type_or_none
 
 
 class ChatHistoryMessage(BaseModel):
@@ -20,18 +21,49 @@ class ChatHistoryMessage(BaseModel):
 
     model_config: ClassVar[ConfigDict] = ConfigDict(populate_by_name=True)
 
-    id: Optional[str] = Field(None, description="Message ID")
+    id: Optional[str] = Field(default=None, description="Message ID")
     mindspace_id: Optional[str] = Field(
-        None, description="Mindspace this message belongs to"
+        None,
+        validation_alias=AliasChoices("magickspace_id", "mindspace_id"),
+        description="Magickspace this message belongs to",
     )
     sent_by_user_id: Optional[str] = Field(
         None, description="User who sent the message"
     )
-    content: Optional[str] = Field(None, description="Message content/text")
+    sent_by_user_name: Optional[str] = Field(
+        None, description="Sender display name, joined best-effort"
+    )
+    magickspace_type: Optional[MindSpaceType] = Field(
+        default=None, description="PRIVATE or GROUP of the containing space"
+    )
+    content: Optional[str] = Field(default=None, description="Message content/text")
     reply_to_message_id: Optional[str] = Field(
         default=None, description="ID of message being replied to"
     )
-    status: Optional[str] = Field(None, description="Message status")
+    artifact_ids: list[str] = Field(default_factory=list)
+    message_type: Optional[str] = Field(
+        default=None, description="TEXT, TOOL_*, SIGNAL_*"
+    )
+    client_message_id: Optional[str] = Field(
+        None, description="Sender's idempotency key"
+    )
+    status: Optional[str] = Field(default=None, description="Message status")
+
+    @field_validator("artifact_ids", mode="before")
+    @classmethod
+    def _coerce_null_list(cls, v: object) -> object:
+        return v if v is not None else []
+
+    @field_validator("magickspace_type", mode="before")
+    @classmethod
+    def _normalize_type(cls, v: object) -> object:
+        return space_type_or_none(v)
+
+    @property
+    def magickspace_id(self) -> Optional[str]:
+        """The space this message belongs to (``mindspace_id`` is the legacy name)."""
+        return self.mindspace_id
+
     created_at: Optional[str] = Field(
         None, alias="create_at", description="Creation timestamp (RFC3339)"
     )

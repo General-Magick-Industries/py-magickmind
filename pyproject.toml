@@ -1,6 +1,6 @@
 [project]
 name = "magickmind"
-version = "0.4.1"
+version = "0.5.0"
 authors = [
   { name = "Adrian", email = "adrian@magickmind.ai" },
   { name = "Minnie", email = "minnie@magickmind.ai" },
@@ -73,6 +73,11 @@ dev = [
   "dirty-equals>=0.8.0",
   "ruff>=0.15.11",
 ]
+
+[tool.ruff]
+# Python only: newer ruff releases also format Markdown code blocks, which
+# would put every doc page under the formatter.
+extend-exclude = ["*.md"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

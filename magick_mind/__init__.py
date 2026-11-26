@@ -4,6 +4,7 @@ Magick Mind SDK - Python client for the Magick Mind AI platform.
 Simple, powerful SDK for authentication and interaction with the Magick Mind API.
 """
 
+from magick_mind.auth import EndUserTokenAuth, StaticTokenAuth
 from magick_mind.client import MagickMind
 from magick_mind.exceptions import (
     AuthenticationError,
@@ -39,23 +40,34 @@ from magick_mind.models.v1 import (
     ChatSendResponse,
     ChatHistoryMessage,
     HistoryResponse,
+    MessageType,
+    is_control_message,
+    is_signal_message,
 )
 from magick_mind.realtime.events import (
+    MAGICKSPACE_MESSAGE,
     ArtifactData,
     ArtifactPayload,
     ChatMessageEvent,
     ChatMessagePayload,
     ImageGenerationEvent,
+    MagickspaceMessageEvent,
+    MagickspaceMessagePayload,
     UnknownEvent,
     WsEvent,
     parse_ws_event,
 )
 
-__version__ = "0.4.1"
+__version__ = "0.5.0"
 
 __all__ = [
     "Client",
     "MagickMind",
+    "EndUserTokenAuth",
+    "StaticTokenAuth",
+    "MessageType",
+    "is_signal_message",
+    "is_control_message",
     "LLM",
     "MCTS",
     "RLM",
@@ -89,6 +101,9 @@ __all__ = [
     "ArtifactData",
     "ArtifactPayload",
     "ImageGenerationEvent",
+    "MAGICKSPACE_MESSAGE",
+    "MagickspaceMessageEvent",
+    "MagickspaceMessagePayload",
     "UnknownEvent",
     "WsEvent",
     "parse_ws_event",

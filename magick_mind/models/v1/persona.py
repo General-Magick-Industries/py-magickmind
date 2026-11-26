@@ -26,7 +26,8 @@ class Persona(BaseModel):
     background_story: str = ""
     created_by: str = ""
     updated_by: str = ""
-    active_version: Optional[str] = None
+    source_blueprint_id: Optional[str] = None
+    source_blueprint_revision: Optional[int] = None
 
     @field_validator("traits", "tones", mode="before")
     @classmethod
@@ -60,6 +61,7 @@ class CreatePersonaFromBlueprintRequest(BaseModel):
     """Request to create a persona from a blueprint with optional overrides."""
 
     blueprint_id: str
+    version: str
     name: str
     role: str
     background_story: Optional[str] = None
@@ -82,7 +84,9 @@ class PersonaVersion(BaseModel):
     growth: Optional[GrowthConfig] = None
     dyadic: Optional[DyadicConfig] = None
     created_at: str = ""
-    is_active: bool = False
+    source_blueprint_id: Optional[str] = None
+    source_blueprint_revision: Optional[int] = None
+    meanings_blueprint_revision: Optional[int] = None
 
     @field_validator("constraints", mode="before")
     @classmethod
@@ -113,9 +117,25 @@ class PreparePersonaRequest(BaseModel):
 
 
 class PreparePersonaResponse(BaseModel):
-    """Response containing the generated system prompt."""
+    """Response containing the generated system prompt (legacy persona-keyed path)."""
 
     system_prompt: str
+
+
+class PrepareAgentPersonaResponse(BaseModel):
+    """Response from the agent-keyed persona prepare endpoint.
+
+    ``system_prompt`` is assembled server-side and complete: identity, background,
+    traits, and tones are already blended in. It is used verbatim.
+    """
+
+    agent_id: str
+    persona_id: str
+    active_persona_version_id: str
+    user_id: Optional[str] = None
+    system_prompt: str
+    computed_at: str = ""
+    ttl_seconds: int = 0
 
 
 class ListPersonaVersionsResponse(BaseModel):

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Optional
+from typing import Any, Mapping, NoReturn, Optional
 
 from magick_mind.models.errors import ProblemDetails, ValidationErrorField
 
@@ -16,13 +16,57 @@ class MagickMindError(Exception):
     def __init__(self, message: str, status_code: int | None = None):
         self.message = message
         self.status_code = status_code
+        self.hint: Optional[str] = None
         super().__init__(self.message)
+
+    def _base_str(self) -> str:
+        """The message without any SDK hint. Subclasses override to add detail."""
+        return self.message
+
+    def __str__(self) -> str:
+        base = self._base_str()
+        return f"{base} ({self.hint})" if self.hint else base
+
+
+def reraise_with_hint(exc: MagickMindError, hint: str) -> NoReturn:
+    """Re-raise ``exc`` with an SDK ``hint`` attached, preserving its exact type.
+
+    The hint is stored on ``exc.hint`` and surfaced by ``__str__``. It is
+    deliberately kept out of ``detail``/``problem``, which hold the server's own
+    RFC 7807 payload -- overwriting those would make the SDK's guidance
+    indistinguishable from what the API actually said.
+
+    The exception object is re-raised as-is, so its type and every field
+    survive: a caller catching :class:`ProblemDetailsException`,
+    :class:`ValidationError`, or :class:`AuthenticationError` still matches.
+    Applying a hint twice replaces the first rather than stacking.
+    """
+    exc.hint = hint
+    # args feeds repr() and traceback formatting, which bypass __str__; message
+    # stays the server's own text so __str__ can append the hint exactly once.
+    exc.args = (str(exc),)
+    raise exc
 
 
 class AuthenticationError(MagickMindError):
     """Raised when authentication fails."""
 
     pass
+
+
+def hint_by_status(exc: MagickMindError, hints: Mapping[int, str]) -> NoReturn:
+    """Re-raise an API error with the hint registered for its status, if any.
+
+    Credential errors raised by the auth provider itself (an
+    :class:`AuthenticationError` from token rotation) pass through untouched:
+    their status is a verdict on the token, not on the route, and a
+    route-specific hint would misdiagnose them.
+    """
+    if isinstance(exc, AuthenticationError):
+        raise exc
+    if exc.status_code is not None and exc.status_code in hints:
+        reraise_with_hint(exc, hints[exc.status_code])
+    raise exc
 
 
 class TokenExpiredError(AuthenticationError):
@@ -67,7 +111,7 @@ class ProblemDetailsException(MagickMindError):
         super().__init__(self.detail, status_code=self.status)
         self.response_data: Optional[dict[str, Any]] = raw_response
 
-    def __str__(self) -> str:
+    def _base_str(self) -> str:
         msg = f"[{self.status}] {self.title}: {self.detail}"
         if self.request_id:
             msg += f" (request_id: {self.request_id})"

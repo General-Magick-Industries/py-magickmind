@@ -7,7 +7,7 @@ BASE_URL = "https://api.test"
 MINDSPACE_PAYLOAD = {
     "id": "ms-123",
     "name": "Test Space",
-    "type": "PRIVATE",
+    "type": "MAGICKSPACE_TYPE_PRIVATE",
     "description": "test",
     "project_id": "proj-1",
     "created_by": "user-1",
@@ -110,6 +110,24 @@ ERROR_ENVELOPE = {
         "request_id": "req-abc123",
     }
 }
+
+
+def _error_envelope(status: int, title: str, detail: str) -> dict:
+    """Build an RFC 7807 error envelope as the API returns it.
+
+    ``request_id`` is fixed to ``req-abc123`` so tests can assert it survives
+    error enrichment.
+    """
+    return {
+        "error": {
+            "type": "about:blank",
+            "title": title,
+            "status": status,
+            "detail": detail,
+            "request_id": "req-abc123",
+        }
+    }
+
 
 ERROR_500_ENVELOPE = {
     "error": {
